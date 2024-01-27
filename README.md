@@ -1,1 +1,1 @@
-# open-fitness-tracker
+# open_fitness_tracker

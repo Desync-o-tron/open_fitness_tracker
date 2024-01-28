@@ -31,10 +31,10 @@ final GoRouter routerConfig = GoRouter(
       navigatorKey: _shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) => ScaffoldWithNavBar(child: child),
       routes: [
-        // GoRoute(
-        //   path: routeNames.Home.text,
-        //   builder: (BuildContext context, GoRouterState state) => const StartTrainingPage(),
-        // ),
+        GoRoute(
+          path: routeNames.Home.text,
+          builder: (BuildContext context, GoRouterState state) => const StartTrainingPage(),
+        ),
         GoRoute(
           path: routeNames.Community.text,
           builder: (BuildContext context, GoRouterState state) => const CommunityPage(),

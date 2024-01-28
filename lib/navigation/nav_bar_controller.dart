@@ -10,31 +10,20 @@ class NavBarController {
     3: routeNames.Exercises.text,
   };
 
-  // static int getCurrentPageIndex(BuildContext context) {
-  //   // final String currentPageName = GoRouter.of(context).namedLocation(name);
-  //   final router = GoRouter.of(context);
-  //   router.bb;
-  //   int pageIndex = 0;
-  //   navBarRoutes.forEach((int index, String routeName) {
-  //     if (currentPageName == routeName) {
-  //       pageIndex = index;
-  //     }
-  //   });
-  //   return pageIndex;
-  // }
+  static int getCurrentPageIndex(BuildContext context) {
+    final String currentPageName = GoRouterState.of(context).uri.toString();
+    int pageIndex = 0;
+    navBarRoutes.forEach((int index, String routeName) {
+      if (currentPageName == routeName) {
+        pageIndex = index;
+      }
+    });
+    return pageIndex;
+  }
 
   static void onItemTapped(int index, BuildContext context) {
-    assert(navBarRoutes.containsKey(index));
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go(navBarRoutes[index]!);
-        break;
-      case 1:
-        GoRouter.of(context).go(navBarRoutes[index]!);
-        break;
-      case 2:
-        GoRouter.of(context).go(navBarRoutes[index]!);
-        break;
+    if (navBarRoutes.containsKey(index)) {
+      GoRouter.of(context).go(navBarRoutes[index]!);
     }
   }
 }

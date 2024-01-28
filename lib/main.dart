@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
-import 'package:open_fitness_tracker/theme.dart';
+import 'package:open_fitness_tracker/styles.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,19 +16,5 @@ class MyApp extends StatelessWidget {
       routerConfig: routerConfig,
       title: 'Open Fitness Tracker',
     );
-
-    // return MaterialApp(
-    //   title: 'Flutter Demo',
-    //   theme: ThemeData(
-    //     useMaterial3: true,
-    //     // primaryColor: Colors.blue,
-    //     // secondaryHeaderColor: Colors.green,
-    //     hintColor: Colors.yellow,
-    //     colorScheme: ColorScheme.fromSeed(seedColor: darkTan), //.copyWith(background: lightTan),
-    //     // .copyWith(error: Colors.red)
-    //     // .copyWith(background: Colors.white),
-    //   ),
-    //   home: WorkoutStartSelectionPage(),
-    // );
   }
 }

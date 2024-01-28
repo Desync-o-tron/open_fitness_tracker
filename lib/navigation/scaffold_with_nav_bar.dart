@@ -31,15 +31,15 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add_box),
-            label: 'Workout',
+            label: 'Training',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center),
             label: 'Exercises',
           ),
         ],
-        // currentIndex: NavBarController.getCurrentPageIndex(context),
-        currentIndex: 2,
+        currentIndex: NavBarController.getCurrentPageIndex(context),
+        // currentIndex: 2,
         onTap: (int index) => NavBarController.onItemTapped(index, context),
         selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
         backgroundColor: Theme.of(context).colorScheme.primary,

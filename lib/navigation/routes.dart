@@ -49,7 +49,7 @@ final GoRouter routerConfig = GoRouter(
         ),
         GoRoute(
           path: routeNames.Exercises.text,
-          builder: (BuildContext context, GoRouterState state) => const ExercisesPage(),
+          builder: (BuildContext context, GoRouterState state) => ExercisesPage(),
         ),
       ],
     ),

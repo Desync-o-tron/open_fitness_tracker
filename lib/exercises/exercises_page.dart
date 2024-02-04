@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ExercisesPage extends StatelessWidget {
@@ -20,6 +21,43 @@ class ExercisesPage extends StatelessWidget {
     // Add more exercises here...
   ];
 
+  String searchQuery = '';
+
+  void updateSearchQuery(String newQuery) {
+    // setState(() {
+    //   searchQuery = newQuery.toLowerCase();
+    // });
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Center(
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Text(
+  //           'Exercises',
+  //           style: Theme.of(context).textTheme.displayLarge,
+  //           // TextStyle(
+  //           //   fontSize: 32,
+  //           //   fontWeight: FontWeight.bold,
+  //           //   color: Colors.black,
+  //           // ),
+  //         ),
+  //         Expanded(
+  //           child: ListView.builder(
+  //             itemCount: exercises.length,
+  //             itemBuilder: (context, index) {
+  //               return ExerciseTile(exercise: exercises[index]);
+  //             },
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -36,10 +74,27 @@ class ExercisesPage extends StatelessWidget {
             // ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                return ExerciseTile(exercise: exercises[index]);
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore.collection('exercisesStringy').snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                    return Center(child: CircularProgressIndicator());
+                  default:
+                    return ListView(
+                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                        Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                        return ListTile(
+                          title: Text(data['name']), // Assuming your collection has a 'name' field
+                          // subtitle: Text(data['description']), // And a 'description' field
+                        );
+                      }).toList(),
+                    );
+                }
               },
             ),
           ),

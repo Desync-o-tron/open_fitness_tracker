@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "211289236675",
+    "project_id": "openfitnesstracker-d8fgp5",
+    "storage_bucket": "openfitnesstracker-d8fgp5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211289236675:android:501324e55afa113f95ae76",
+        "android_client_info": {
+          "package_name": "com.example.open_fitness_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEJwdQoi3Qh9F2MnznGwOTwGRmbI8_xXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.openfitnesstracker.go"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211289236675:android:b0afcd342f845ac895ae76",
+        "android_client_info": {
+          "package_name": "com.openfitnesstracker.go"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211289236675-4fdbrih5492p02ssr3q1rf1ef2q9nkrb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.openfitnesstracker.go",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEJwdQoi3Qh9F2MnznGwOTwGRmbI8_xXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.openfitnesstracker.go"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

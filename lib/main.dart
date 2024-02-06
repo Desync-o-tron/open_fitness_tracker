@@ -8,13 +8,14 @@ import 'dart:convert';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-class GlobalState {
+class gs {
   static List<Exercise> exercises = [];
+  static List<String> getExerciseNames = exercises.map((e) => e.name).toList();
 }
 
 Future<void> loadExerciseData() async {
   String jsonString = await rootBundle.loadString('assets/data/exercises.json');
-  GlobalState.exercises = (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList();
+  gs.exercises = (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList();
 }
 
 Future<void> main() async {

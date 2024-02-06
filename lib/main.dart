@@ -1,23 +1,28 @@
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:open_fitness_tracker/firebase_options.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'dart:convert';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+class GlobalState {
+  static List<Exercise> exercises = [];
+}
+
 Future<void> loadExerciseData() async {
-  String jsonString = await rootBundle.loadString('assets/data/my_data.json');
-  final jsonResponse = json.decode(jsonString);
-  // Use the jsonResponse as needed
+  String jsonString = await rootBundle.loadString('assets/data/exercises.json');
+  GlobalState.exercises = (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList();
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await loadExerciseData();
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
 
   runApp(const MyApp());
 }

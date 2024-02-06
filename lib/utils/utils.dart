@@ -97,3 +97,17 @@ extension ListExtension<E> on List<E> {
     }
   }
 }
+
+//untested
+String enumToReadableString(Object o) {
+  final String enumString = o.toString().split('.').last;
+  final RegExp exp = RegExp(r"(?<=[a-z])(?=[A-Z])");
+
+  return enumString
+      .splitMapJoin(
+        exp,
+        onMatch: (_) => " ",
+        onNonMatch: (n) => n,
+      )
+      .toLowerCase();
+}

@@ -7,14 +7,17 @@ import 'package:open_fitness_tracker/state.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-class ExSearchPageState {
+class ExSearchPageState extends StateNotifier<ExSearchPageState> {
   List<Exercise> filteredExercises = gExs.exercises;
   List<String> categoriesFilter = [];
   List<String> musclesFilter = [];
   String enteredKeyword = '';
 }
 
-final exSearchPageStateP = StateProvider<ExSearchPageState>((ref) {
+final aoeu = ExSearchPageState();
+
+// final exSearchPageStateP = StateProvider<ExSearchPageState>((ref) {
+final exSearchPageStateP = NotifierProvider<ExSearchPageState, aoeu>((ref) {
   return ExSearchPageState();
 });
 
@@ -34,10 +37,8 @@ class ExercisesPage extends ConsumerWidget {
     state.filteredExercises = gExs.exercises;
 
     // filter by muscles
+    List<Exercise> newFilteredExercises = [];
     for (String muscle in state.musclesFilter) {
-      // state.filteredExercises
-      //     .addAllIfDNE(state.filteredExercises.where((e) => e.primaryMuscles.contains(muscle)).toList());
-      List<Exercise> newFilteredExercises = [];
       for (var e in state.filteredExercises) {
         if (e.primaryMuscles.contains(muscle)) {
           newFilteredExercises.addIfDNE(e);
@@ -48,7 +49,6 @@ class ExercisesPage extends ConsumerWidget {
           newFilteredExercises.addIfDNE(e);
         }
       }
-      state.filteredExercises = newFilteredExercises;
       // state.filteredExercises
       //     .addAllIfDNE(state.filteredExercises.where((e) => e.secondaryMuscles?.contains(muscle)).toList());
       //TODO^
@@ -63,13 +63,18 @@ class ExercisesPage extends ConsumerWidget {
     //   var matchedNames = results.map((r) => r.item as String).toSet();
     //   state.filteredExercises = state.filteredExercises.where((e) => matchedNames.contains(e.name)).toList();
     // }
+    state.filteredExercises = newFilteredExercises;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<ExSearchPageState>(exSearchPageStateP, (var prev, var curr) {
+      applyFilters(ref);
+    });
     List<Exercise> filteredExercises = ref.watch(exSearchPageStateP).filteredExercises;
     List<String> categoriesFilter = ref.watch(exSearchPageStateP).categoriesFilter;
     List<String> musclesFilter = ref.watch(exSearchPageStateP).musclesFilter;
+
     return Container(
       // color: Theme.of(context).colorScheme.secondary,
       child: Center(
@@ -83,7 +88,6 @@ class ExercisesPage extends ConsumerWidget {
             Expanded(
               child: ListView.builder(
                 itemCount: filteredExercises.length,
-                // itemCount: filteredExercises.length,
                 itemBuilder: (context, index) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
@@ -107,7 +111,7 @@ class ExercisesPage extends ConsumerWidget {
                         var newMusclesFilter =
                             await showMultiSelectModal(context, gExs.muscles, musclesFilter);
                         ref.read(exSearchPageStateP).musclesFilter = newMusclesFilter;
-                        applyFilters(ref); //would be nice if I didn't have to call this manually...TODO!
+                        // applyFilters(ref); //would be nice if I didn't have to call this manually...TODO!
                       },
                     ),
                   ),

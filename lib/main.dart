@@ -3,20 +3,9 @@
 // import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
+import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/styles.dart';
-import 'dart:convert';
-import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
-import 'package:flutter/services.dart' show rootBundle;
-
-class gs {
-  static List<Exercise> exercises = [];
-  static List<String> getExerciseNames = exercises.map((e) => e.name).toList();
-}
-
-Future<void> loadExerciseData() async {
-  String jsonString = await rootBundle.loadString('assets/data/exercises.json');
-  gs.exercises = (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList();
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +14,7 @@ Future<void> main() async {
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
 
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

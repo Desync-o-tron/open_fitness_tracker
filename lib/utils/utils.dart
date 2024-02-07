@@ -85,15 +85,21 @@ String intDayToString(int day) {
 //
 
 extension StringExtension on String {
-  String toCapitalized() => length > 0 ? '${this[0].toUpperCase()}${substring(1)}' : '';
-  String toTitleCase() =>
-      replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
+  String toCaps() => length > 0 ? '${this[0].toUpperCase()}${substring(1)}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCaps()).join(' ');
+  String capTheFirstLetter() => this[0].toUpperCase() + substring(1);
 }
 
 extension ListExtension<E> on List<E> {
-  void addIfDNE(E item) {
-    if (!contains(item)) {
+  void addIfDNE(E? item) {
+    if (item != null && !contains(item)) {
       add(item);
+    }
+  }
+
+  void addAllIfDNE(List<E?> items) {
+    for (var item in items) {
+      addIfDNE(item);
     }
   }
 }

@@ -2,7 +2,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
-import 'package:open_fitness_tracker/exercises/exercises_page.dart';
+import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/history/history_page.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
 import 'package:open_fitness_tracker/navigation/scaffold_with_nav_bar.dart';
@@ -25,7 +25,7 @@ enum routeNames {
 final GoRouter routerConfig = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  initialLocation: routeNames.Training.text,
+  initialLocation: routeNames.Exercises.text,
   routes: [
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
@@ -49,7 +49,7 @@ final GoRouter routerConfig = GoRouter(
         ),
         GoRoute(
           path: routeNames.Exercises.text,
-          builder: (BuildContext context, GoRouterState state) => ExercisesPage(),
+          builder: (BuildContext context, GoRouterState state) => const ExercisesPage(),
         ),
       ],
     ),

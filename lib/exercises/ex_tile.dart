@@ -12,14 +12,20 @@ class ExerciseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String musclesUsed = exercise.primaryMuscles.map((muscle) => muscle.capTheFirstLetter()).join(', ');
+    if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) {
+      musclesUsed +=
+          " + " + exercise.secondaryMuscles!.map((muscle) => muscle.capTheFirstLetter()).join(', ');
+    }
     return ListTile(
       title: Text(exercise.name, style: Theme.of(context).textTheme.titleLarge),
       minVerticalPadding: 2,
       visualDensity: VisualDensity.compact,
       enabled: true,
       subtitle: Text(
-        exercise.primaryMuscles.map((muscle) => muscle.capTheFirstLetter()).join(', '),
+        musclesUsed,
         style: Theme.of(context).textTheme.bodyLarge,
+        overflow: TextOverflow.ellipsis,
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,

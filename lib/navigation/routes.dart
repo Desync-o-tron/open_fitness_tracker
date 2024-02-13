@@ -1,6 +1,5 @@
 // ignore_for_file: constant_identifier_names, camel_case_types
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
@@ -51,7 +50,7 @@ final GoRouter routerConfig = GoRouter(
         GoRoute(
           path: routeNames.Exercises.text,
           builder: (BuildContext context, GoRouterState state) => const ExercisesPage(),
-        ),
+        )
       ],
     ),
   ],

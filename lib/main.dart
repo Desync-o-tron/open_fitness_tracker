@@ -2,6 +2,8 @@
 // import 'package:open_fitness_tracker/firebase_options.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/styles.dart';
@@ -22,10 +24,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      theme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: darkTan)),
-      routerConfig: routerConfig,
-      title: 'Open Fitness Tracker',
+    //this is weird but the providers I create in my gorouter routes are not available in dialogs /:
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ExSearchCubit(),
+        ),
+      ],
+      child: MaterialApp.router(
+        theme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: darkTan)),
+        routerConfig: routerConfig,
+        title: 'Open Fitness Tracker',
+      ),
     );
   }
 }

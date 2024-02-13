@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
@@ -14,63 +13,75 @@ class ExSearchState {
   List<String> musclesFilter = [];
   String enteredKeyword = '';
 
-  ExSearchState fromFilters(
+  ExSearchState([ExSearchState? state]) {
+    if (state != null) {
+      filteredExercises = state.filteredExercises;
+      categoriesFilter = state.categoriesFilter;
+      musclesFilter = state.musclesFilter;
+      enteredKeyword = state.enteredKeyword;
+    }
+  }
+
+  /// Every time we're going to update we re-apply every filter. not the most efficient but it's fine for now
+  ExSearchState copyWithNewFilters(
       {List<String>? categoriesFilter, List<String>? musclesFilter, String? enteredKeyword}) {
-    filteredExercises = gExs.exercises;
-    this.categoriesFilter = categoriesFilter ?? this.categoriesFilter;
-    this.musclesFilter = musclesFilter ?? this.musclesFilter;
-    this.enteredKeyword = enteredKeyword ?? this.enteredKeyword;
-    List<Exercise> newFilteredExercises = [];
+    ExSearchState newState = ExSearchState(this);
+    newState.filteredExercises = gExs.exercises;
+    newState.categoriesFilter = categoriesFilter ?? newState.categoriesFilter;
+    newState.musclesFilter = musclesFilter ?? newState.musclesFilter;
+    newState.enteredKeyword = enteredKeyword ?? newState.enteredKeyword;
 
     // filter by muscles
-    for (String muscle in this.musclesFilter) {
-      for (var e in filteredExercises) {
-        if (e.primaryMuscles.contains(muscle)) {
-          newFilteredExercises.addIfDNE(e);
+    List<Exercise> tempExs = [];
+    for (String muscle in newState.musclesFilter) {
+      for (var e in newState.filteredExercises) {
+        if (e.primaryMuscles.contains(muscle) ||
+            (e.secondaryMuscles != null && e.secondaryMuscles!.contains(muscle))) {
+          tempExs.add(e);
         }
       }
-      for (var e in filteredExercises) {
-        if (e.secondaryMuscles != null && e.secondaryMuscles!.contains(muscle)) {
-          newFilteredExercises.addIfDNE(e);
-        }
-      }
-      // filteredExercises
-      //     .addAllIfDNE(filteredExercises.where((e) => e.secondaryMuscles?.contains(muscle)).toList());
-      //TODO^
     }
-    // filter by categories
-    //TODO
+    if (tempExs.isNotEmpty) {
+      newState.filteredExercises = tempExs;
+    }
+
+    for (String category in newState.categoriesFilter) {
+      newState.filteredExercises = newState.filteredExercises.where((e) => e.category == category).toList();
+    }
 
     // filter by keyword
-    // if (enteredKeyword.isNotEmpty) {
-    //   var fuse = Fuzzy(gExs.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.6));
-    //   var results = fuse.search(enteredKeyword);
-    //   var matchedNames = results.map((r) => r.item as String).toSet();
-    //   filteredExercises = filteredExercises.where((e) => matchedNames.contains(e.name)).toList();
-    // }
-    filteredExercises = newFilteredExercises;
-    if (filteredExercises.isEmpty) {
-      filteredExercises = gExs.exercises;
+    if (newState.enteredKeyword.isNotEmpty) {
+      var fuseForNames = Fuzzy(gExs.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var resultsByName = fuseForNames.search(newState.enteredKeyword);
+      var matchedNames = resultsByName.map((r) => r.item as String).toSet();
+      var fuseForMuscles = Fuzzy(gExs.muscles, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var resultsByMuscles = fuseForMuscles.search(newState.enteredKeyword);
+      var matchedMuscles = resultsByMuscles.map((r) => r.item as String).toSet();
+      tempExs = [];
+      for (var e in newState.filteredExercises) {
+        if (matchedNames.contains(e.name)) {
+          tempExs.addIfDNE(e);
+        }
+        if (e.primaryMuscles.any((m) => matchedMuscles.contains(m))) {
+          tempExs.addIfDNE(e);
+        }
+      }
+      newState.filteredExercises = tempExs;
     }
-    return this;
+
+    return newState;
   }
 }
 
 class ExSearchCubit extends Cubit<ExSearchState> {
   ExSearchCubit() : super(ExSearchState());
 
-  void updateCategoriesFilter(List<String> categories) {
-    // state.categoriesFilter = categories;
-    // _applyFilters();
-    emit(ExSearchState().fromFilters(categoriesFilter: categories));
-  }
-
-  void updateMusclesFilter(List<String> muscles) {
-    emit(ExSearchState().fromFilters(musclesFilter: muscles));
-  }
-
-  void updateEnteredKeyword(String keyword) {
-    emit(ExSearchState().fromFilters(enteredKeyword: keyword));
+  void updateFilters({List<String>? categories, List<String>? muscles, String? keyword}) {
+    emit(state.copyWithNewFilters(
+      categoriesFilter: categories ?? state.categoriesFilter,
+      musclesFilter: muscles ?? state.musclesFilter,
+      enteredKeyword: keyword ?? state.enteredKeyword,
+    ));
   }
 }
 
@@ -79,163 +90,148 @@ class ExercisesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ExSearchCubit(),
-      child: Container(
-        color: Theme.of(context).colorScheme.secondary,
-        child: BlocBuilder<ExSearchCubit, ExSearchState>(builder: (context, state) {
-          if (state.filteredExercises.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Exercises',
-                  style: Theme.of(context).textTheme.displayLarge,
+    // ignore: avoid_unnecessary_containers
+    return Container(
+      // color: Theme.of(context).colorScheme.secondary,
+      child: BlocBuilder<ExSearchCubit, ExSearchState>(builder: (context, state) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Exercises',
+                style: Theme.of(context).textTheme.displayLarge,
+              ),
+              Expanded(
+                child: ListView.builder(
+                  key: ValueKey(state.filteredExercises.length),
+                  itemCount: state.filteredExercises.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
+                      decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+                      child: ExerciseTile(exercise: state.filteredExercises[index]),
+                    );
+                  },
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    key: ValueKey(state.filteredExercises.length),
-                    itemCount: state.filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
-                        decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-                        child: ExerciseTile(exercise: state.filteredExercises[index]),
-                      );
-                    },
-                  ),
-                ),
-                // _searchBox(ref),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: FilterButton(
-                          label: state.musclesFilter.isEmpty
-                              ? 'Any Muscle'
-                              : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext _) {
-                                // return myModal(context);
-                                return MultiSelectModal(uppercontext: context);
-                                // return MultiSelectModal(cubit: BlocProvider.of<ExSearchCubit>(context));
-                                // return MultiSelectModal(cubit: BlocProvider.of<ExSearchCubit>(context));
-                              },
-                            );
-                          },
-                        ),
+              ),
+              const SearchBar(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilterButton(
+                        label: state.musclesFilter.isEmpty
+                            ? 'Any Muscle'
+                            : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return const SearchMultiSelectModal(isForMuscleSelection: true);
+                            },
+                          );
+                        },
                       ),
-                      const SizedBox(width: 8.0),
-                      // Expanded(
-                      //   child: FilterButton(
-                      //     label: categoriesFilter.isEmpty
-                      //         ? 'Any Category'
-                      //         : categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-                      //     onPressed: () {},
-                      //   ),
-                      // ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: FilterButton(
+                        label: state.categoriesFilter.isEmpty
+                            ? 'Any Category'
+                            : state.categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return const SearchMultiSelectModal(isForMuscleSelection: false);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        }),
-      ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
 
-myModal(context) => BlocBuilder<ExSearchCubit, ExSearchState>(builder: (uppercontext, state) {
-      return AlertDialog(
-        title: const Text('Select Items'),
-        content: Container(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: gExs.muscles.length,
-            // itemCount: allItems.length,
-            itemBuilder: (context, index) {
-              final item = gExs.muscles[index];
-              return CheckboxListTile(
-                value: state.musclesFilter.contains(item),
-                // value: false,
-                title: Text(item),
-                onChanged: (bool? value) {
-                  if (value == true) {
-                    state.musclesFilter.add(item);
-                  } else {
-                    state.musclesFilter.remove(item);
-                  }
-                  // cubit.updateMusclesFilter(state.musclesFilter);
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              // selectedItems.clear();
-              // selectedItems.addAll(tempSelectedItems);
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      );
-    });
-
-class MultiSelectModal extends StatelessWidget {
-  // const MultiSelectModal({super.key});
-  final BuildContext uppercontext;
-  const MultiSelectModal({super.key, required this.uppercontext});
-  // final ExSearchCubit cubit;
-  // const MultiSelectModal({super.key, required this.cubit});
+class SearchMultiSelectModal extends StatelessWidget {
+  final bool isForMuscleSelection;
+  const SearchMultiSelectModal({super.key, this.isForMuscleSelection = true});
 
   @override
   Widget build(BuildContext context) {
-    final cubit = BlocProvider.of<ExSearchCubit>(this.uppercontext);
-    var state = cubit.state;
+    Widget content;
+    if (isForMuscleSelection) {
+      content = BlocBuilder<ExSearchCubit, ExSearchState>(
+        builder: (context, state) {
+          return SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: gExs.muscles.length,
+              itemBuilder: (context, index) {
+                final item = gExs.muscles[index];
+                return CheckboxListTile(
+                  value: state.musclesFilter.contains(item),
+                  title: Text(item),
+                  onChanged: (bool? value) {
+                    var cubit = context.read<ExSearchCubit>();
+                    var musclesFilter = cubit.state.musclesFilter.toList();
+                    if (value == true) {
+                      musclesFilter.addIfDNE(item);
+                    } else {
+                      musclesFilter.remove(item);
+                    }
+                    cubit.updateFilters(muscles: musclesFilter);
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+    } else {
+      //for categories
+      content = BlocBuilder<ExSearchCubit, ExSearchState>(
+        builder: (context, state) {
+          return SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: gExs.categories.length,
+              itemBuilder: (context, index) {
+                final item = gExs.categories[index];
+                return CheckboxListTile(
+                  value: state.categoriesFilter.contains(item),
+                  title: Text(item),
+                  onChanged: (bool? value) {
+                    var cubit = context.read<ExSearchCubit>();
+                    var categoriesFilter = cubit.state.categoriesFilter.toList();
+                    if (value == true) {
+                      categoriesFilter.addIfDNE(item);
+                    } else {
+                      categoriesFilter.remove(item);
+                    }
+                    cubit.updateFilters(categories: categoriesFilter);
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
     return AlertDialog(
       title: const Text('Select Items'),
-      content: Container(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: gExs.muscles.length,
-          itemBuilder: (context, index) {
-            final item = gExs.muscles[index];
-            return CheckboxListTile(
-              // value: state.musclesFilter.contains(item),
-              value: uppercontext.watch<ExSearchCubit>().state.musclesFilter.contains(item),
-              // value:
-              // value: false,
-              title: Text(item),
-              onChanged: (bool? value) {
-                if (value == true) {
-                  state.musclesFilter.add(item);
-                } else {
-                  state.musclesFilter.remove(item);
-                }
-                cubit.updateMusclesFilter(state.musclesFilter);
-              },
-            );
-          },
-        ),
-      ),
+      content: content,
       actions: [
         TextButton(
           onPressed: () {
@@ -245,127 +241,63 @@ class MultiSelectModal extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            // selectedItems.clear();
-            // selectedItems.addAll(tempSelectedItems);
             Navigator.pop(context);
           },
           child: const Text('OK'),
         ),
       ],
     );
-    //   },
-    // );
   }
 }
 
+class SearchBar extends StatefulWidget {
+  const SearchBar({super.key});
 
-  // Container _searchBox(WidgetRef ref) {
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 10),
-  //     margin: const EdgeInsets.all(10),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(30),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withOpacity(0.5),
-  //           spreadRadius: 2,
-  //           blurRadius: 5,
-  //           offset: const Offset(0, 3),
-  //         ),
-  //       ],
-  //     ),
-  //     child: TextField(
-  //       onChanged: (String value) {
-  //         ref.read(exSearchPageStateP).enteredKeyword = value;
-  //         applyFilters(ref);
-  //       },
-  //       decoration: const InputDecoration(
-  //         icon: Icon(Icons.search),
-  //         // icon: Center(child: Icon(Icons.search)),
-  //         hintText: 'Search',
-  //         border: InputBorder.none,
-  //       ),
-  //     ),
-  //   );
-  // }
+  @override
+  // ignore: library_private_types_in_public_api
+  _SearchBarState createState() => _SearchBarState();
+}
 
-  // void _runFuzzySearch(String enteredKeyword, WidgetRef ref) {
-  //   if (enteredKeyword.isEmpty) {
-  //     ref.read(exSearchPageStateP).filteredExercises = gExs.exercises;
-  //     // setState(() {
-  //     //   filteredExercises = gExs.exercises;
-  //     // });
-  //   } else {
-  //     var fuse = Fuzzy(gExs.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.6));
-  //     var results = fuse.search(enteredKeyword);
-  //     var matchedNames = results.map((r) => r.item as String).toSet();
-  //     ref.read(exSearchPageStateP).filteredExercises =
-  //         gExs.exercises.where((e) => matchedNames.contains(e.name)).toList();
-  //     // setState(() {
-  //     //   filteredExercises = filteredExercises.where((e) => matchedNames.contains(e.name)).toList();
-  //     // });
-  //   }
-  // }
+class _SearchBarState extends State<SearchBar> {
+  final TextEditingController _controller = TextEditingController();
 
-/*
-void showMultiSelectModal(
-// Future<List<String>> showMultiSelectModal(
-    BuildContext context,
-    List<String> allItems,
-    List<String> selectedItems) {
-  final List<String> tempSelectedItems = List<String>.from(selectedItems);
+  @override
+  void initState() {
+    super.initState();
+    final cubit = BlocProvider.of<ExSearchCubit>(context, listen: false);
+    _controller.text = cubit.state.enteredKeyword;
+  }
 
-  var state = context.read<ExSearchCubit>().state;
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Select Items'),
-        content: Container(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: allItems.length,
-            itemBuilder: (context, index) {
-              final item = allItems[index];
-              return CheckboxListTile(
-                value: tempSelectedItems.contains(item),
-                title: Text(item),
-                onChanged: (bool? value) {
-                  // setState(() {
-                  if (value == true) {
-                    tempSelectedItems.add(item);
-                  } else {
-                    tempSelectedItems.remove(item);
-                  }
-                  // });
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              selectedItems.clear();
-              selectedItems.addAll(tempSelectedItems);
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
           ),
         ],
-      );
-    },
-  );
-  state.musclesFilter = selectedItems;
-  // return selectedItems;
+      ),
+      child: TextField(
+        controller: _controller,
+        onChanged: (String value) {
+          final cubit = BlocProvider.of<ExSearchCubit>(context);
+          // cubit.updateEnteredKeyword(value);
+          cubit.updateFilters(keyword: value);
+        },
+        decoration: const InputDecoration(
+          icon: Icon(Icons.search),
+          hintText: 'Search',
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
 }
-*/

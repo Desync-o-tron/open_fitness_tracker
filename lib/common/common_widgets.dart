@@ -20,10 +20,15 @@ class FilterButton extends StatelessWidget {
         side: const BorderSide(color: Colors.grey, width: 1), // Border color and width
         padding: const EdgeInsets.symmetric(vertical: 14.0), // Adjust padding as needed
       ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black, // Adjust the text color as needed
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7.0),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.black, // Adjust the text color as needed
+          ),
+          overflow: TextOverflow.fade,
+          softWrap: false,
         ),
       ),
     );

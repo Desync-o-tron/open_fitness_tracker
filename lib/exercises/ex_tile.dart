@@ -15,7 +15,7 @@ class ExerciseTile extends StatelessWidget {
     String musclesUsed = exercise.primaryMuscles.map((muscle) => muscle.capTheFirstLetter()).join(', ');
     if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) {
       musclesUsed +=
-          " + " + exercise.secondaryMuscles!.map((muscle) => muscle.capTheFirstLetter()).join(', ');
+          " + ${exercise.secondaryMuscles!.map((muscle) => muscle.capTheFirstLetter()).join(', ')}";
     }
     return ListTile(
       title: Text(exercise.name, style: Theme.of(context).textTheme.titleLarge),

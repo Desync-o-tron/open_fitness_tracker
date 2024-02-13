@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+// ignore: camel_case_types
 class gExs {
   static get exercises => _exercises;
   static get categories => _categories;
@@ -16,14 +17,14 @@ class gExs {
       _names.addIfDNE(exercise.name);
       _categories.addIfDNE(exercise.category);
       _muscles.addAllIfDNE(exercise.primaryMuscles);
-      // _muscles.addAllIfDNE(exercise.secondaryMuscles); //todo
+      // _muscles.addAllIfDNE(exercise.secondaryMuscles); //todo?
     }
   }
 
-  static List<String> _names = [];
+  static final List<String> _names = [];
   static final List<String> _categories = [];
-  static List<String> _muscles = [];
-  static List<Exercise> _exercises = [];
+  static final List<String> _muscles = [];
+  static final List<Exercise> _exercises = [];
 }
 
 Future<void> loadExerciseData() async {

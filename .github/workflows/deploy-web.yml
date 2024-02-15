@@ -1,0 +1,31 @@
+# Your GitHub Actions workflow file here
+name: Deploy App to Firebase Hosting
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/**"
+
+jobs:
+  build_and_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # don't know why the tut uses java lol
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter build web --source-maps --web-renderer=canvaskit
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_OPENFITNESSTRACKER_D8FGP5 }}'
+          # firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'  
+          projectId: openfitnesstracker-d8fgp5
+          target: YOUR_DEPLOYMENT_TARGET

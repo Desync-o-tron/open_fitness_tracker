@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 // import 'package:path_provider/path_provider.dart';
@@ -6,6 +7,15 @@ import 'dart:async';
 //   final directory = await getApplicationDocumentsDirectory();
 //   return directory.path;
 // }
+
+class GenericScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
+}
 
 //
 ///screen size jank

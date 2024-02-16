@@ -103,6 +103,7 @@ class ExercisesPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.displayLarge,
               ),
               Expanded(
+                //todo scrolling on web is not great. I want to use click & drag. + using slider is janky.
                 child: ListView.builder(
                   key: ValueKey(state.filteredExercises.length),
                   itemCount: state.filteredExercises.length,

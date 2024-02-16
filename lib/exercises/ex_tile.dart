@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/exercises/ex_page.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ExerciseTile extends StatelessWidget {
@@ -36,7 +37,7 @@ class ExerciseTile extends StatelessWidget {
         ],
       ),
       onTap: () {
-        // Handle tile tap if necessary
+        showDialog(context: context, builder: (context) => ExerciseDialog(exercise: exercise));
       },
     );
   }

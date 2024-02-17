@@ -37,7 +37,8 @@ class ExerciseTile extends StatelessWidget {
         ],
       ),
       onTap: () {
-        showDialog(context: context, builder: (context) => ExerciseDialog(exercise: exercise));
+        showDialog(
+            context: context, builder: (context) => ExerciseDialog(exercise: exercise), useSafeArea: true);
       },
     );
   }

@@ -1,29 +1,3 @@
-// ABOUT
-
-//   "name": "Dumbbell Squat",
-//   "images": [
-//     "Dumbbell_Squat/0.jpg",
-//     "Dumbbell_Squat/1.jpg"
-//   ],
-//   "level": "beginner",
-//   "primaryMuscles": [
-//     "quadriceps"
-//   ],
-//   "secondaryMuscles": [
-//     "calves",
-//     "glutes",
-//     "hamstrings",
-//     "lower back"
-//   ],
-//   "instructions": [
-//     "yadda yadda”
-//   ],
-//   "category": "strength",
-//   "mechanic": "compound"
-//   "equipment": "dumbbell",
-
-// The ExercisePage
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
@@ -35,9 +9,13 @@ class ExerciseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.all(20), // Outside Padding
+      contentPadding: const EdgeInsets.all(5), // Content Padding
+
       content: SingleChildScrollView(
         child: Container(
           width: double.maxFinite,
+          height: double.maxFinite,
           padding: const EdgeInsets.all(16.0),
           margin: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
@@ -66,7 +44,7 @@ class ExerciseDialog extends StatelessWidget {
               if (exercise.level != null) Text('Level: ${exercise.level}'),
               const SizedBox(height: 8),
               if (exercise.instructions != null) ...[
-                Text('Instructions:'),
+                const Text('Instructions:'),
                 for (var instruction in exercise.instructions!) Text(instruction),
               ],
               const SizedBox(height: 8),
@@ -86,7 +64,7 @@ class ImageSwiper extends StatefulWidget {
   static final Uri imgBaseUrl =
       Uri.parse("https://raw.githubusercontent.com/Desync-o-tron/free-exercise-db/main/exercises/");
 
-  const ImageSwiper({Key? key, required this.imageRelativeUrls}) : super(key: key);
+  const ImageSwiper({super.key, required this.imageRelativeUrls});
 
   @override
   State<ImageSwiper> createState() => _ImageSwiperState();
@@ -121,7 +99,7 @@ class _ImageSwiperState extends State<ImageSwiper> {
           ),
         ),
         Container(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(widget.imageRelativeUrls!.length, (index) => buildDot(index, context)),
@@ -135,7 +113,7 @@ class _ImageSwiperState extends State<ImageSwiper> {
     return Container(
       height: 10,
       width: 10,
-      margin: EdgeInsets.symmetric(horizontal: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         color: _currentPage == index ? Theme.of(context).primaryColor : Colors.grey,
         shape: BoxShape.circle,
@@ -143,69 +121,3 @@ class _ImageSwiperState extends State<ImageSwiper> {
     );
   }
 }
-
-
-/*
-class ImageSwiper extends StatelessWidget {
-  final List<String>? imageRelativeUrls;
-  static final Uri imgBaseUrl =
-      Uri.parse("https://raw.githubusercontent.com/Desync-o-tron/free-exercise-db/main/exercises/");
-  const ImageSwiper({super.key, required this.imageRelativeUrls});
-
-  @override
-  Widget build(BuildContext context) {
-    if (imageRelativeUrls == null || imageRelativeUrls!.isEmpty) {
-      return Container();
-    }
-    return PageView.builder(
-      scrollDirection: Axis.horizontal,
-      scrollBehavior: GenericScrollBehavior(),
-      itemCount: imageRelativeUrls!.length,
-      itemBuilder: (context, index) {
-        final imageUrl = imgBaseUrl.resolve(imageRelativeUrls![index]).toString();
-        return Image.network(
-          imageUrl,
-          fit: BoxFit.contain,
-          loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-            // You might want to display a generic error widget here
-            return Text('Error loading image');
-          },
-        );
-        // return FutureBuilder(
-        //   future: fetchImage(imgBaseUrl.resolve(imageRelativeUrls![index]).toString()),
-        //   builder: (context, snapshot) {
-        //     if (snapshot.hasData) {
-        //       return snapshot.data!;
-        //     } else if (snapshot.hasError) {
-        //       // You might want to display a generic placeholder here
-        //       return Container();
-        //     } else {
-        //       return Center(child: CircularProgressIndicator());
-        //     }
-        //   },
-        // );
-      },
-    );
-  }
-
-  Future<Image> fetchImage(String url) async {
-    return Image.network(
-      url,
-      fit: BoxFit.contain,
-    );
-    // Simulate image fetching delay
-    // await Future.delayed(Duration(seconds: 2));
-    // In a real scenario, you would fetch the image data from the network or cache here.
-  }
-}
-*/

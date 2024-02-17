@@ -15,6 +15,7 @@ class Exercise {
   final Level? level;
   final Mechanic? mechanic;
   final String? equipment;
+  final List<String>? setMetrics;
   final List<String> primaryMuscles;
   final List<String>? secondaryMuscles;
   final List<String>? instructions;
@@ -28,6 +29,7 @@ class Exercise {
     this.level,
     this.mechanic,
     required this.equipment,
+    this.setMetrics,
     required this.primaryMuscles,
     this.secondaryMuscles,
     this.instructions,
@@ -44,6 +46,8 @@ enum Force { static, pull, push }
 enum Level { beginner, intermediate, expert }
 
 enum Mechanic { isolation, compound }
+
+// enum setMetrics { time, weight, distance, speed, reps }
 
 // enum Equipment {
 //   medicineBall,

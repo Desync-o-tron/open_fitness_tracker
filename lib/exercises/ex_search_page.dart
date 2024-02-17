@@ -92,7 +92,7 @@ class ExercisesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // ignore: avoid_unnecessary_containers
     return Container(
-      // color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.secondary,
       child: BlocBuilder<ExSearchCubit, ExSearchState>(builder: (context, state) {
         return Center(
           child: Column(

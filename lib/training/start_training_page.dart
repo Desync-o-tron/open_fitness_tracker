@@ -20,7 +20,13 @@ class StartTrainingPage extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
-            ShowTrainingSession(context);
+            // ShowTrainingSession(context);
+            //push to the training page
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const TrainingPage(),
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             foregroundColor: Theme.of(context).colorScheme.onPrimary,

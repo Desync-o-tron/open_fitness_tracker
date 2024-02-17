@@ -1,9 +1,20 @@
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 
+class TrainingSession {
+  String? id;
+  String? name;
+  Duration? duration;
+  DateTime? date;
+  String? notes;
+  List<ExerciseSets> trainingData = [];
+}
+
 class ExerciseSets {
   final Exercise ex;
+  final Set prevSet; //also functions as a header template
   List<Set> sets = [];
-  ExerciseSets(this.ex);
+
+  ExerciseSets(this.ex) : prevSet = Set(ex);
 }
 
 class Set {
@@ -25,11 +36,4 @@ class Set {
     //todo
     //if contains anythign else, throw error
   }
-}
-
-class TrainingSession {
-  String? id;
-  String? name;
-  DateTime? date;
-  List<ExerciseSets> trainingData = [];
 }

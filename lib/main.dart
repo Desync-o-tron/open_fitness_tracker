@@ -7,6 +7,7 @@ import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/styles.dart';
+import 'package:open_fitness_tracker/training/training_page.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
@@ -58,6 +59,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (_) => ExSearchCubit(),
+        ),
+        BlocProvider(
+          create: (_) => TrainingSessionCubit(),
         ),
       ],
       child: MaterialApp.router(

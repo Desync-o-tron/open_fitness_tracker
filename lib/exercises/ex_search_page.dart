@@ -122,7 +122,7 @@ class ExercisesPage extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: FilterButton(
+                      child: MyGenericButton(
                         label: state.musclesFilter.isEmpty
                             ? 'Any Muscle'
                             : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
@@ -138,7 +138,7 @@ class ExercisesPage extends StatelessWidget {
                     ),
                     const SizedBox(width: 8.0),
                     Expanded(
-                      child: FilterButton(
+                      child: MyGenericButton(
                         label: state.categoriesFilter.isEmpty
                             ? 'Any Category'
                             : state.categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),

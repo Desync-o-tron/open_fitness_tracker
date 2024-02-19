@@ -1,3 +1,4 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 
 class TrainingSession {
@@ -6,15 +7,25 @@ class TrainingSession {
   Duration? duration;
   DateTime? date;
   String? notes;
-  List<ExerciseSets> trainingData = [];
+  List<SetsOfAnExercise> trainingData = [];
+
+  TrainingSession copyWith({required List<SetsOfAnExercise> trainingData}) {
+    return TrainingSession()
+      ..id = id
+      ..name = name
+      ..duration = duration
+      ..date = date
+      ..notes = notes
+      ..trainingData = trainingData;
+  }
 }
 
-class ExerciseSets {
+class SetsOfAnExercise {
   final Exercise ex;
   final Set prevSet; //also functions as a header template
   List<Set> sets = [];
 
-  ExerciseSets(this.ex) : prevSet = Set(ex);
+  SetsOfAnExercise(this.ex) : prevSet = Set(ex);
 }
 
 class Set {
@@ -35,5 +46,63 @@ class Set {
     if (ex.setMetrics!.contains('speed')) speed = 0;
     //todo
     //if contains anythign else, throw error
+  }
+}
+
+class TrainingSessionCubit extends Cubit<TrainingSession> {
+  TrainingSessionCubit() : super(TrainingSession()) {
+    var exampleExercise = Exercise(
+      name: "Bench Press",
+      equipment: "Barbell",
+      primaryMuscles: ["Chest", "Triceps"],
+      setMetrics: ["reps", "weight"],
+    );
+    var exampleExercise2 = Exercise(
+      name: "Squat",
+      equipment: "Barbell",
+      primaryMuscles: ["Quadriceps", "Glutes"],
+      setMetrics: ["reps", "weight"],
+    );
+    var exampleExerciseSet = SetsOfAnExercise(exampleExercise);
+    var exampleExerciseSet2 = SetsOfAnExercise(exampleExercise2);
+    // exampleExerciseSet.prevSet = Set(exampleExerciseSet.ex);
+    // exampleExerciseSet2.sets.add(Set(exampleExerciseSet2.ex));
+    state.trainingData.add(exampleExerciseSet);
+    state.trainingData.add(exampleExerciseSet2);
+    //lets add some example sets
+    Set set1 = Set(exampleExerciseSet.ex);
+    set1.reps = 10;
+    set1.weight = 135;
+    exampleExerciseSet.sets.add(set1);
+  }
+
+  void addExercise(Exercise ex) {
+    state.trainingData.add(SetsOfAnExercise(ex));
+    emit(state);
+  }
+
+  // void removeExercise(Exercise ex) {
+  //   state.trainingData.removeWhere((element) => element.ex == ex);
+  //   emit(state);
+  // }
+
+  void addSet(Exercise ex) {
+    var newTrainingData = state.trainingData.toList();
+    newTrainingData.firstWhere((element) => element.ex == ex).sets.add(Set(ex));
+    emit(state.copyWith(trainingData: newTrainingData));
+  }
+
+  // void removeSet(Exercise ex, Set set) {
+  //   state.trainingData
+  //       .firstWhere((element) => element.ex == ex)
+  //       .sets
+  //       .remove(set);
+  //   emit(state);
+  // }
+
+  void updateSet(Exercise ex, Set set, int setIndex) {
+    var newTrainingData = state.trainingData.toList();
+    newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] = set;
+    emit(state.copyWith(trainingData: newTrainingData));
   }
 }

@@ -1,14 +1,10 @@
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:open_fitness_tracker/firebase_options.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/styles.dart';
-import 'package:open_fitness_tracker/training/training_page.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

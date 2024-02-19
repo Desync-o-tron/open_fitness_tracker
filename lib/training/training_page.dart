@@ -11,7 +11,7 @@ class TrainingPage extends StatelessWidget {
     var state = context.read<TrainingSessionCubit>().state;
     return Container(
       padding: const EdgeInsets.all(16.0),
-      color: Theme.of(context).colorScheme.secondary,
+      // color: Theme.of(context).colorScheme.secondary,
       child: Column(
         // mainAxisAlignment: MainAxisAlignment,
         crossAxisAlignment: CrossAxisAlignment.start,

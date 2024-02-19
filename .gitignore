@@ -26,6 +26,7 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 
+.firebase
 
 #API key stuff
 android/app/google-services.json

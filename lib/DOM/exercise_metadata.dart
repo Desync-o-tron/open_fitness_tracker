@@ -22,7 +22,6 @@ class Exercise {
   final String? category;
   final List<String>? images;
 
-  // Exercise(String s, {
   Exercise({
     this.id,
     required this.name,

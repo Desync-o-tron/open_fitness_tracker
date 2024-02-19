@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+//todo make sure I can escape out of the dialog on web
 class ExerciseDialog extends StatelessWidget {
   final Exercise exercise;
   const ExerciseDialog({super.key, required this.exercise});
@@ -9,9 +10,8 @@ class ExerciseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      insetPadding: const EdgeInsets.all(20), // Outside Padding
+      insetPadding: const EdgeInsets.all(25), // Outside Padding
       contentPadding: const EdgeInsets.all(5), // Content Padding
-
       content: SingleChildScrollView(
         child: Container(
           width: double.maxFinite,

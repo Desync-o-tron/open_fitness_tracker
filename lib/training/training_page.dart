@@ -13,7 +13,6 @@ class TrainingPage extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       // color: Theme.of(context).colorScheme.secondary,
       child: Column(
-        // mainAxisAlignment: MainAxisAlignment,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(state.name ?? 'New Training Session', style: Theme.of(context).textTheme.headlineSmall),
@@ -53,6 +52,7 @@ class DisplayTrainingData extends StatelessWidget {
               }),
         ),
       );
+      pageContent.add(const SizedBox(height: 20));
     }
 
     pageContent.add(Center(
@@ -94,9 +94,9 @@ class DisplayTrainingData extends StatelessWidget {
       tableContent.add(TableRow(
         decoration: set.completed ? BoxDecoration(color: Theme.of(context).colorScheme.secondary) : null,
         children: [
-          Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall),
-          Text("-", style: Theme.of(context).textTheme.bodySmall),
-          //make textfields for each setMetric
+          Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          //add textfields for each setMetric
           if (es.prevSet.weight != null)
             SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
           if (es.prevSet.reps != null)
@@ -125,47 +125,64 @@ class DisplayTrainingData extends StatelessWidget {
   void addTableHeaderForEx(List<Widget> allTablesAndHeaders, SetsOfAnExercise es, BuildContext context,
       List<TableRow> tableContent) {
     allTablesAndHeaders.add(
-      TextButton(onPressed: () {}, child: Text(es.ex.name, style: Theme.of(context).textTheme.labelMedium)),
+      TextButton(onPressed: () {}, child: Text(es.ex.name, style: Theme.of(context).textTheme.titleMedium)),
     );
+    //utility function
+    Widget headerText(String text, BuildContext context) {
+      return Text(text, style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
+    }
+
     tableContent.add(TableRow(
       children: [
-        Text("Set", style: Theme.of(context).textTheme.labelMedium),
-        Text("Previous", style: Theme.of(context).textTheme.labelMedium),
-        if (es.prevSet.weight != null) Text("Weight", style: Theme.of(context).textTheme.labelMedium),
-        if (es.prevSet.reps != null) Text("Reps", style: Theme.of(context).textTheme.labelMedium),
-        if (es.prevSet.time != null) Text("Time", style: Theme.of(context).textTheme.labelMedium),
-        if (es.prevSet.distance != null) Text("Distance", style: Theme.of(context).textTheme.labelMedium),
-        if (es.prevSet.speed != null) Text("Speed", style: Theme.of(context).textTheme.labelMedium),
-        Text("Done", style: Theme.of(context).textTheme.labelMedium),
+        headerText("Set", context),
+        headerText("Previous", context),
+        if (es.prevSet.weight != null) headerText("Weight", context),
+        if (es.prevSet.reps != null) headerText("Reps", context),
+        if (es.prevSet.time != null) headerText("Time", context),
+        if (es.prevSet.distance != null) headerText("Distance", context),
+        if (es.prevSet.speed != null) headerText("Speed", context),
+        headerText("Done", context),
       ],
     ));
   }
 }
 
-class SetDataTextField extends StatelessWidget {
+class SetDataTextField extends StatefulWidget {
+  // const SetDataTextField({super.key});
   final Set set;
   final int setIndex;
   final SetsOfAnExercise es;
   final Function getSetValue;
   final Function setSetValue;
   const SetDataTextField(this.set, this.setIndex, this.es, this.getSetValue, this.setSetValue, {super.key});
+  @override
+  // ignore: library_private_types_in_public_api
+  _SetDataTextFieldState createState() => _SetDataTextFieldState();
+}
+
+class _SetDataTextFieldState extends State<SetDataTextField> {
   //todo these text fields suck
+  late TextEditingController textController;
+
+  @override
+  void initState() {
+    super.initState();
+    textController = TextEditingController(text: widget.getSetValue(widget.set).toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(child: Container()),
         Expanded(
-          flex: 4,
+          flex: 2,
           child: TextField(
-            controller: TextEditingController(text: getSetValue(set).toString()),
-            style: Theme.of(context).textTheme.bodySmall,
-            // ?.copyWith(
-            //       // fontSize: 12, // Adjust the size as needed
-            //       background: Paint()..color = Theme.of(context).colorScheme.secondary,
-            //       // decoration: TextDecoration.combine([TextDecoration.underline])
-            //     ),
+            controller: textController,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(
+              contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14.0),
                   borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
@@ -178,18 +195,35 @@ class SetDataTextField extends StatelessWidget {
               var parsedVal = num.tryParse(value);
               if (parsedVal == null) {
                 value = '0';
+                // setSetValue(set, 0);
               } else {
-                Set modifiedSet = set;
-                setSetValue(modifiedSet, parsedVal);
-                context.read<TrainingSessionCubit>().updateSet(es.ex, modifiedSet, setIndex);
+                Set modifiedSet = widget.set;
+                widget.setSetValue(modifiedSet, parsedVal);
+                context.read<TrainingSessionCubit>().updateSet(widget.es.ex, modifiedSet, widget.setIndex);
               }
             },
             inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              FilteringTextInputFormatter.deny(
+                  RegExp(r'[^0-9.]')), // This allows digits, a decimal point, and backspace/delete
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                // This allows only one decimal point
+                int count = 0;
+                for (int i = 0; i < newValue.text.length; i++) {
+                  if (newValue.text[i] == '.') {
+                    count++;
+                  }
+                }
+                if (count > 1) {
+                  return oldValue;
+                }
+                return newValue;
+              }),
             ],
           ),
         ),
-        Expanded(child: Container()),
+        Expanded(
+          child: Container(),
+        ),
       ],
     );
   }

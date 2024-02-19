@@ -17,3 +17,5 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_OPENFITNESSTRACKER_D8FGP5 }}'
           channelId: live
           projectId: openfitnesstracker-d8fgp5
+        env:  
+          FIREBASE_CLI_EXPERIMENTS: webframeworks

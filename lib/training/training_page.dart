@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/styles.dart';
 
 class TrainingPage extends StatelessWidget {
   const TrainingPage({super.key});
@@ -12,6 +13,7 @@ class TrainingPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       // color: Theme.of(context).colorScheme.secondary,
+      color: darkTan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -19,6 +21,20 @@ class TrainingPage extends StatelessWidget {
           Text(state.duration?.inMinutes.toString() ?? '00:00', style: Theme.of(context).textTheme.bodySmall),
           Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
           const DisplayTrainingData(),
+          const SizedBox(height: 70),
+          Row(
+            children: [
+              Expanded(
+                child: Container(),
+              ),
+              Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
+              const SizedBox(width: 20),
+              Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
+              Expanded(
+                child: Container(),
+              ),
+            ],
+          )
         ],
       ),
     );
@@ -91,34 +107,37 @@ class DisplayTrainingData extends StatelessWidget {
   void addSetsForEx(SetsOfAnExercise es, List<TableRow> tableContent, BuildContext context) {
     for (int i = 0; i < es.sets.length; i++) {
       var set = es.sets[i];
-      tableContent.add(TableRow(
-        decoration: set.completed ? BoxDecoration(color: Theme.of(context).colorScheme.secondary) : null,
-        children: [
-          Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-          Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-          //add textfields for each setMetric
-          if (es.prevSet.weight != null)
-            SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
-          if (es.prevSet.reps != null)
-            SetDataTextField(set, i, es, (set) => set.reps, (set, value) => set.reps = value),
-          if (es.prevSet.time != null)
-            SetDataTextField(set, i, es, (set) => set.time, (set, value) => set.time = value),
-          if (es.prevSet.distance != null)
-            SetDataTextField(set, i, es, (set) => set.distance, (set, value) => set.distance = value),
-          if (es.prevSet.speed != null)
-            SetDataTextField(set, i, es, (set) => set.speed, (set, value) => set.speed = value),
-          TextButton(
-            onPressed: () {
-              set.completed = !set.completed;
-              context.read<TrainingSessionCubit>().updateSet(es.ex, set, i);
-            },
-            child: Icon(
-              set.completed ? Icons.check_circle : Icons.check_circle_outline,
-              color: Theme.of(context).primaryColor,
+      tableContent.add(
+        TableRow(
+          decoration: set.completed ? BoxDecoration(color: Theme.of(context).colorScheme.secondary) : null,
+          children: [
+            Text((i + 1).toString(),
+                style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+            Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+            //add textfields for each setMetric
+            if (es.prevSet.weight != null)
+              SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
+            if (es.prevSet.reps != null)
+              SetDataTextField(set, i, es, (set) => set.reps, (set, value) => set.reps = value),
+            if (es.prevSet.time != null)
+              SetDataTextField(set, i, es, (set) => set.time, (set, value) => set.time = value),
+            if (es.prevSet.distance != null)
+              SetDataTextField(set, i, es, (set) => set.distance, (set, value) => set.distance = value),
+            if (es.prevSet.speed != null)
+              SetDataTextField(set, i, es, (set) => set.speed, (set, value) => set.speed = value),
+            TextButton(
+              onPressed: () {
+                set.completed = !set.completed;
+                context.read<TrainingSessionCubit>().updateSet(es.ex, set, i);
+              },
+              child: Icon(
+                set.completed ? Icons.check_circle : Icons.check_circle_outline,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
-          ),
-        ],
-      ));
+          ],
+        ),
+      );
     }
   }
 

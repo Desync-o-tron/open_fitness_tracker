@@ -25,7 +25,8 @@ enum routeNames {
 final GoRouter routerConfig = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
+  initialLocation: routeNames.Training.text, //////////<--- This is the initial route
+  // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(
       navigatorKey: _shellNavigatorKey,

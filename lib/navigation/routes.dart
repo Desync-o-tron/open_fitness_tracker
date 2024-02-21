@@ -7,6 +7,7 @@ import 'package:open_fitness_tracker/history/history_page.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
 import 'package:open_fitness_tracker/navigation/scaffold_with_nav_bar.dart';
 import 'package:open_fitness_tracker/training/start_training_page.dart';
+import 'package:open_fitness_tracker/training/training_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -16,7 +17,8 @@ enum routeNames {
   History("/History"),
   Training("/Training"),
   Exercises("/Exercises"),
-  Home("/"); // will map to the training page, for now
+  Temp("/Temp"),
+  Home("/");
 
   const routeNames(this.text);
   final String text;
@@ -25,7 +27,8 @@ enum routeNames {
 final GoRouter routerConfig = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  initialLocation: routeNames.Training.text, //////////<--- This is the initial route
+  initialLocation: routeNames.Temp.text,
+  // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(
@@ -51,7 +54,12 @@ final GoRouter routerConfig = GoRouter(
         GoRoute(
           path: routeNames.Exercises.text,
           builder: (BuildContext context, GoRouterState state) => const ExercisesPage(),
-        )
+        ),
+        GoRoute(
+          //temp
+          path: routeNames.Temp.text,
+          builder: (BuildContext context, GoRouterState state) => const TrainingPage(),
+        ),
       ],
     ),
   ],

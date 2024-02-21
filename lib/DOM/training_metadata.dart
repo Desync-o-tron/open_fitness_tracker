@@ -95,13 +95,10 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     emit(state.copyWith(trainingData: newTrainingData));
   }
 
-  // void removeSet(Exercise ex, Set set) {
-  //   state.trainingData
-  //       .firstWhere((element) => element.ex == ex)
-  //       .sets
-  //       .remove(set);
-  //   emit(state);
-  // }
+  void removeSet(Exercise ex, Set set) {
+    state.trainingData.firstWhere((element) => element.ex == ex).sets.remove(set);
+    emit(state);
+  }
 
   void updateSet(Exercise ex, Set set, int setIndex) {
     var newTrainingData = state.trainingData.toList();

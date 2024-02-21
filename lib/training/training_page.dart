@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/styles.dart';
@@ -44,10 +45,12 @@ class TrainingPage extends StatelessWidget {
   }
 }
 
-class SetsTableForAnExercise extends StatelessWidget {
+class MakeVisualTable extends StatelessWidget {
   final Map<int, double> columnWidthsRatio;
-  final List<List<Widget>> children;
-  const SetsTableForAnExercise({required this.columnWidthsRatio, required this.children, super.key});
+  final List<Widget> header;
+  final ExerciseTableData exerciseTableData;
+  const MakeVisualTable(
+      {required this.columnWidthsRatio, required this.header, required this.exerciseTableData, super.key});
   @override
   Widget build(BuildContext context) {
     Map<int, double> columnWidths = {};
@@ -61,8 +64,12 @@ class SetsTableForAnExercise extends StatelessWidget {
     }
 
     List<Widget> pageContent = [];
-    pageContent.add(createHeaderRow(children[0], columnWidths, context));
-    pageContent.addAll(createTableRows(children.sublist(1), columnWidths, context));
+    List<Widget> headerRow = [];
+    for (int i = 0; i < header.length; i++) {
+      headerRow.add(SizedBox(width: columnWidths[i], child: header[i]));
+    }
+    pageContent.add(Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow));
+    pageContent.addAll(createTableRows(exerciseTableData, columnWidths, context));
     return Column(children: pageContent);
   }
 
@@ -75,32 +82,40 @@ class SetsTableForAnExercise extends StatelessWidget {
   }
 
   List<Widget> createTableRows(
-      List<List<Widget>> tableContents, Map<int, double> columnWidths, BuildContext context) {
+      ExerciseTableData exerciseTableData, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> tableRows = [];
-    for (int i = 0; i < tableContents.length; i++) {
+    for (int i = 0; i < exerciseTableData.tableData.length; i++) {
       List<Widget> row = [];
-      for (int j = 0; j < tableContents[i].length; j++) {
+      for (int j = 0; j < exerciseTableData.tableData[i].length; j++) {
         row.add(Container(
           margin: const EdgeInsets.all(2),
           padding: const EdgeInsets.all(8.0),
           width: columnWidths[j],
-          child: tableContents[i][j],
+          child: exerciseTableData.tableData[i][j],
         ));
       }
       tableRows.add(Dismissible(
         key: UniqueKey(),
         onDismissed: (direction) {
-          // context.read<TrainingSessionCubit>().removeSet(i);
+          context.read<TrainingSessionCubit>().removeSet(exerciseTableData.ex, i);
         },
         background: Container(color: Colors.red),
         confirmDismiss: (direction) async {
-          return false; //todo if the set is completed make sure to ask if they want to delete it
+          return true; //todo if the set is completed make sure to ask if they want to delete it
         },
         child: Row(children: row),
       ));
     }
     return tableRows;
   }
+}
+
+/// just contains the ex & the widget to display the sets
+class ExerciseTableData {
+  final Exercise ex;
+  final List<List<Widget>> tableData;
+
+  const ExerciseTableData(this.ex, this.tableData);
 }
 
 class DisplayTrainingData extends StatelessWidget {
@@ -111,13 +126,15 @@ class DisplayTrainingData extends StatelessWidget {
 
     List<Widget> pageContent = []; //
     for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
+      List<Widget> header = [];
       List<List<Widget>> tableContent = [];
-      addTableHeaderForEx(pageContent, tableContent, setsOfAnEx, context);
+      addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
       addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
-      var table = SetsTableForAnExercise(
+      var table = MakeVisualTable(
         columnWidthsRatio: columnWidths,
-        children: tableContent,
+        header: header,
+        exerciseTableData: ExerciseTableData(setsOfAnEx.ex, tableContent),
       );
       pageContent.add(table);
       pageContent.add(
@@ -199,7 +216,7 @@ class DisplayTrainingData extends StatelessWidget {
 
   void addTableHeaderForEx(
     List<Widget> allTablesAndHeaders,
-    List<List<Widget>> tableContent,
+    List<Widget> header,
     final SetsOfAnExercise es,
     final BuildContext context,
   ) {
@@ -212,7 +229,7 @@ class DisplayTrainingData extends StatelessWidget {
       return Text(text, style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
     }
 
-    tableContent.add(
+    header.addAll(
       [
         headerText("Set", context),
         headerText("Previous", context),

@@ -95,8 +95,14 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     emit(state.copyWith(trainingData: newTrainingData));
   }
 
-  void removeSet(Exercise ex, Set set) {
-    state.trainingData.firstWhere((element) => element.ex == ex).sets.remove(set);
+  void removeSet(Exercise ex, int setNumber) {
+    //should we have a set id? maybe overkill.
+    SetsOfAnExercise setsOfAnExercise = state.trainingData.firstWhere((element) => element.ex == ex);
+    if (setNumber >= 0 && setNumber < setsOfAnExercise.sets.length) {
+      setsOfAnExercise.sets.removeAt(setNumber);
+    } else {
+      //todo error handling
+    }
     emit(state);
   }
 

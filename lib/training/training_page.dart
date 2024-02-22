@@ -86,18 +86,20 @@ class MakeVisualTable extends StatelessWidget {
     List<Widget> tableRows = [];
     for (int i = 0; i < exerciseTableData.tableData.length; i++) {
       List<Widget> row = [];
-      for (int j = 0; j < exerciseTableData.tableData[i].length; j++) {
+      for (int j = 0; j < exerciseTableData.tableData[i].rowData.length; j++) {
         row.add(Container(
           margin: const EdgeInsets.all(2),
           padding: const EdgeInsets.all(8.0),
           width: columnWidths[j],
-          child: exerciseTableData.tableData[i][j],
+          child: exerciseTableData.tableData[i].rowData[j],
         ));
       }
       tableRows.add(Dismissible(
         key: UniqueKey(),
         onDismissed: (direction) {
-          context.read<TrainingSessionCubit>().removeSet(exerciseTableData.ex, i);
+          context
+              .read<TrainingSessionCubit>()
+              .removeSet(exerciseTableData.ex, exerciseTableData.tableData[i].set.id);
         },
         background: Container(color: Colors.red),
         confirmDismiss: (direction) async {
@@ -110,10 +112,15 @@ class MakeVisualTable extends StatelessWidget {
   }
 }
 
-/// just contains the ex & the widget to display the sets
+class SetTableRowData {
+  final Set set;
+  List<Widget> rowData = [];
+  SetTableRowData(this.set, this.rowData);
+}
+
 class ExerciseTableData {
   final Exercise ex;
-  final List<List<Widget>> tableData;
+  final List<SetTableRowData> tableData;
 
   const ExerciseTableData(this.ex, this.tableData);
 }
@@ -127,7 +134,7 @@ class DisplayTrainingData extends StatelessWidget {
     List<Widget> pageContent = []; //
     for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
       List<Widget> header = [];
-      List<List<Widget>> tableContent = [];
+      List<SetTableRowData> tableContent = [];
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
       addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
@@ -183,34 +190,41 @@ class DisplayTrainingData extends StatelessWidget {
   }
 
   void addSetsDataForEx(
-      List<List<Widget>> tableContent, final SetsOfAnExercise es, final BuildContext context) {
+    // List<List<Widget>> tableContent, final SetsOfAnExercise es, final BuildContext context) {
+    List<SetTableRowData> tableContent,
+    final SetsOfAnExercise es,
+    final BuildContext context,
+  ) {
     for (int i = 0; i < es.sets.length; i++) {
       var set = es.sets[i];
-      tableContent.add([
-        Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-        Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-        //add textfields for each setMetric
-        if (es.prevSet.weight != null)
-          SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
-        if (es.prevSet.reps != null)
-          SetDataTextField(set, i, es, (set) => set.reps, (set, value) => set.reps = value),
-        if (es.prevSet.time != null)
-          SetDataTextField(set, i, es, (set) => set.time, (set, value) => set.time = value),
-        if (es.prevSet.distance != null)
-          SetDataTextField(set, i, es, (set) => set.distance, (set, value) => set.distance = value),
-        if (es.prevSet.speed != null)
-          SetDataTextField(set, i, es, (set) => set.speed, (set, value) => set.speed = value),
-        TextButton(
-          onPressed: () {
-            set.completed = !set.completed;
-            context.read<TrainingSessionCubit>().updateSet(es.ex, set, i);
-          },
-          child: Icon(
-            set.completed ? Icons.check_circle : Icons.check_circle_outline,
-            color: Theme.of(context).primaryColor,
+
+      tableContent.add(
+        SetTableRowData(set, [
+          Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          //add textfields for each setMetric
+          if (es.prevSet.weight != null)
+            SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
+          if (es.prevSet.reps != null)
+            SetDataTextField(set, i, es, (set) => set.reps, (set, value) => set.reps = value),
+          if (es.prevSet.time != null)
+            SetDataTextField(set, i, es, (set) => set.time, (set, value) => set.time = value),
+          if (es.prevSet.distance != null)
+            SetDataTextField(set, i, es, (set) => set.distance, (set, value) => set.distance = value),
+          if (es.prevSet.speed != null)
+            SetDataTextField(set, i, es, (set) => set.speed, (set, value) => set.speed = value),
+          TextButton(
+            onPressed: () {
+              set.completed = !set.completed;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, i);
+            },
+            child: Icon(
+              set.completed ? Icons.check_circle : Icons.check_circle_outline,
+              color: Theme.of(context).primaryColor,
+            ),
           ),
-        ),
-      ]);
+        ]),
+      );
     }
   }
 

@@ -32,6 +32,7 @@ class SetsOfAnExercise {
 
 class Set {
   final Exercise ex;
+  late final String id;
   num? reps;
   num? time;
   num? weight;
@@ -41,6 +42,7 @@ class Set {
   //todo add units.  weight, distance, speed, time etc..
 
   Set(this.ex) {
+    id = DateTime.now().toIso8601String();
     if (ex.setMetrics!.contains('reps')) reps = 0;
     if (ex.setMetrics!.contains('weight')) weight = 0;
     if (ex.setMetrics!.contains('time')) time = 0;
@@ -84,10 +86,10 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     emit(state);
   }
 
-  // void removeExercise(Exercise ex) {
-  //   state.trainingData.removeWhere((element) => element.ex == ex);
-  //   emit(state);
-  // }
+  void removeExercise(Exercise ex) {
+    state.trainingData.removeWhere((element) => element.ex == ex);
+    emit(state);
+  }
 
   void addSet(Exercise ex) {
     var newTrainingData = state.trainingData.toList();
@@ -95,13 +97,22 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     emit(state.copyWith(trainingData: newTrainingData));
   }
 
-  // void removeSet(Exercise ex, Set set) {
-  //   state.trainingData
-  //       .firstWhere((element) => element.ex == ex)
-  //       .sets
-  //       .remove(set);
-  //   emit(state);
-  // }
+  void removeSet(Exercise ex, String setId) {
+    SetsOfAnExercise setsOfAnExercise = state.trainingData.firstWhere((element) => element.ex == ex);
+    bool removed = false;
+    for (var i = 0; i < setsOfAnExercise.sets.length; i++) {
+      if (setsOfAnExercise.sets[i].id == setId) {
+        setsOfAnExercise.sets.removeAt(i);
+        removed = true;
+        break;
+      }
+    }
+    if (!removed) {
+      // todo error handling
+    }
+
+    emit(state);
+  }
 
   void updateSet(Exercise ex, Set set, int setIndex) {
     var newTrainingData = state.trainingData.toList();

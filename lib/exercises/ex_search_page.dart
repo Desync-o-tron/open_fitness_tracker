@@ -188,6 +188,9 @@ class SearchBar extends StatefulWidget {
   _SearchBarState createState() => _SearchBarState();
 }
 
+//info I've been enountering bugs in the windows version of the app.
+// I sometimes cannot backspace (check the debug output)
+// also it sometimes only handles a keypress every .5 seconds or so.
 class _SearchBarState extends State<SearchBar> {
   final TextEditingController _controller = TextEditingController();
 
@@ -219,7 +222,6 @@ class _SearchBarState extends State<SearchBar> {
         controller: _controller,
         onChanged: (String value) {
           final cubit = BlocProvider.of<ExSearchCubit>(context);
-          // cubit.updateEnteredKeyword(value);
           cubit.updateFilters(keyword: value);
         },
         decoration: const InputDecoration(

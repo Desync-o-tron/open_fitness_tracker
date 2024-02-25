@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/styles.dart';
+import 'package:open_fitness_tracker/utils/utils.dart';
 
 class TrainingPage extends StatelessWidget {
   const TrainingPage({super.key});
@@ -12,6 +16,7 @@ class TrainingPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       // color: Theme.of(context).colorScheme.secondary,
+      color: darkTan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -19,7 +24,127 @@ class TrainingPage extends StatelessWidget {
           Text(state.duration?.inMinutes.toString() ?? '00:00', style: Theme.of(context).textTheme.bodySmall),
           Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
           const DisplayTrainingData(),
+          const SizedBox(height: 70),
+          Row(
+            children: [
+              Expanded(
+                child: Container(),
+              ),
+              Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
+              const SizedBox(width: 20),
+              Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
+              Expanded(
+                child: Container(),
+              ),
+            ],
+          )
         ],
+      ),
+    );
+  }
+}
+
+class MakeVisualTable extends StatelessWidget {
+  final Map<int, double> columnWidthsRatio;
+  final List<Widget> header;
+  final ExerciseTableData exerciseTableData;
+  const MakeVisualTable(
+      {required this.columnWidthsRatio, required this.header, required this.exerciseTableData, super.key});
+  @override
+  Widget build(BuildContext context) {
+    Map<int, double> columnWidths = {};
+    double width = getWidth(context) - 52;
+    double totalFlex = 0;
+    for (var flex in columnWidthsRatio.values) {
+      totalFlex += flex;
+    }
+    for (int i = 0; i < columnWidthsRatio.length; i++) {
+      columnWidths[i] = columnWidthsRatio[i]! * width / totalFlex;
+    }
+
+    List<Widget> pageContent = [];
+    List<Widget> headerRow = [];
+    for (int i = 0; i < header.length; i++) {
+      headerRow.add(SizedBox(width: columnWidths[i], child: header[i]));
+    }
+    pageContent.add(Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow));
+    pageContent.addAll(createTableRows(exerciseTableData, columnWidths, context));
+    return Column(children: pageContent);
+  }
+
+  Row createHeaderRow(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
+    List<Widget> headerRow = [];
+    for (int i = 0; i < header.length; i++) {
+      headerRow.add(SizedBox(width: columnWidths[i], child: header[i]));
+    }
+    return Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow);
+  }
+
+  List<Widget> createTableRows(
+      ExerciseTableData exerciseTableData, Map<int, double> columnWidths, BuildContext context) {
+    List<Widget> tableRows = [];
+    for (int i = 0; i < exerciseTableData.tableData.length; i++) {
+      List<Widget> row = [];
+      for (int j = 0; j < exerciseTableData.tableData[i].rowData.length; j++) {
+        row.add(Container(
+          margin: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(8.0),
+          width: columnWidths[j],
+          child: exerciseTableData.tableData[i].rowData[j],
+        ));
+      }
+      tableRows.add(Dismissible(
+        key: UniqueKey(),
+        onDismissed: (direction) {
+          context
+              .read<TrainingSessionCubit>()
+              .removeSet(exerciseTableData.ex, exerciseTableData.tableData[i].set.id);
+        },
+        background: Container(color: Colors.red),
+        confirmDismiss: (direction) async {
+          return true; //todo if the set is completed make sure to ask if they want to delete it
+        },
+        child: Row(children: row),
+      ));
+    }
+    return tableRows;
+  }
+}
+
+class SetTableRowData {
+  final Set set;
+  List<Widget> rowData = [];
+  SetTableRowData(this.set, this.rowData);
+}
+
+class ExerciseTableData {
+  final Exercise ex;
+  final List<SetTableRowData> tableData;
+
+  const ExerciseTableData(this.ex, this.tableData);
+}
+
+class ExManagementDialog extends StatelessWidget {
+  final SetsOfAnExercise es;
+  const ExManagementDialog(this.es, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(es.ex.name),
+      content: SizedBox(
+        height: 499,
+        child: Column(
+          children: [
+            MyGenericButton(
+              label: "Delete",
+              onPressed: () {
+                context.read<TrainingSessionCubit>().removeExercise(es.ex);
+                Navigator.of(context).pop();
+              },
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -31,16 +156,22 @@ class DisplayTrainingData extends StatelessWidget {
   Widget build(BuildContext context) {
     var state = context.watch<TrainingSessionCubit>().state;
 
-    List<Widget> pageContent = [];
+    List<Widget> pageContent = []; //
+    // List<OverlayPortalController> exOverlayControllers = [];
     for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
-      List<TableRow> tableContent = [];
-      addTableHeaderForEx(pageContent, setsOfAnEx, context, tableContent);
-      addSetsForEx(setsOfAnEx, tableContent, context);
-      final columnWidths = configColumnWidths(setsOfAnEx);
-      Table table = Table(
-        columnWidths: columnWidths,
-        children: tableContent,
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      List<Widget> header = [];
+      List<SetTableRowData> tableContent = [];
+      // OverlayPortalController controller = OverlayPortalController();
+      // exOverlayControllers.add(controller);
+
+      addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
+      // addTableHeaderForEx(pageContent, header, setsOfAnEx, controller, context);
+      addSetsDataForEx(tableContent, setsOfAnEx, context);
+      final columnWidths = configColumnWidthRatio(setsOfAnEx);
+      var table = MakeVisualTable(
+        columnWidthsRatio: columnWidths,
+        header: header,
+        exerciseTableData: ExerciseTableData(setsOfAnEx.ex, tableContent),
       );
       pageContent.add(table);
       pageContent.add(
@@ -73,27 +204,31 @@ class DisplayTrainingData extends StatelessWidget {
     );
   }
 
-  Map<int, TableColumnWidth> configColumnWidths(SetsOfAnExercise es) {
+  Map<int, double> configColumnWidthRatio(final SetsOfAnExercise es) {
     // make table for the exercise with columnWidths based on the non null setMetrics
-    var columnWidths = <int, TableColumnWidth>{};
+    var columnWidthFlex = <int, double>{};
     int numCols = 0;
-    columnWidths[numCols++] = const FlexColumnWidth(1); // Set
-    columnWidths[numCols++] = const FlexColumnWidth(4); // Previous
-    if (es.prevSet.weight != null) columnWidths[numCols++] = const FlexColumnWidth(2); // Weight
-    if (es.prevSet.reps != null) columnWidths[numCols++] = const FlexColumnWidth(2); // Reps
-    if (es.prevSet.time != null) columnWidths[numCols++] = const FlexColumnWidth(2); // Time
-    if (es.prevSet.distance != null) columnWidths[numCols++] = const FlexColumnWidth(2); // Distance
-    if (es.prevSet.speed != null) columnWidths[numCols++] = const FlexColumnWidth(2); // Speed
-    columnWidths[numCols++] = const FlexColumnWidth(1); // Completed
-    return columnWidths;
+    columnWidthFlex[numCols++] = 1; // Set
+    columnWidthFlex[numCols++] = 4; // Previous
+    if (es.prevSet.weight != null) columnWidthFlex[numCols++] = 2; // Weight
+    if (es.prevSet.reps != null) columnWidthFlex[numCols++] = 2; // Reps
+    if (es.prevSet.time != null) columnWidthFlex[numCols++] = 2; // Time
+    if (es.prevSet.distance != null) columnWidthFlex[numCols++] = 2; // Distance
+    if (es.prevSet.speed != null) columnWidthFlex[numCols++] = 2; // Speed
+    columnWidthFlex[numCols++] = 1; // Completed
+    return columnWidthFlex;
   }
 
-  void addSetsForEx(SetsOfAnExercise es, List<TableRow> tableContent, BuildContext context) {
+  void addSetsDataForEx(
+    List<SetTableRowData> tableContent,
+    final SetsOfAnExercise es,
+    final BuildContext context,
+  ) {
     for (int i = 0; i < es.sets.length; i++) {
       var set = es.sets[i];
-      tableContent.add(TableRow(
-        decoration: set.completed ? BoxDecoration(color: Theme.of(context).colorScheme.secondary) : null,
-        children: [
+
+      tableContent.add(
+        SetTableRowData(set, [
           Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           //add textfields for each setMetric
@@ -117,23 +252,51 @@ class DisplayTrainingData extends StatelessWidget {
               color: Theme.of(context).primaryColor,
             ),
           ),
-        ],
-      ));
+        ]),
+      );
     }
   }
 
-  void addTableHeaderForEx(List<Widget> allTablesAndHeaders, SetsOfAnExercise es, BuildContext context,
-      List<TableRow> tableContent) {
+  void addTableHeaderForEx(
+    List<Widget> allTablesAndHeaders,
+    List<Widget> header,
+    final SetsOfAnExercise es,
+    // OverlayPortalController exOverlayController,
+    final BuildContext context,
+  ) {
     allTablesAndHeaders.add(
-      TextButton(onPressed: () {}, child: Text(es.ex.name, style: Theme.of(context).textTheme.titleMedium)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          MyGenericButton(
+            label: es.ex.name,
+            onPressed: () {
+              // exOverlayController.toggle();
+            },
+            color: Theme.of(context).colorScheme.secondary,
+            shouldFillWidth: false,
+          ),
+          MyGenericButton(
+            icon:
+                Icon(FontAwesomeIcons.ellipsis, size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
+            onPressed: () {
+              // exOverlayController.toggle();
+              showDialog(context: context, builder: (context) => ExManagementDialog(es));
+            },
+            color: Theme.of(context).colorScheme.secondary,
+            shouldFillWidth: false,
+          ),
+        ],
+      ),
     );
+
     //utility function
     Widget headerText(String text, BuildContext context) {
       return Text(text, style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
     }
 
-    tableContent.add(TableRow(
-      children: [
+    header.addAll(
+      [
         headerText("Set", context),
         headerText("Previous", context),
         if (es.prevSet.weight != null) headerText("Weight", context),
@@ -143,7 +306,7 @@ class DisplayTrainingData extends StatelessWidget {
         if (es.prevSet.speed != null) headerText("Speed", context),
         headerText("Done", context),
       ],
-    ));
+    );
   }
 }
 
@@ -161,7 +324,8 @@ class SetDataTextField extends StatefulWidget {
 }
 
 class _SetDataTextFieldState extends State<SetDataTextField> {
-  //todo these text fields suck
+  //todo these text fields suck?
+  //on win, it loses focus after every character input (noticed once)
   late TextEditingController textController;
 
   @override
@@ -172,58 +336,47 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Container()),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: textController,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14.0),
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-              constraints: const BoxConstraints(
-                maxWidth: 50.0,
-                maxHeight: 30.0,
-              ),
-            ),
-            onChanged: (value) {
-              var parsedVal = num.tryParse(value);
-              if (parsedVal == null) {
-                value = '0';
-                // setSetValue(set, 0);
-              } else {
-                Set modifiedSet = widget.set;
-                widget.setSetValue(modifiedSet, parsedVal);
-                context.read<TrainingSessionCubit>().updateSet(widget.es.ex, modifiedSet, widget.setIndex);
-              }
-            },
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.deny(
-                  RegExp(r'[^0-9.]')), // This allows digits, a decimal point, and backspace/delete
-              TextInputFormatter.withFunction((oldValue, newValue) {
-                // This allows only one decimal point
-                int count = 0;
-                for (int i = 0; i < newValue.text.length; i++) {
-                  if (newValue.text[i] == '.') {
-                    count++;
-                  }
-                }
-                if (count > 1) {
-                  return oldValue;
-                }
-                return newValue;
-              }),
-            ],
-          ),
+    return TextField(
+      controller: textController,
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.bodyMedium,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14.0),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
+        constraints: const BoxConstraints(
+          maxWidth: 50.0,
+          maxHeight: 30.0,
         ),
-        Expanded(
-          child: Container(),
-        ),
+      ),
+      onChanged: (value) {
+        var parsedVal = num.tryParse(value);
+        if (parsedVal == null) {
+          value = '0';
+          // setSetValue(set, 0);
+        } else {
+          Set modifiedSet = widget.set;
+          widget.setSetValue(modifiedSet, parsedVal);
+          context.read<TrainingSessionCubit>().updateSet(widget.es.ex, modifiedSet, widget.setIndex);
+        }
+      },
+      inputFormatters: <TextInputFormatter>[
+        FilteringTextInputFormatter.deny(
+            RegExp(r'[^0-9.]')), // This allows digits, a decimal point, and backspace/delete
+        TextInputFormatter.withFunction((oldValue, newValue) {
+          // This allows only one decimal point
+          int count = 0;
+          for (int i = 0; i < newValue.text.length; i++) {
+            if (newValue.text[i] == '.') {
+              count++;
+            }
+          }
+          if (count > 1) {
+            return oldValue;
+          }
+          return newValue;
+        }),
       ],
     );
   }

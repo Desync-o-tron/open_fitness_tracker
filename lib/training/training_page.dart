@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
@@ -18,8 +19,6 @@ class TrainingPage extends StatelessWidget {
       color: darkTan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
-        // mainAxisSize: MainAxisSize.min,
         children: [
           Text(state.name ?? 'New Training Session', style: Theme.of(context).textTheme.headlineSmall),
           Text(state.duration?.inMinutes.toString() ?? '00:00', style: Theme.of(context).textTheme.bodySmall),
@@ -125,6 +124,32 @@ class ExerciseTableData {
   const ExerciseTableData(this.ex, this.tableData);
 }
 
+class ExManagementDialog extends StatelessWidget {
+  final SetsOfAnExercise es;
+  const ExManagementDialog(this.es, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(es.ex.name),
+      content: SizedBox(
+        height: 499,
+        child: Column(
+          children: [
+            MyGenericButton(
+              label: "Delete",
+              onPressed: () {
+                context.read<TrainingSessionCubit>().removeExercise(es.ex);
+                Navigator.of(context).pop();
+              },
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class DisplayTrainingData extends StatelessWidget {
   const DisplayTrainingData({super.key});
   @override
@@ -132,10 +157,15 @@ class DisplayTrainingData extends StatelessWidget {
     var state = context.watch<TrainingSessionCubit>().state;
 
     List<Widget> pageContent = []; //
+    // List<OverlayPortalController> exOverlayControllers = [];
     for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
+      // OverlayPortalController controller = OverlayPortalController();
+      // exOverlayControllers.add(controller);
+
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
+      // addTableHeaderForEx(pageContent, header, setsOfAnEx, controller, context);
       addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
       var table = MakeVisualTable(
@@ -190,7 +220,6 @@ class DisplayTrainingData extends StatelessWidget {
   }
 
   void addSetsDataForEx(
-    // List<List<Widget>> tableContent, final SetsOfAnExercise es, final BuildContext context) {
     List<SetTableRowData> tableContent,
     final SetsOfAnExercise es,
     final BuildContext context,
@@ -232,10 +261,33 @@ class DisplayTrainingData extends StatelessWidget {
     List<Widget> allTablesAndHeaders,
     List<Widget> header,
     final SetsOfAnExercise es,
+    // OverlayPortalController exOverlayController,
     final BuildContext context,
   ) {
     allTablesAndHeaders.add(
-      TextButton(onPressed: () {}, child: Text(es.ex.name, style: Theme.of(context).textTheme.titleMedium)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          MyGenericButton(
+            label: es.ex.name,
+            onPressed: () {
+              // exOverlayController.toggle();
+            },
+            color: Theme.of(context).colorScheme.secondary,
+            shouldFillWidth: false,
+          ),
+          MyGenericButton(
+            icon:
+                Icon(FontAwesomeIcons.ellipsis, size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
+            onPressed: () {
+              // exOverlayController.toggle();
+              showDialog(context: context, builder: (context) => ExManagementDialog(es));
+            },
+            color: Theme.of(context).colorScheme.secondary,
+            shouldFillWidth: false,
+          ),
+        ],
+      ),
     );
 
     //utility function

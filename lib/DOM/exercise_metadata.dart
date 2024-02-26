@@ -9,18 +9,18 @@ dart run build_runner watch --delete-conflicting-outputs
 */
 @JsonSerializable()
 class Exercise {
-  final String? id;
-  final String name;
-  final Force? force;
-  final Level? level;
-  final Mechanic? mechanic;
-  final String? equipment;
-  final List<String>? setMetrics;
-  final List<String> primaryMuscles;
-  final List<String>? secondaryMuscles;
-  final List<String>? instructions;
-  final String? category;
-  final List<String>? images;
+  String? id;
+  String name;
+  Force? force;
+  Level? level;
+  Mechanic? mechanic;
+  String? equipment;
+  List<String>? setMetrics;
+  List<String> primaryMuscles;
+  List<String>? secondaryMuscles;
+  List<String>? instructions;
+  String? category;
+  List<String>? images;
 
   Exercise({
     this.id,

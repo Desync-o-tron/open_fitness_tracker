@@ -27,15 +27,11 @@ class TrainingPage extends StatelessWidget {
           const SizedBox(height: 70),
           Row(
             children: [
-              Expanded(
-                child: Container(),
-              ),
+              Expanded(child: Container()),
               Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
               const SizedBox(width: 20),
               Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
-              Expanded(
-                child: Container(),
-              ),
+              Expanded(child: Container()),
             ],
           )
         ],
@@ -311,7 +307,6 @@ class DisplayTrainingData extends StatelessWidget {
 }
 
 class SetDataTextField extends StatefulWidget {
-  // const SetDataTextField({super.key});
   final Set set;
   final int setIndex;
   final SetsOfAnExercise es;

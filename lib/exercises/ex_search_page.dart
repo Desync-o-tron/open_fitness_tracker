@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/exercises/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart' show ExSearchCubit, ExSearchState;
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
@@ -100,89 +101,6 @@ class ExerciseSearchPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AddNewExerciseModal extends StatelessWidget {
-  final String? name;
-  const AddNewExerciseModal({super.key, this.name});
-
-  @override
-  Widget build(BuildContext context) {
-    var newExercise = Exercise(
-      name: name ?? '',
-      equipment: '',
-      primaryMuscles: [],
-    );
-    return AlertDialog(
-      insetPadding: const EdgeInsets.all(15), // Outside Padding
-      contentPadding: const EdgeInsets.all(10), // Content Padding
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      title: const Text('Add New Exercise', textAlign: TextAlign.center),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(children: [
-          TextField(
-            onChanged: (String value) {
-              newExercise.name = value;
-            },
-            maxLength: 500,
-            decoration: const InputDecoration(labelText: 'Name'),
-          ),
-          DropdownSearch<String>.multiSelection(
-            dropdownDecoratorProps: const DropDownDecoratorProps(
-              dropdownSearchDecoration: InputDecoration(labelText: "Primary Muscles"),
-            ),
-            items: gExs.muscles,
-            popupProps: const PopupPropsMultiSelection.menu(
-              searchFieldProps: TextFieldProps(
-                textInputAction: TextInputAction.go,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Search',
-                ),
-              ),
-            ),
-            filterFn: (String? item, String? filter) {
-              // Implement your fuzzy search here using the Fuzzy package
-              // For example, you can return true if the item contains the filter string
-              return item?.contains(filter ?? '') ?? false;
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(child: Container()),
-              Expanded(
-                child: MyGenericButton(
-                  label: 'Cancel',
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: MyGenericButton(
-                  label: 'Add',
-                  onPressed: () {
-                    newExercise.name = "aoeuuu";
-                    newExercise.equipment = "aoeu";
-                    newExercise.primaryMuscles = ["aoeu", "aaaa"];
-                    gExs.addExercises([newExercise]);
-                    var cubit = context.read<ExSearchCubit>();
-                    cubit.updateFilters(); //
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-              Expanded(child: Container()),
-            ],
-          ),
-        ]),
       ),
     );
   }

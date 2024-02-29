@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
-import 'package:open_fitness_tracker/exercises/ex_page.dart';
+import 'package:open_fitness_tracker/exercises/ex_dialog_page.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ExerciseTile extends StatelessWidget {

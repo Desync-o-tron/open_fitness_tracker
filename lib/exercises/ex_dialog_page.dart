@@ -12,57 +12,65 @@ class ExerciseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: const EdgeInsets.all(25), // Outside Padding
-      contentPadding: const EdgeInsets.all(5), // Content Padding
+      contentPadding: const EdgeInsets.all(10), // Content Padding
       content: Container(
         width: double.maxFinite,
         height: double.maxFinite,
-        padding: const EdgeInsets.all(16.0),
         margin: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        // padding: const EdgeInsets.all(6.0),
+        // decoration: BoxDecoration(
+        //   border: Border.all(color: Colors.grey),
+        //   borderRadius: BorderRadius.circular(8.0),
+        // ),
         child: Column(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                      child: Text(exercise.name,
-                          style: TextStyle(
-                              fontSize: Theme.of(context).textTheme.headlineLarge?.fontSize!,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.4))),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 250,
-                    child: ImageSwiper(imageRelativeUrls: exercise.images),
-                  ),
-                  Text('Primary Muscles: ${exercise.primaryMuscles.join(', ')}'),
-                  if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) ...[
-                    Text('Secondary Muscles: ${exercise.secondaryMuscles!.join(', ')}'),
-                  ],
-                  if (exercise.level != null) Text('Level: ${exercise.level}'),
-                  const SizedBox(height: 8),
-                  if (exercise.instructions != null) ...[
-                    const Text('Instructions:'),
-                    for (var instruction in exercise.instructions!) Text(instruction),
-                  ],
-                  const SizedBox(height: 8),
-                  if (exercise.mechanic != null) Text('Mechanic: ${exercise.mechanic}'),
-                  if (exercise.category != null) Text('Category: ${exercise.category}'),
-                  if (exercise.equipment != null) Text('Equipment: ${exercise.equipment}'),
-                ],
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                exercise.name,
+                style: TextStyle(
+                    fontSize: Theme.of(context).textTheme.headlineLarge?.fontSize!,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.4),
               ),
             ),
-            Expanded(child: Container()),
-            MyGenericButton(
-              label: 'Close',
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
+            Flexible(
+              child: SingleChildScrollView(
+                child: ListBody(
+                  children: [
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 250,
+                      child: ImageSwiper(imageRelativeUrls: exercise.images),
+                    ),
+                    Text('Primary Muscles: ${exercise.primaryMuscles.join(', ')}'),
+                    if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) ...[
+                      Text('Secondary Muscles: ${exercise.secondaryMuscles!.join(', ')}'),
+                    ],
+                    if (exercise.level != null) Text('Level: ${exercise.level}'),
+                    const SizedBox(height: 8),
+                    if (exercise.instructions != null) ...[
+                      const Text('Instructions:'),
+                      for (var instruction in exercise.instructions!) Text(instruction),
+                    ],
+                    const SizedBox(height: 8),
+                    if (exercise.mechanic != null) Text('Mechanic: ${exercise.mechanic}'),
+                    if (exercise.category != null) Text('Category: ${exercise.category}'),
+                    if (exercise.equipment != null) Text('Equipment: ${exercise.equipment}'),
+                  ],
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: MyGenericButton(
+                label: 'Close',
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
           ],
         ),
       ),

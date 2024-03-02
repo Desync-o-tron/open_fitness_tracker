@@ -4,6 +4,69 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/exercises/muscle_selector.dart';
+
+//I have some state like:
+
+class SimpleState {
+  SimpleState() {
+    firstList = ["a", "b", "c"];
+    secondList = ["d", "e", "f"];
+  }
+  SimpleState factory(SimpleState state) {
+    firstList = List.of(state.firstList);
+    secondList = List.of(state.secondList);
+    return this;
+  }
+
+  List<String> firstList = ["a", "b", "c"];
+  List<String> secondList = ["d", "e", "f"];
+}
+
+//and the cubit:
+
+class SimpleStateCubit extends Cubit<SimpleState> {
+  SimpleStateCubit() : super(SimpleState());
+  updateState(SimpleState newState) {
+    emit(newState);
+  }
+}
+
+// I have a widget that shows and edits one of the Lists:
+
+class ShowAndEditList extends StatelessWidget {
+  final List<String> list;
+  final Null Function(String str) onPressed;
+  const ShowAndEditList({super.key, required this.list, required this.onPressed});
+  @override
+  Widget build(context) {
+    // var firstListCopy = List.of(list);
+    // var state = context.watch<SimpleStateCubit>().state;
+    // var list = state.firstList;
+    List<Widget> buttons = [];
+    for (var str in list) {
+      buttons.add(ElevatedButton(
+        onPressed: () => onPressed(str),
+        child: Text(str),
+      ));
+    }
+
+    return Column(
+      children: [...buttons, Container(height: 10, width: 10, color: Colors.red)],
+    );
+  }
+}
+
+// -> the problem is I cannot reuse this widget for the second list. Because the logic to display and remove is hardcoded to the widget.
+// how can I read and write generic lists in my cubit? it would be nice if I could just update a watched state in the cubit and the widget would update automatically.
+
+class CreateNewExCubit extends Cubit<Exercise> {
+  CreateNewExCubit() : super(Exercise(name: '', equipment: '', primaryMuscles: []));
+
+  void updateExercise(Exercise exercise) {
+    emit(Exercise.fromExercise(exercise));
+  }
+}
 
 class AddNewExerciseModal extends StatelessWidget {
   final String? name;
@@ -11,15 +74,16 @@ class AddNewExerciseModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var newExercise = Exercise(
-      name: name ?? '',
-      equipment: '',
-      primaryMuscles: [],
-    );
+    // var newExercise = Exercise(
+    //   name: name ?? '',
+    //   equipment: '',
+    //   primaryMuscles: [],
+    // );
+    Exercise newExercise = context.read<CreateNewExCubit>().state;
     return AlertDialog(
       insetPadding: const EdgeInsets.all(15), // Outside Padding
       contentPadding: const EdgeInsets.all(10), // Content Padding
-      backgroundColor: Theme.of(context).colorScheme.secondary,
+      // backgroundColor: Theme.of(context).colorScheme.secondary,
       title: const Text('Add New Exercise', textAlign: TextAlign.center),
       content: SizedBox(
         width: double.maxFinite,
@@ -32,39 +96,6 @@ class AddNewExerciseModal extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Name'),
           ),
           Expanded(child: SearchableDropdown()),
-          // DropdownSearch<String>(
-          //   dropdownDecoratorProps: const DropDownDecoratorProps(
-          //     dropdownSearchDecoration: InputDecoration(
-          //       labelText: "Primary Muscles",
-          //       //   labelText: "Menu mode",
-          //       hintText: "country in menu mode",
-          //     ),
-          //   ),
-          //TODO I am disapointed in this extension
-          // dropdownSearchDecoration: InputDecoration(
-          //   labelText: "Menu mode",
-          //   hintText: "country in menu mode",
-          // ),
-          //   items: gExs.muscles,
-          //   popupProps: const PopupPropsMultiSelection.menu(
-          //     searchFieldProps: TextFieldProps(
-          //       // textInputAction: TextInputAction.send,
-          //       autofocus: true,
-          //       showCursor: true,
-          //       keyboardType: TextInputType.text,
-          //       decoration: InputDecoration(
-          //         border: OutlineInputBorder(),
-          //         labelText: 'Search',
-          //       ),
-          //     ),
-          //     menuProps: MenuProps(),
-          //   ),
-          //   filterFn: (String? item, String? filter) {
-          //     // Implement your fuzzy search here using the Fuzzy package
-          //     // For example, you can return true if the item contains the filter string
-          //     return item?.contains(filter ?? '') ?? false;
-          //   },
-          // ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -100,161 +131,3 @@ class AddNewExerciseModal extends StatelessWidget {
     );
   }
 }
-
-class SearchableDropdown extends StatefulWidget {
-  @override
-  _SearchableDropdownState createState() => _SearchableDropdownState();
-}
-
-class _SearchableDropdownState extends State<SearchableDropdown> {
-  final List<String> _primaryMuscles = ['Chest', 'Back', 'Legs']; // Initial list
-  String? _selectedMuscle;
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: _controller,
-            decoration: InputDecoration(
-              labelText: 'Add a muscle',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  final String newValue = _controller.text.trim();
-                  if (newValue.isNotEmpty && !_primaryMuscles.contains(newValue)) {
-                    setState(() {
-                      _primaryMuscles.add(newValue);
-                      _selectedMuscle = newValue; // Automatically select the new item
-                    });
-                    _controller.clear();
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-        DropdownButtonFormField<String>(
-          value: _selectedMuscle,
-          hint: Text('Select a muscle'),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedMuscle = newValue;
-            });
-          },
-          items: _primaryMuscles.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-/*
-class _SearchableDropdownState extends State<SearchableDropdown> {
-  final TextEditingController _controller = TextEditingController();
-  List<String> primaryMuscles = gExs.muscles;
-  // [
-  //   'Chest',
-  //   'Back',
-  //   'Legs'
-  // ]; // Example list, replace with g_Exs.primaryMuscles if it's a global variable.
-  List<String> filteredList = [];
-  List<String> selectedItems = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredList = primaryMuscles;
-  }
-
-  void _filterList(String enteredKeyword) {
-    List<String> tempFilteredList = [];
-    if (enteredKeyword.isEmpty) {
-      tempFilteredList = primaryMuscles;
-    } else {
-      tempFilteredList = primaryMuscles
-          .where((element) => element.toLowerCase().contains(enteredKeyword.toLowerCase()))
-          .toList();
-    }
-    setState(() {
-      filteredList = tempFilteredList;
-    });
-  }
-
-  void _toggleSelection(String value) {
-    setState(() {
-      if (selectedItems.contains(value)) {
-        selectedItems.remove(value);
-      } else {
-        selectedItems.add(value);
-      }
-    });
-  }
-
-  void _addItem(String item) {
-    setState(() {
-      primaryMuscles.add(item);
-      filteredList.add(item);
-      selectedItems.add(item);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: _controller,
-            decoration: InputDecoration(
-              labelText: 'Search or add a muscle',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  final String newItem = _controller.text;
-                  if (newItem.isNotEmpty && !primaryMuscles.contains(newItem)) {
-                    _addItem(newItem);
-                  }
-                  _controller.clear();
-                },
-              ),
-            ),
-            onChanged: _filterList,
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: filteredList.length,
-            itemBuilder: (context, index) {
-              final item = filteredList[index];
-              return ListTile(
-                title: Text(item),
-                leading: selectedItems.contains(item)
-                    ? Icon(Icons.check_circle_outline)
-                    : Icon(Icons.radio_button_unchecked),
-                onTap: () => _toggleSelection(item),
-                tileColor: selectedItems.contains(item) ? Colors.lightBlueAccent : null,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-*/

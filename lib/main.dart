@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/exercises/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/state.dart';
@@ -58,6 +59,12 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => TrainingSessionCubit(),
+        ),
+        BlocProvider(
+          create: (_) => CreateNewExCubit(),
+        ),
+        BlocProvider(
+          create: (_) => SimpleStateCubit(),
         ),
       ],
       child: MaterialApp.router(

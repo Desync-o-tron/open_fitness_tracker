@@ -37,6 +37,22 @@ class Exercise {
     this.images,
   });
 
+  factory Exercise.fromExercise(Exercise exercise) {
+    return Exercise(
+      id: exercise.id,
+      name: exercise.name,
+      force: exercise.force,
+      level: exercise.level,
+      mechanic: exercise.mechanic,
+      equipment: exercise.equipment,
+      setMetrics: exercise.setMetrics,
+      primaryMuscles: exercise.primaryMuscles,
+      secondaryMuscles: exercise.secondaryMuscles,
+      instructions: exercise.instructions,
+      category: exercise.category,
+      images: exercise.images,
+    );
+  }
   factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 }

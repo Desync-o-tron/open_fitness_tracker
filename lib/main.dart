@@ -63,9 +63,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => CreateNewExCubit(),
         ),
-        BlocProvider(
-          create: (_) => SimpleStateCubit(),
-        ),
       ],
       child: MaterialApp.router(
         theme: myTheme,

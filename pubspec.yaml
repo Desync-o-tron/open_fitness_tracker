@@ -42,7 +42,7 @@ dependencies:
   flutter_riverpod: ^2.4.10
   flex_dropdown: ^0.1.1
   font_awesome_flutter: ^10.7.0
-  dropdown_search: ^5.0.6
+  flutter_portal: ^1.1.4
   
 dev_dependencies:
   flutter_test:

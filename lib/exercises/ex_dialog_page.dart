@@ -17,12 +17,8 @@ class ExerciseDialog extends StatelessWidget {
         width: double.maxFinite,
         height: double.maxFinite,
         margin: const EdgeInsets.all(10.0),
-        // padding: const EdgeInsets.all(6.0),
-        // decoration: BoxDecoration(
-        //   border: Border.all(color: Colors.grey),
-        //   borderRadius: BorderRadius.circular(8.0),
-        // ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Align(
@@ -57,7 +53,7 @@ class ExerciseDialog extends StatelessWidget {
                     const SizedBox(height: 8),
                     if (exercise.mechanic != null) Text('Mechanic: ${exercise.mechanic}'),
                     if (exercise.category != null) Text('Category: ${exercise.category}'),
-                    if (exercise.equipment != null) Text('Equipment: ${exercise.equipment}'),
+                    if (exercise.equipment != null) Text('Equipment: ${exercise.primaryMuscles.join(', ')}'),
                   ],
                 ),
               ),
@@ -113,12 +109,17 @@ class _ImageSwiperState extends State<ImageSwiper> {
             },
             itemBuilder: (context, index) {
               final imageUrl = ImageSwiper.imgBaseUrl.resolve(widget.imageRelativeUrls![index]).toString();
-              return FadeInImage.assetNetwork(
-                placeholder: 'assets/media/bar_loading.gif',
-                image: imageUrl,
-                fit: BoxFit.contain,
-                fadeInDuration: const Duration(milliseconds: 1),
-                fadeOutDuration: const Duration(milliseconds: 1),
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).primaryColor),
+                ),
+                child: FadeInImage.assetNetwork(
+                  placeholder: 'assets/media/bar_loading.gif',
+                  image: imageUrl,
+                  fit: BoxFit.contain,
+                  fadeInDuration: const Duration(milliseconds: 1),
+                  fadeOutDuration: const Duration(milliseconds: 1),
+                ),
               );
             },
           ),

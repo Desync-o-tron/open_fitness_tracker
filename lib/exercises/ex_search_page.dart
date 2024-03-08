@@ -91,7 +91,7 @@ class ExerciseSearchPage extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return const AddNewExerciseModal();
+                    return AddNewExerciseModal();
                   },
                 );
               },

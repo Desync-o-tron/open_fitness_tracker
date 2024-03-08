@@ -11,19 +11,23 @@ class gExs {
   static get categories => _categories;
   static get muscles => _muscles;
   static get names => _names;
+  static get equipment => _equipment;
+
   static addExercises(List<Exercise> exercises) {
     for (var exercise in exercises) {
       _exercises.addIfDNE(exercise);
       _names.addIfDNE(exercise.name);
       _categories.addIfDNE(exercise.category);
+      _equipment.addIfDNE(exercise.equipment);
       _muscles.addAllIfDNE(exercise.primaryMuscles);
-      // _muscles.addAllIfDNE(exercise.secondaryMuscles); //todo?
+      if (exercise.secondaryMuscles != null) _muscles.addAllIfDNE(exercise.secondaryMuscles!);
     }
   }
 
   static final List<String> _names = [];
   static final List<String> _categories = [];
   static final List<String> _muscles = [];
+  static final List<String> _equipment = [];
   static final List<Exercise> _exercises = [];
 }
 

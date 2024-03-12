@@ -4,7 +4,7 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/state.dart';
-import 'package:open_fitness_tracker/exercises/muscle_selector.dart';
+import 'package:open_fitness_tracker/exercises/create_new_exercise/muscle_selector.dart';
 
 //todo add logic to make sure the ex name does not exist already
 
@@ -16,15 +16,15 @@ class CreateNewExCubit extends Cubit<Exercise> {
   }
 }
 
-class AddNewExerciseModal extends StatefulWidget {
+class CreateNewExerciseModal extends StatefulWidget {
   final String? name;
-  const AddNewExerciseModal({super.key, this.name});
+  const CreateNewExerciseModal({super.key, this.name});
 
   @override
-  State<AddNewExerciseModal> createState() => _AddNewExerciseModalState();
+  State<CreateNewExerciseModal> createState() => _CreateNewExerciseModalState();
 }
 
-class _AddNewExerciseModalState extends State<AddNewExerciseModal> with SingleTickerProviderStateMixin {
+class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with SingleTickerProviderStateMixin {
   final _nameController = TextEditingController();
   late AnimationController _controller;
   late Animation _colorAnimation;
@@ -48,7 +48,7 @@ class _AddNewExerciseModalState extends State<AddNewExerciseModal> with SingleTi
     return AlertDialog(
       insetPadding: const EdgeInsets.all(15), // Outside Padding
       contentPadding: const EdgeInsets.all(10), // Content Padding
-      backgroundColor: Theme.of(context).colorScheme.secondary,
+      // backgroundColor: Theme.of(context).colorScheme.secondary,
       title: const Text('Add New Exercise', textAlign: TextAlign.center),
       content: SizedBox(
         width: double.maxFinite,
@@ -73,7 +73,7 @@ class _AddNewExerciseModalState extends State<AddNewExerciseModal> with SingleTi
                         errorText: _validate && (_nameController.text.length < minNameChars)
                             ? 'Name must be at least $minNameChars characters long'
                             : null,
-                      ), //todo I cant see this
+                      ),
                     ),
                     MusclesPicker(
                       validate: _validate,
@@ -130,6 +130,7 @@ class _AddNewExerciseModalState extends State<AddNewExerciseModal> with SingleTi
         Expanded(child: Container()),
         Expanded(
           child: MyGenericButton(
+            // shouldFillWidth: false,
             label: 'Cancel',
             onPressed: () {
               Navigator.pop(context);

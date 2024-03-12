@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/training/training_page.dart';
 
@@ -7,6 +9,9 @@ class StartTrainingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.watch<TrainingSessionCubit>().state.isOngoing) {
+      return const TrainingPage();
+    }
     return Container(
       color: Theme.of(context).colorScheme.secondary,
       child: Center(
@@ -20,6 +25,7 @@ class StartTrainingPage extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
+            context.read<TrainingSessionCubit>().state.isOngoing = true;
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const TrainingPage(),

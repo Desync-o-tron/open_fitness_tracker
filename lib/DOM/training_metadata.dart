@@ -3,12 +3,14 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 
 class TrainingSession {
   String? id;
+  bool isOngoing = false;
   String? name;
   Duration? duration;
   DateTime? date;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
+  //todo this copyWith kinda sucks bc I have to copy all the fields manually
   TrainingSession copyWith({required List<SetsOfAnExercise> trainingData}) {
     return TrainingSession()
       ..id = id
@@ -16,6 +18,7 @@ class TrainingSession {
       ..duration = duration
       ..date = date
       ..notes = notes
+      ..isOngoing = isOngoing
       ..trainingData = trainingData;
   }
 }
@@ -67,18 +70,12 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
       primaryMuscles: ["Quadriceps", "Glutes"],
       setMetrics: ["reps", "weight"],
     );
-    // var exampleExerciseSet = SetsOfAnExercise(bench);
-    // var exampleExerciseSet2 = SetsOfAnExercise(squat);
-    // exampleExerciseSet.prevSet = Set(exampleExerciseSet.ex);
-    // exampleExerciseSet2.sets.add(Set(exampleExerciseSet2.ex));
     state.trainingData.add(SetsOfAnExercise(bench));
     state.trainingData.add(SetsOfAnExercise(squat));
     //lets add some example sets
-    // Set set1 = Set(exampleExerciseSet.ex);
     Set benchSet = state.trainingData[0].sets[0];
     benchSet.reps = 10;
     benchSet.weight = 135;
-    // exampleExerciseSet.sets.add(set1);
   }
 
   void addExercise(Exercise ex) {
@@ -110,7 +107,6 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     if (!removed) {
       // todo error handling
     }
-
     emit(state);
   }
 

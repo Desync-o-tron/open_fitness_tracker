@@ -25,16 +25,17 @@ class MyGenericButton extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2.0),
       width: shouldFillWidth ? double.infinity : null,
+      // padding: const EdgeInsets.all(20),
+      height: 50,
       child: TextButton(
         onPressed: isEnabled ? onPressed : null,
         style: TextButton.styleFrom(
-          backgroundColor: isEnabled ? color : Colors.grey, // Adjust the background color as needed
+          backgroundColor: isEnabled ? color : Colors.grey,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          side: const BorderSide(color: Colors.grey, width: 1), // Border color and width
-          padding: const EdgeInsets.symmetric(vertical: 14.0), // Adjust padding as needed
+          side: const BorderSide(color: Colors.grey, width: 1),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 17.0),
+          padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -48,7 +49,7 @@ class MyGenericButton extends StatelessWidget {
               ),
               if (icon != null)
                 Padding(
-                  padding: label != '' ? const EdgeInsets.only(left: 10.0) : const EdgeInsets.all(0),
+                  padding: label.isNotEmpty ? const EdgeInsets.only(left: 10.0) : const EdgeInsets.all(0),
                   child: icon,
                 ),
             ],

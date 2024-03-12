@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/exercises/create_new_ex_modal.dart';
+import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart' show ExSearchCubit, ExSearchState;
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-class ExerciseSearchPage extends StatelessWidget {
-  const ExerciseSearchPage({super.key});
+class ExerciseSearchPage extends StatefulWidget {
+  final bool useForAddingExercises;
+  const ExerciseSearchPage({super.key, this.useForAddingExercises = false});
+
+  @override
+  State<ExerciseSearchPage> createState() => _ExerciseSearchPageState();
+}
+
+class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
+  List<Exercise> selectedExercises = [];
+
+  @override
+  void initState() {
+    super.initState();
+    var trainingsesh = context.read<TrainingSessionCubit>();
+    selectedExercises = trainingsesh.state.trainingData.map((e) => e.ex).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +62,16 @@ class ExerciseSearchPage extends StatelessWidget {
               ),
             ),
           ),
+          if (widget.useForAddingExercises)
+            MyGenericButton(
+              color: Theme.of(context).colorScheme.primary,
+              onPressed: () {
+                // var trainingCubit = context.read<TrainingSessionCubit>();
+                // var selectedExercises = searchCubit.state.selectedExercises;
+                Navigator.pop(context);
+                // pop
+              },
+            ),
           const SearchBar(),
           Padding(
             padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
@@ -91,7 +118,7 @@ class ExerciseSearchPage extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AddNewExerciseModal();
+                    return const CreateNewExerciseModal();
                   },
                 );
               },

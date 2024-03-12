@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -14,27 +15,31 @@ class TrainingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var state = context.read<TrainingSessionCubit>().state;
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(10.0),
       // color: Theme.of(context).colorScheme.secondary,
       color: darkTan,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(state.name ?? 'New Training Session', style: Theme.of(context).textTheme.headlineSmall),
-          Text(state.duration?.inMinutes.toString() ?? '00:00', style: Theme.of(context).textTheme.bodySmall),
-          Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
-          const DisplayTrainingData(),
-          const SizedBox(height: 70),
-          Row(
-            children: [
-              Expanded(child: Container()),
-              Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
-              const SizedBox(width: 20),
-              Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
-              Expanded(child: Container()),
-            ],
-          )
-        ],
+      child: SingleChildScrollView(
+        clipBehavior: Clip.none,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(state.name ?? 'New Training Session', style: Theme.of(context).textTheme.headlineSmall),
+            Text(state.duration?.inMinutes.toString() ?? '00:00',
+                style: Theme.of(context).textTheme.bodySmall),
+            Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
+            const DisplayTrainingData(),
+            const SizedBox(height: 70),
+            Row(
+              children: [
+                Expanded(child: Container()),
+                Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
+                const SizedBox(width: 20),
+                Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
+                Expanded(child: Container()),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -44,12 +49,18 @@ class MakeVisualTable extends StatelessWidget {
   final Map<int, double> columnWidthsRatio;
   final List<Widget> header;
   final ExerciseTableData exerciseTableData;
-  const MakeVisualTable(
-      {required this.columnWidthsRatio, required this.header, required this.exerciseTableData, super.key});
+
+  const MakeVisualTable({
+    required this.columnWidthsRatio,
+    required this.header,
+    required this.exerciseTableData,
+    super.key,
+  });
+
   @override
   Widget build(BuildContext context) {
     Map<int, double> columnWidths = {};
-    double width = getWidth(context) - 52;
+    double width = getWidth(context) - 40;
     double totalFlex = 0;
     for (var flex in columnWidthsRatio.values) {
       totalFlex += flex;
@@ -59,11 +70,7 @@ class MakeVisualTable extends StatelessWidget {
     }
 
     List<Widget> pageContent = [];
-    List<Widget> headerRow = [];
-    for (int i = 0; i < header.length; i++) {
-      headerRow.add(SizedBox(width: columnWidths[i], child: header[i]));
-    }
-    pageContent.add(Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow));
+    pageContent.add(createHeaderRow(header, columnWidths, context));
     pageContent.addAll(createTableRows(exerciseTableData, columnWidths, context));
     return Column(children: pageContent);
   }
@@ -71,7 +78,11 @@ class MakeVisualTable extends StatelessWidget {
   Row createHeaderRow(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> headerRow = [];
     for (int i = 0; i < header.length; i++) {
-      headerRow.add(SizedBox(width: columnWidths[i], child: header[i]));
+      headerRow.add(Container(
+        width: columnWidths[i],
+        margin: const EdgeInsets.all(2),
+        child: header[i],
+      ));
     }
     return Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow);
   }
@@ -153,15 +164,10 @@ class DisplayTrainingData extends StatelessWidget {
     var state = context.watch<TrainingSessionCubit>().state;
 
     List<Widget> pageContent = []; //
-    // List<OverlayPortalController> exOverlayControllers = [];
     for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
-      // OverlayPortalController controller = OverlayPortalController();
-      // exOverlayControllers.add(controller);
-
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
-      // addTableHeaderForEx(pageContent, header, setsOfAnEx, controller, context);
       addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
       var table = MakeVisualTable(
@@ -186,11 +192,14 @@ class DisplayTrainingData extends StatelessWidget {
       child: MyGenericButton(
         label: "Add Exercise",
         onPressed: () {
-          // context.read<TrainingSessionCubit>().addExercise();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) => const ExerciseSearchPage(useForAddingExercises: true),
+            ),
+          );
         },
         color: Theme.of(context).colorScheme.primary,
         textColor: Theme.of(context).colorScheme.onPrimary,
-        // textColor: Colors.white ,
       ),
     ));
 
@@ -211,7 +220,7 @@ class DisplayTrainingData extends StatelessWidget {
     if (es.prevSet.time != null) columnWidthFlex[numCols++] = 2; // Time
     if (es.prevSet.distance != null) columnWidthFlex[numCols++] = 2; // Distance
     if (es.prevSet.speed != null) columnWidthFlex[numCols++] = 2; // Speed
-    columnWidthFlex[numCols++] = 1; // Completed
+    columnWidthFlex[numCols++] = 2; // Completed
     return columnWidthFlex;
   }
 
@@ -257,30 +266,33 @@ class DisplayTrainingData extends StatelessWidget {
     List<Widget> allTablesAndHeaders,
     List<Widget> header,
     final SetsOfAnExercise es,
-    // OverlayPortalController exOverlayController,
     final BuildContext context,
   ) {
     allTablesAndHeaders.add(
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          MyGenericButton(
-            label: es.ex.name,
-            onPressed: () {
-              // exOverlayController.toggle();
-            },
-            color: Theme.of(context).colorScheme.secondary,
-            shouldFillWidth: false,
-          ),
-          MyGenericButton(
-            icon:
-                Icon(FontAwesomeIcons.ellipsis, size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
-            onPressed: () {
-              // exOverlayController.toggle();
-              showDialog(context: context, builder: (context) => ExManagementDialog(es));
-            },
-            color: Theme.of(context).colorScheme.secondary,
-            shouldFillWidth: false,
+          Text(es.ex.name, style: Theme.of(context).textTheme.titleMedium),
+          // MyGenericButton(
+          //   label: es.ex.name,
+          //   onPressed: () {},
+          //   color: Theme.of(context).colorScheme.secondary,
+          //   shouldFillWidth: false,
+          // ),
+          SizedBox(
+            height: 40,
+            child: Center(
+              child: MyGenericButton(
+                icon: Icon(FontAwesomeIcons.ellipsis,
+                    size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
+                onPressed: () {
+                  // exOverlayController.toggle();
+                  showDialog(context: context, builder: (context) => ExManagementDialog(es));
+                },
+                color: Theme.of(context).colorScheme.secondary,
+                shouldFillWidth: false,
+              ),
+            ),
           ),
         ],
       ),
@@ -319,7 +331,7 @@ class SetDataTextField extends StatefulWidget {
 }
 
 class _SetDataTextFieldState extends State<SetDataTextField> {
-  //todo these text fields suck?
+  //todo these text fields suck!!
   //on win, it loses focus after every character input (noticed once)
   late TextEditingController textController;
 

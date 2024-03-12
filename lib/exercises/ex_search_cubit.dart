@@ -4,6 +4,15 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+// //does this make sense here?
+// class SelectedExercises extends Cubit<List<Exercise>> {
+//   SelectedExercises() : super([]);
+
+//   void updateSelectedExercises(List<Exercise> exercises) {
+//     emit(exercises);
+//   }
+// }
+
 class ExSearchState {
   List<Exercise> filteredExercises = gExs.exercises;
   List<String> categoriesFilter = [];

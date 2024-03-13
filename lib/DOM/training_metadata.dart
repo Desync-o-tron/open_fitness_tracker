@@ -76,6 +76,8 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     Set benchSet = state.trainingData[0].sets[0];
     benchSet.reps = 10;
     benchSet.weight = 135;
+
+    state.isOngoing = true;
   }
 
   void addExercise(Exercise ex) {

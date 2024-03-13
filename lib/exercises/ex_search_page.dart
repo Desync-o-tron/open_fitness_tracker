@@ -10,8 +10,8 @@ import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ExerciseSearchPage extends StatefulWidget {
-  final bool useForAddingExercises;
-  const ExerciseSearchPage({super.key, this.useForAddingExercises = false});
+  final bool useForAddingToTraining;
+  const ExerciseSearchPage({super.key, this.useForAddingToTraining = false});
 
   @override
   State<ExerciseSearchPage> createState() => _ExerciseSearchPageState();
@@ -19,6 +19,7 @@ class ExerciseSearchPage extends StatefulWidget {
 
 class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   List<Exercise> selectedExercises = [];
+  List<Exercise> newlySelectedExercises = [];
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
     final state = context.watch<ExSearchCubit>().state;
     // ignore: avoid_unnecessary_containers
     return Container(
-      color: Theme.of(context).colorScheme.secondary,
+      // color: Theme.of(context).colorScheme.secondary,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -53,24 +54,37 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                     key: ValueKey(state.filteredExercises.length),
                     itemCount: state.filteredExercises.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
-                        decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-                        child: ExerciseTile(exercise: state.filteredExercises[index]),
-                      );
+                      return ExerciseTile(
+                          exercise: state.filteredExercises[index],
+                          isSelectable: widget.useForAddingToTraining,
+                          isSelected: selectedExercises.contains(state.filteredExercises[index]) ||
+                              newlySelectedExercises.contains(state.filteredExercises[index]),
+                          onSelectionChanged: (bool isSelected) {
+                            if (isSelected) {
+                              newlySelectedExercises.add(state.filteredExercises[index]);
+                            } else {
+                              newlySelectedExercises.remove(state.filteredExercises[index]);
+                            }
+                            setState(() {});
+                          });
                     }),
               ),
             ),
           ),
-          if (widget.useForAddingExercises)
-            MyGenericButton(
-              color: Theme.of(context).colorScheme.primary,
-              onPressed: () {
-                // var trainingCubit = context.read<TrainingSessionCubit>();
-                // var selectedExercises = searchCubit.state.selectedExercises;
-                Navigator.pop(context);
-                // pop
-              },
+          if (widget.useForAddingToTraining)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+              child: MyGenericButton(
+                label: "Add Selected - ${newlySelectedExercises.length}",
+                color: Theme.of(context).colorScheme.primary,
+                onPressed: () {
+                  var trainingCubit = context.read<TrainingSessionCubit>();
+                  for (var ex in newlySelectedExercises) {
+                    trainingCubit.addExercise(ex);
+                  }
+                  Navigator.pop(context);
+                },
+              ),
             ),
           const SearchBar(),
           Padding(

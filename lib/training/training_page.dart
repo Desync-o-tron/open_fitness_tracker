@@ -194,7 +194,7 @@ class DisplayTrainingData extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (BuildContext context) => const ExerciseSearchPage(useForAddingExercises: true),
+              builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
         },

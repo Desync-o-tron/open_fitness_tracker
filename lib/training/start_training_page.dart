@@ -26,9 +26,9 @@ class StartTrainingPage extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
-            var trainingCubit = context.read<TrainingSessionCubit>();
-            trainingCubit.state.isOngoing = true;
-            Storage.startAutoSavingActiveTrainingSession(trainingCubit.state);
+            var trainingSesh = context.read<TrainingSessionCubit>().state;
+            trainingSesh.isOngoing = true;
+            Storage.startAutoSavingActiveTrainingSession(trainingSesh);
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const TrainingPage(),

@@ -64,11 +64,17 @@ class MyApp extends StatelessWidget {
           create: (_) => CreateNewExCubit(),
         ),
       ],
-      child: MaterialApp.router(
-        theme: myTheme,
-        routerConfig: routerConfig,
-        title: 'Open Fitness Tracker',
-      ),
+      child: Builder(builder: (context) {
+        Storage.loadCurrentTrainingSesh(
+          context,
+          context.read<TrainingSessionCubit>(),
+        );
+        return MaterialApp.router(
+          theme: myTheme,
+          routerConfig: routerConfig,
+          title: 'Open Fitness Tracker',
+        );
+      }),
     );
   }
 }

@@ -37,6 +37,7 @@ class gExs {
 class Storage {
   static late final SharedPreferences _prefs;
   static bool autoSave = false;
+  static const String activeTrainingSessionKey = 'activeTrainingSession';
 
   //todo add error handling to all this
   static init() async {
@@ -59,9 +60,9 @@ class Storage {
   }
 
   static Future<TrainingSession?> loadActiveTrainingSession() async {
-    if (_prefs.containsKey('activeTrainingSession')) {
+    if (_prefs.containsKey(activeTrainingSessionKey)) {
       TrainingSession sesh =
-          TrainingSession.fromJson(json.decode(_prefs.getString('activeTrainingSession')!));
+          TrainingSession.fromJson(json.decode(_prefs.getString(activeTrainingSessionKey)!));
       if (sesh.isOngoing) {
         return sesh;
       }
@@ -73,12 +74,12 @@ class Storage {
     autoSave = true;
     while (autoSave) {
       _saveActiveTrainingSession(sesh);
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 1)); //todo can we profile this? can we do 100ms?
     }
   }
 
   static Future<void> _saveActiveTrainingSession(TrainingSession sesh) async {
-    await _prefs.setString('activeTrainingSession', json.encode(sesh)); //todo add error handling
+    await _prefs.setString(activeTrainingSessionKey, json.encode(sesh)); //todo add error handling
   }
 
   static void loadCurrentTrainingSesh(

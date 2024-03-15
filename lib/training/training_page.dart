@@ -34,7 +34,16 @@ class TrainingPage extends StatelessWidget {
                 Expanded(child: Container()),
                 Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
                 const SizedBox(width: 20),
-                Expanded(child: MyGenericButton(label: "Finish", onPressed: () {}, color: mediumGreen)),
+                Expanded(
+                    child: MyGenericButton(
+                        label: "Finish",
+                        onPressed: () {
+                          //todo check if there are still empty sets
+
+                          // context.read<TrainingSessionCubit>().state.isOngoing = false;
+                          // storage.saveTrainingSession(); //todo
+                        },
+                        color: mediumGreen)),
                 Expanded(child: Container()),
               ],
             )
@@ -181,7 +190,9 @@ class DisplayTrainingData extends StatelessWidget {
           child: MyGenericButton(
               label: "Add Set",
               onPressed: () {
-                context.read<TrainingSessionCubit>().addSet(setsOfAnEx.ex);
+                var cubit = context.read<TrainingSessionCubit>();
+                cubit.addSet(setsOfAnEx.ex);
+                // storage.startAutoSavingA(ctiveTrainingSession(cubit.state);
               }),
         ),
       );
@@ -197,6 +208,8 @@ class DisplayTrainingData extends StatelessWidget {
               builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
+          // storage.saveTrainingSession()
+          // context.read<TrainingSessionCubit>()
         },
         color: Theme.of(context).colorScheme.primary,
         textColor: Theme.of(context).colorScheme.onPrimary,

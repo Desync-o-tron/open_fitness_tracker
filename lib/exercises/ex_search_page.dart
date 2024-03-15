@@ -24,14 +24,22 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   @override
   void initState() {
     super.initState();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    // if (widget.useForAddingToTraining) { //todo turn this back on
     var trainingsesh = context.read<TrainingSessionCubit>();
     selectedExercises = trainingsesh.state.trainingData.map((e) => e.ex).toList();
+    // }
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
     final scrollController = ScrollController(initialScrollOffset: 0);
     final state = context.watch<ExSearchCubit>().state;
+    //todoo
+    TrainingSessionCubit trainingSessionCubit = context.read<TrainingSessionCubit>();
+    storage.updateAllStateFromStorage(context, trainingSessionCubit);
+
     // ignore: avoid_unnecessary_containers
     return Container(
       // color: Theme.of(context).colorScheme.secondary,

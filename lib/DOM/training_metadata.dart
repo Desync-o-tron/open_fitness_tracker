@@ -1,6 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:json_annotation/json_annotation.dart';
+part 'training_metadata.g.dart';
 
+/*
+to generate new g.dart files run:
+dart run build_runner build --delete-conflicting-outputs
+to do it continuously run:
+dart run build_runner watch --delete-conflicting-outputs
+*/
+@JsonSerializable()
 class TrainingSession {
   String? id;
   bool isOngoing = false;
@@ -10,32 +19,69 @@ class TrainingSession {
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
+  TrainingSession({
+    this.id,
+    this.isOngoing = false,
+    this.name,
+    this.duration,
+    this.date,
+    this.notes,
+    required this.trainingData,
+  });
+
+  void copyFrom(TrainingSession sesh) {
+    id = sesh.id;
+    name = sesh.name;
+    duration = sesh.duration;
+    date = sesh.date;
+    notes = sesh.notes;
+    isOngoing = sesh.isOngoing;
+    trainingData = sesh.trainingData;
+  }
+
   //todo this copyWith kinda sucks bc I have to copy all the fields manually
   TrainingSession copyWith({required List<SetsOfAnExercise> trainingData}) {
-    return TrainingSession()
-      ..id = id
-      ..name = name
-      ..duration = duration
-      ..date = date
-      ..notes = notes
-      ..isOngoing = isOngoing
-      ..trainingData = trainingData;
+    return TrainingSession(
+      id: id,
+      name: name,
+      duration: duration,
+      date: date,
+      notes: notes,
+      isOngoing: isOngoing,
+      trainingData: trainingData,
+    );
+    // )
+    //   ..id = id
+    //   ..name = name
+    //   ..duration = duration
+    //   ..date = date
+    //   ..notes = notes
+    //   ..isOngoing = isOngoing
+    //   ..trainingData = trainingData;
   }
+
+  factory TrainingSession.fromJson(Map<String, dynamic> json) => _$TrainingSessionFromJson(json);
+  Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
 }
 
+@JsonSerializable()
 class SetsOfAnExercise {
-  final Exercise ex;
-  final Set prevSet; //also functions as a header template
+  /*final*/ Exercise ex;
+  /*final*/ Set prevSet; //also functions as a header template
   List<Set> sets = [];
 
   SetsOfAnExercise(this.ex) : prevSet = Set(ex) {
     if (sets.isEmpty) sets.add(Set(ex));
   }
+
+  factory SetsOfAnExercise.fromJson(Map<String, dynamic> json) => _$SetsOfAnExerciseFromJson(json);
+  Map<String, dynamic> toJson() => _$SetsOfAnExerciseToJson(this);
 }
 
+@JsonSerializable()
 class Set {
-  final Exercise ex;
-  late final String id;
+  /*final*/ Exercise ex;
+  late /*final*/ String id;
   num? reps;
   num? time;
   num? weight;
@@ -54,10 +100,13 @@ class Set {
     //todo
     //if contains anythign else, throw error
   }
+
+  factory Set.fromJson(Map<String, dynamic> json) => _$SetFromJson(json);
+  Map<String, dynamic> toJson() => _$SetToJson(this);
 }
 
 class TrainingSessionCubit extends Cubit<TrainingSession> {
-  TrainingSessionCubit() : super(TrainingSession()) {
+  TrainingSessionCubit() : super(TrainingSession(trainingData: [])) {
     var bench = Exercise(
       name: "Bench Press",
       equipment: "Barbell",

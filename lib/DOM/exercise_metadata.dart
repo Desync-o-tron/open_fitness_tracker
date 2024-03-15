@@ -15,10 +15,11 @@ class Exercise {
   Level? level;
   Mechanic? mechanic;
   String? equipment;
-  List<String>? setMetrics;
+  List<String>? setMetrics; //todo not in the json schema. (time, weight, distance, speed, reps)
   List<String> primaryMuscles;
   List<String>? secondaryMuscles;
   List<String>? instructions;
+  // powerlifting, strength, stretching, cardio, olympicWeightlifting, strongman, plyometrics,
   String? category;
   List<String>? images;
 
@@ -35,7 +36,19 @@ class Exercise {
     this.instructions,
     this.category,
     this.images,
-  });
+  }) {
+    if (setMetrics == null) {
+      if (category == "cardio") {
+        setMetrics = ["time", "distance", "speed"];
+      } else if (category == "stretching") {
+        setMetrics = ["time"];
+      } else if (category == "plyometrics") {
+        setMetrics = ["reps", "weight", "speed"];
+      } else {
+        setMetrics = ["reps", "weight"];
+      }
+    }
+  }
 
   factory Exercise.fromExercise(Exercise exercise) {
     return Exercise(
@@ -53,6 +66,7 @@ class Exercise {
       images: exercise.images,
     );
   }
+
   factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 }
@@ -68,7 +82,7 @@ enum Mechanic { isolation, compound }
 // enum Equipment {
 //   medicineBall,
 //   dumbbell,
-//   bodyOnly,
+//   bodyOnly, //todo change the header in an ex for weight to additonalWeight
 //   bands,
 //   kettlebells,
 //   foamRoll,

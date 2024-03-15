@@ -9,7 +9,7 @@ import 'package:open_fitness_tracker/styles.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await loadExerciseData();
+  // await storage.loadExerciseData();
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
@@ -51,7 +51,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //this is weird but the providers I create in my gorouter routes are not available in dialogs /:
     return MultiBlocProvider(
       providers: [
         BlocProvider(

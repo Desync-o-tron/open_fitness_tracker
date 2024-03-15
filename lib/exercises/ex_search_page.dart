@@ -28,6 +28,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
     // if (widget.useForAddingToTraining) { //todo turn this back on
     var trainingsesh = context.read<TrainingSessionCubit>();
     selectedExercises = trainingsesh.state.trainingData.map((e) => e.ex).toList();
+    // TrainingSessionCubit trainingSessionCubit = context.read<TrainingSessionCubit>();
+    // Storage.loadCurrentTrainingSesh(context, trainingsesh);
     // }
     // });
   }
@@ -37,8 +39,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
     final scrollController = ScrollController(initialScrollOffset: 0);
     final state = context.watch<ExSearchCubit>().state;
     //todoo
-    TrainingSessionCubit trainingSessionCubit = context.read<TrainingSessionCubit>();
-    storage.updateAllStateFromStorage(context, trainingSessionCubit);
+    // TrainingSessionCubit trainingSessionCubit = context.read<TrainingSessionCubit>();
+    // Storage.updateAllStateFromStorage(context, trainingSessionCubit);
 
     // ignore: avoid_unnecessary_containers
     return Container(

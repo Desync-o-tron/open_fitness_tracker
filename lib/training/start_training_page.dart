@@ -28,7 +28,7 @@ class StartTrainingPage extends StatelessWidget {
           onPressed: () {
             var trainingCubit = context.read<TrainingSessionCubit>();
             trainingCubit.state.isOngoing = true;
-            storage.startAutoSavingActiveTrainingSession(trainingCubit.state); //TODO
+            Storage.startAutoSavingActiveTrainingSession(trainingCubit.state);
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const TrainingPage(),

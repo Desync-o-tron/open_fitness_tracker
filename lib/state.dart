@@ -24,7 +24,7 @@ class gExs {
       _muscles.addAllIfDNE(exercise.primaryMuscles);
       if (exercise.secondaryMuscles != null) _muscles.addAllIfDNE(exercise.secondaryMuscles!);
     }
-    // storage.saveExercises();
+    Storage.saveExercises();
   }
 
   static final List<String> _names = [];
@@ -35,23 +35,20 @@ class gExs {
 }
 
 class Storage {
-  Storage() {
-    _init();
-  }
-
-  late final SharedPreferences _prefs;
-  bool autoSave = false;
+  static late final SharedPreferences _prefs;
+  static bool autoSave = false;
 
   //todo add error handling to all this
-  _init() async {
+  static init() async {
     _prefs = await SharedPreferences.getInstance();
+    populateExerciseData();
   }
 
-  Future<void> saveExercises() async {
+  static Future<void> saveExercises() async {
     await _prefs.setString('exercises', json.encode(gExs.exercises));
   }
 
-  Future<void> _populateExerciseData() async {
+  static Future<void> populateExerciseData() async {
     if (_prefs.containsKey('exercises')) {
       gExs.addExercises(
           (json.decode(_prefs.getString('exercises')!) as List).map((e) => Exercise.fromJson(e)).toList());
@@ -61,7 +58,7 @@ class Storage {
     }
   }
 
-  Future<TrainingSession?> loadActiveTrainingSession() async {
+  static Future<TrainingSession?> loadActiveTrainingSession() async {
     if (_prefs.containsKey('activeTrainingSession')) {
       TrainingSession sesh =
           TrainingSession.fromJson(json.decode(_prefs.getString('activeTrainingSession')!));
@@ -72,7 +69,7 @@ class Storage {
     return null;
   }
 
-  Future<void> startAutoSavingActiveTrainingSession(TrainingSession sesh) async {
+  static Future<void> startAutoSavingActiveTrainingSession(TrainingSession sesh) async {
     autoSave = true;
     while (autoSave) {
       _saveActiveTrainingSession(sesh);
@@ -80,17 +77,17 @@ class Storage {
     }
   }
 
-  Future<void> _saveActiveTrainingSession(TrainingSession sesh) async {
+  static Future<void> _saveActiveTrainingSession(TrainingSession sesh) async {
     await _prefs.setString('activeTrainingSession', json.encode(sesh)); //todo add error handling
   }
 
-  void updateAllStateFromStorage(BuildContext context, TrainingSessionCubit trainingSessionCubit) async {
-    TrainingSession? sesh = await storage.loadActiveTrainingSession();
+  static void loadCurrentTrainingSesh(
+    BuildContext context,
+    TrainingSessionCubit trainingSessionCubit,
+  ) async {
+    TrainingSession? sesh = await loadActiveTrainingSession();
     if (sesh != null) {
       trainingSessionCubit.state.copyFrom(sesh);
     }
-    _populateExerciseData();
   }
 }
-
-Storage storage = Storage();

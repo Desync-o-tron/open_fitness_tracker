@@ -9,7 +9,8 @@ import 'package:open_fitness_tracker/styles.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await storage.loadExerciseData();
+  await Storage.init();
+
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );

@@ -7,8 +7,16 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/styles.dart';
+import 'package:open_fitness_tracker/training/dialogs_for_training.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+/*
+for future refactoring:
+I create a header and table content for each exercise.
+Then I pass these into a MakeVisualTable widget which adds margins and spacing. not <i>evil</i> but not great either.
+I could have the MakeVisualTable widget take in the exercise and the trainingData and generate the header and table content itself. idk if this is the best way to do it either.
+*/
+//todo allow the unit to be set in the header of each column? or in settings??
 class TrainingPage extends StatelessWidget {
   const TrainingPage({super.key});
   @override
@@ -23,7 +31,8 @@ class TrainingPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(state.name ?? 'New Training Session', style: Theme.of(context).textTheme.headlineSmall),
+            Text(state.name ?? 'New Training Session',
+                style: Theme.of(context).textTheme.headlineSmall), //todo make these textfields
             Text(state.duration?.inMinutes.toString() ?? '00:00',
                 style: Theme.of(context).textTheme.bodySmall),
             Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
@@ -35,15 +44,16 @@ class TrainingPage extends StatelessWidget {
                 Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
                 const SizedBox(width: 20),
                 Expanded(
-                    child: MyGenericButton(
-                        label: "Finish",
-                        onPressed: () {
-                          //todo check if there are still empty sets
+                  child: MyGenericButton(
+                      label: "Finish",
+                      onPressed: () {
+                        //todo check if there are still empty sets
 
-                          // context.read<TrainingSessionCubit>().state.isOngoing = false;
-                          // storage.saveTrainingSession(); //todo
-                        },
-                        color: mediumGreen)),
+                        // context.read<TrainingSessionCubit>().state.isOngoing = false;
+                        // storage.saveTrainingSession(); //todo
+                      },
+                      color: mediumGreen),
+                ),
                 Expanded(child: Container()),
               ],
             )
@@ -54,12 +64,12 @@ class TrainingPage extends StatelessWidget {
   }
 }
 
-class MakeVisualTable extends StatelessWidget {
+class MakeVisualTableWithSpacing extends StatelessWidget {
   final Map<int, double> columnWidthsRatio;
   final List<Widget> header;
   final ExerciseTableData exerciseTableData;
 
-  const MakeVisualTable({
+  const MakeVisualTableWithSpacing({
     required this.columnWidthsRatio,
     required this.header,
     required this.exerciseTableData,
@@ -79,12 +89,12 @@ class MakeVisualTable extends StatelessWidget {
     }
 
     List<Widget> pageContent = [];
-    pageContent.add(createHeaderRow(header, columnWidths, context));
-    pageContent.addAll(createTableRows(exerciseTableData, columnWidths, context));
+    pageContent.add(createHeaderRowWithSpacing(header, columnWidths, context));
+    pageContent.addAll(createTableRowsWithSpacing(exerciseTableData, columnWidths, context));
     return Column(children: pageContent);
   }
 
-  Row createHeaderRow(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
+  Row createHeaderRowWithSpacing(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> headerRow = [];
     for (int i = 0; i < header.length; i++) {
       headerRow.add(Container(
@@ -96,7 +106,7 @@ class MakeVisualTable extends StatelessWidget {
     return Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow);
   }
 
-  List<Widget> createTableRows(
+  List<Widget> createTableRowsWithSpacing(
       ExerciseTableData exerciseTableData, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> tableRows = [];
     for (int i = 0; i < exerciseTableData.tableData.length; i++) {
@@ -136,50 +146,35 @@ class SetTableRowData {
 class ExerciseTableData {
   final Exercise ex;
   final List<SetTableRowData> tableData;
-
   const ExerciseTableData(this.ex, this.tableData);
 }
 
-class ExManagementDialog extends StatelessWidget {
-  final SetsOfAnExercise es;
-  const ExManagementDialog(this.es, {super.key});
+class DisplayTrainingData extends StatefulWidget {
+  const DisplayTrainingData({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(es.ex.name),
-      content: SizedBox(
-        height: 499,
-        child: Column(
-          children: [
-            MyGenericButton(
-              label: "Delete",
-              onPressed: () {
-                context.read<TrainingSessionCubit>().removeExercise(es.ex);
-                Navigator.of(context).pop();
-              },
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<DisplayTrainingData> createState() => _DisplayTrainingDataState();
 }
 
-class DisplayTrainingData extends StatelessWidget {
-  const DisplayTrainingData({super.key});
+class _DisplayTrainingDataState extends State<DisplayTrainingData> {
   @override
   Widget build(BuildContext context) {
-    var state = context.watch<TrainingSessionCubit>().state;
+    // var stateWatched = context.watch<TrainingSessionCubit>().state;
+    var stateRead = context.read<TrainingSessionCubit>().state;
 
     List<Widget> pageContent = []; //
-    for (SetsOfAnExercise setsOfAnEx in state.trainingData) {
+    // for (SetsOfAnExercise setsOfAnEx in stateWatched.trainingData) {
+    for (int i = 0; i < stateRead.trainingData.length; i++) {
+      // SetsOfAnExercise setsOfAnEx = stateWatched.trainingData[i];
+      SetsOfAnExercise setsOfAnEx = stateRead.trainingData[i]; //TODO
+      SetsOfAnExercise setsOfAnExRead = stateRead.trainingData[i];
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
-      addSetsDataForEx(tableContent, setsOfAnEx, context);
+      addSetsDataForEx(tableContent, setsOfAnExRead, context);
+      // addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
-      var table = MakeVisualTable(
+      var table = MakeVisualTableWithSpacing(
         columnWidthsRatio: columnWidths,
         header: header,
         exerciseTableData: ExerciseTableData(setsOfAnEx.ex, tableContent),
@@ -188,12 +183,13 @@ class DisplayTrainingData extends StatelessWidget {
       pageContent.add(
         Center(
           child: MyGenericButton(
-              label: "Add Set",
-              onPressed: () {
-                var cubit = context.read<TrainingSessionCubit>();
-                cubit.addSet(setsOfAnEx.ex);
-                // storage.startAutoSavingA(ctiveTrainingSession(cubit.state);
-              }),
+            label: "Add Set",
+            onPressed: () {
+              var cubit = context.read<TrainingSessionCubit>();
+              cubit.addSet(setsOfAnEx.ex);
+              // storage.startAutoSavingA(ctiveTrainingSession(cubit.state);
+            },
+          ),
         ),
       );
       pageContent.add(const SizedBox(height: 20));
@@ -208,8 +204,6 @@ class DisplayTrainingData extends StatelessWidget {
               builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
-          // storage.saveTrainingSession()
-          // context.read<TrainingSessionCubit>()
         },
         color: Theme.of(context).colorScheme.primary,
         textColor: Theme.of(context).colorScheme.onPrimary,
@@ -242,28 +236,40 @@ class DisplayTrainingData extends StatelessWidget {
     final SetsOfAnExercise es,
     final BuildContext context,
   ) {
-    for (int i = 0; i < es.sets.length; i++) {
-      var set = es.sets[i];
+    for (int setNum = 0; setNum < es.sets.length; setNum++) {
+      var set = es.sets[setNum];
 
       tableContent.add(
         SetTableRowData(set, [
-          Text((i + 1).toString(), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          Text((setNum + 1).toString(),
+              style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           //add textfields for each setMetric
           if (es.prevSet.weight != null)
-            SetDataTextField(set, i, es, (set) => set.weight, (set, value) => set.weight = value),
+            SetDataTextField(set, setNum, es, set.weight, (set, value) => set.weight = value),
           if (es.prevSet.reps != null)
-            SetDataTextField(set, i, es, (set) => set.reps, (set, value) => set.reps = value),
+            SetDataTextField(set, setNum, es, set.reps, (set, value) => set.reps = value),
           if (es.prevSet.time != null)
-            SetDataTextField(set, i, es, (set) => set.time, (set, value) => set.time = value),
+            SetDataTextField(set, setNum, es, set.time, (set, value) => set.time = value),
           if (es.prevSet.distance != null)
-            SetDataTextField(set, i, es, (set) => set.distance, (set, value) => set.distance = value),
+            SetDataTextField(set, setNum, es, set.distance, (set, value) => set.distance = value),
           if (es.prevSet.speed != null)
-            SetDataTextField(set, i, es, (set) => set.speed, (set, value) => set.speed = value),
+            SetDataTextField(set, setNum, es, set.speed, (set, value) => set.speed = value),
+          // if (es.prevSet.weight != null)
+          //   SetDataTextField(set, setNum, es, (set) => set.weight, (set, value) => set.weight = value),
+          // if (es.prevSet.reps != null)
+          //   SetDataTextField(set, setNum, es, (set) => set.reps, (set, value) => set.reps = value),
+          // if (es.prevSet.time != null)
+          //   SetDataTextField(set, setNum, es, (set) => set.time, (set, value) => set.time = value),
+          // if (es.prevSet.distance != null)
+          //   SetDataTextField(set, setNum, es, (set) => set.distance, (set, value) => set.distance = value),
+          // if (es.prevSet.speed != null)
+          //   SetDataTextField(set, setNum, es, (set) => set.speed, (set, value) => set.speed = value),
           TextButton(
             onPressed: () {
               set.completed = !set.completed;
-              context.read<TrainingSessionCubit>().updateSet(es.ex, set, i);
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+              setState(() {});
             },
             child: Icon(
               set.completed ? Icons.check_circle : Icons.check_circle_outline,
@@ -335,9 +341,13 @@ class SetDataTextField extends StatefulWidget {
   final Set set;
   final int setIndex;
   final SetsOfAnExercise es;
-  final Function getSetValue;
-  final Function setSetValue;
-  const SetDataTextField(this.set, this.setIndex, this.es, this.getSetValue, this.setSetValue, {super.key});
+  // final Function getSetValue; //this is weird why do I not just pass teh val in as a parameter?
+  final ogValue;
+  final Function setSetValue; //this makes sense.
+  // final Null Function() setParentState; //really only need to call setState for the button I guess
+  const SetDataTextField(this.set, this.setIndex, this.es, this.ogValue, this.setSetValue, {super.key});
+  // const SetDataTextField(this.set, this.setIndex, this.es, this.getSetValue, this.setSetValue,  this.setParentState, {super.key});
+  //TODO I think I'm setting a value with the keyboard, then notifying the widegt above it, which tells this widget to load with the value..pointless.
   @override
   // ignore: library_private_types_in_public_api
   _SetDataTextFieldState createState() => _SetDataTextFieldState();
@@ -351,7 +361,8 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
   @override
   void initState() {
     super.initState();
-    textController = TextEditingController(text: widget.getSetValue(widget.set).toString());
+    textController = TextEditingController(text: widget.ogValue.toString());
+    // textController = TextEditingController(text: widget.getSetValue(widget.set).toString());
   }
 
   @override

@@ -163,7 +163,9 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
 
   void updateSet(Exercise ex, Set set, int setIndex) {
     var newTrainingData = state.trainingData.toList();
-    newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] = set;
+    newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] =
+        set; // this firstWhere failed once. 3/16
+
     emit(state.copyWith(trainingData: newTrainingData));
   }
 }

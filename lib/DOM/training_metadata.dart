@@ -9,6 +9,7 @@ dart run build_runner build --delete-conflicting-outputs
 to do it continuously run:
 dart run build_runner watch --delete-conflicting-outputs
 */
+
 @JsonSerializable()
 class TrainingSession {
   String? id;
@@ -50,14 +51,6 @@ class TrainingSession {
       isOngoing: isOngoing,
       trainingData: trainingData,
     );
-    // )
-    //   ..id = id
-    //   ..name = name
-    //   ..duration = duration
-    //   ..date = date
-    //   ..notes = notes
-    //   ..isOngoing = isOngoing
-    //   ..trainingData = trainingData;
   }
 
   factory TrainingSession.fromJson(Map<String, dynamic> json) => _$TrainingSessionFromJson(json);
@@ -163,8 +156,20 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
 
   void updateSet(Exercise ex, Set set, int setIndex) {
     var newTrainingData = state.trainingData.toList();
-    newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] =
-        set; // this firstWhere failed once. 3/16
+    // newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] =
+    // set; // this firstWhere failed once. 3/16
+    bool found = false;
+    for (var i = 0; i < newTrainingData.length; i++) {
+      if (newTrainingData[i].ex == ex) {
+        newTrainingData[i].sets[setIndex] = set;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      //todo error handling
+      throw Exception('set not found');
+    }
 
     emit(state.copyWith(trainingData: newTrainingData));
   }

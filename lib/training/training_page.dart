@@ -159,20 +159,12 @@ class DisplayTrainingData extends StatefulWidget {
 class _DisplayTrainingDataState extends State<DisplayTrainingData> {
   @override
   Widget build(BuildContext context) {
-    // var stateWatched = context.watch<TrainingSessionCubit>().state;
-    var stateRead = context.read<TrainingSessionCubit>().state;
-
     List<Widget> pageContent = []; //
-    // for (SetsOfAnExercise setsOfAnEx in stateWatched.trainingData) {
-    for (int i = 0; i < stateRead.trainingData.length; i++) {
-      // SetsOfAnExercise setsOfAnEx = stateWatched.trainingData[i];
-      SetsOfAnExercise setsOfAnEx = stateRead.trainingData[i]; //TODO
-      SetsOfAnExercise setsOfAnExRead = stateRead.trainingData[i];
+    for (SetsOfAnExercise setsOfAnEx in context.read<TrainingSessionCubit>().state.trainingData) {
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
-      addSetsDataForEx(tableContent, setsOfAnExRead, context);
-      // addSetsDataForEx(tableContent, setsOfAnEx, context);
+      addSetsDataForEx(tableContent, setsOfAnEx, context);
       final columnWidths = configColumnWidthRatio(setsOfAnEx);
       var table = MakeVisualTableWithSpacing(
         columnWidthsRatio: columnWidths,
@@ -187,7 +179,6 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             onPressed: () {
               var cubit = context.read<TrainingSessionCubit>();
               cubit.addSet(setsOfAnEx.ex);
-              // storage.startAutoSavingA(ctiveTrainingSession(cubit.state);
             },
           ),
         ),
@@ -255,16 +246,6 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             SetDataTextField(set, setNum, es, set.distance, (set, value) => set.distance = value),
           if (es.prevSet.speed != null)
             SetDataTextField(set, setNum, es, set.speed, (set, value) => set.speed = value),
-          // if (es.prevSet.weight != null)
-          //   SetDataTextField(set, setNum, es, (set) => set.weight, (set, value) => set.weight = value),
-          // if (es.prevSet.reps != null)
-          //   SetDataTextField(set, setNum, es, (set) => set.reps, (set, value) => set.reps = value),
-          // if (es.prevSet.time != null)
-          //   SetDataTextField(set, setNum, es, (set) => set.time, (set, value) => set.time = value),
-          // if (es.prevSet.distance != null)
-          //   SetDataTextField(set, setNum, es, (set) => set.distance, (set, value) => set.distance = value),
-          // if (es.prevSet.speed != null)
-          //   SetDataTextField(set, setNum, es, (set) => set.speed, (set, value) => set.speed = value),
           TextButton(
             onPressed: () {
               set.completed = !set.completed;
@@ -341,28 +322,22 @@ class SetDataTextField extends StatefulWidget {
   final Set set;
   final int setIndex;
   final SetsOfAnExercise es;
-  // final Function getSetValue; //this is weird why do I not just pass teh val in as a parameter?
+  // ignore: prefer_typing_uninitialized_variables
   final ogValue;
   final Function setSetValue; //this makes sense.
-  // final Null Function() setParentState; //really only need to call setState for the button I guess
   const SetDataTextField(this.set, this.setIndex, this.es, this.ogValue, this.setSetValue, {super.key});
-  // const SetDataTextField(this.set, this.setIndex, this.es, this.getSetValue, this.setSetValue,  this.setParentState, {super.key});
-  //TODO I think I'm setting a value with the keyboard, then notifying the widegt above it, which tells this widget to load with the value..pointless.
   @override
   // ignore: library_private_types_in_public_api
   _SetDataTextFieldState createState() => _SetDataTextFieldState();
 }
 
 class _SetDataTextFieldState extends State<SetDataTextField> {
-  //todo these text fields suck!!
-  //on win, it loses focus after every character input (noticed once)
   late TextEditingController textController;
 
   @override
   void initState() {
     super.initState();
     textController = TextEditingController(text: widget.ogValue.toString());
-    // textController = TextEditingController(text: widget.getSetValue(widget.set).toString());
   }
 
   @override
@@ -385,7 +360,6 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
         var parsedVal = num.tryParse(value);
         if (parsedVal == null) {
           value = '0';
-          // setSetValue(set, 0);
         } else {
           Set modifiedSet = widget.set;
           widget.setSetValue(modifiedSet, parsedVal);

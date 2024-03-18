@@ -1,16 +1,23 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/state.dart';
 import 'package:open_fitness_tracker/styles.dart';
+import 'package:open_fitness_tracker/state.dart' as appState;
+import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Storage.init();
 
+  await appState.Storage.init();
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
+  );
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
@@ -61,11 +68,14 @@ class MyApp extends StatelessWidget {
           create: (_) => TrainingSessionCubit(),
         ),
         BlocProvider(
+          create: (_) => TrainingHistoryCubit(),
+        ),
+        BlocProvider(
           create: (_) => CreateNewExCubit(),
         ),
       ],
       child: Builder(builder: (context) {
-        Storage.loadCurrentTrainingSesh(
+        appState.Storage.loadCurrentTrainingSesh(
           context,
           context.read<TrainingSessionCubit>(),
         );

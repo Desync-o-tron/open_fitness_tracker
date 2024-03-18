@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'training_metadata.g.dart';
@@ -15,20 +15,36 @@ class TrainingSession {
   String? id;
   bool isOngoing = false;
   String? name;
-  Duration? duration;
-  DateTime? date;
+  Duration duration;
+  DateTime date;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
+  // TrainingSession({
+  //   this.id,
+  //   this.isOngoing = false,
+  //   this.name,
+  //   required this.duration,
+  //   required this.date,
+  //   this.notes,
+  //   required this.trainingData,
+  // });
+
   TrainingSession({
-    this.id,
-    this.isOngoing = false,
-    this.name,
-    this.duration,
-    this.date,
-    this.notes,
-    required this.trainingData,
-  });
+    String? id,
+    bool? isOngoing,
+    String? name,
+    Duration? duration,
+    DateTime? date,
+    String? notes,
+    List<SetsOfAnExercise>? trainingData,
+  })  : id = id ?? '',
+        isOngoing = isOngoing ?? false,
+        name = name ?? '',
+        duration = duration ?? const Duration(),
+        date = date ?? DateTime.now(),
+        notes = notes ?? '',
+        trainingData = trainingData ?? [];
 
   void copyFrom(TrainingSession sesh) {
     id = sesh.id;
@@ -98,8 +114,35 @@ class Set {
   Map<String, dynamic> toJson() => _$SetToJson(this);
 }
 
+class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
+  TrainingHistoryCubit() : super([]);
+
+  void addSession(TrainingSession sesh) {
+    state.add(sesh);
+    emit(state);
+  }
+
+  @override
+  List<TrainingSession>? fromJson(Map<String, dynamic> json) {
+    List<TrainingSession> seshes = [];
+    for (var sesh in json['trainingHistory']) {
+      seshes.add(TrainingSession.fromJson(sesh));
+    }
+    return seshes;
+  }
+
+  @override
+  Map<String, dynamic>? toJson(List<TrainingSession> state) {
+    List<Map<String, dynamic>> seshes = [];
+    for (var sesh in state) {
+      seshes.add(sesh.toJson());
+    }
+    return {'trainingHistory': seshes};
+  }
+}
+
 class TrainingSessionCubit extends Cubit<TrainingSession> {
-  TrainingSessionCubit() : super(TrainingSession(trainingData: [])) {
+  TrainingSessionCubit() : super(TrainingSession(trainingData: [], date: DateTime.now())) {
     var bench = Exercise(
       name: "Bench Press",
       equipment: "Barbell",
@@ -172,5 +215,9 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
     }
 
     emit(state.copyWith(trainingData: newTrainingData));
+  }
+
+  void reset() {
+    emit(TrainingSession(trainingData: [], date: DateTime.now()));
   }
 }

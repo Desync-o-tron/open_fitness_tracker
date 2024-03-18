@@ -48,9 +48,14 @@ class TrainingPage extends StatelessWidget {
                       label: "Finish",
                       onPressed: () {
                         //todo check if there are still empty sets
+                        final sesh = context.read<TrainingSessionCubit>().state;
+                        sesh.isOngoing = false;
 
-                        // context.read<TrainingSessionCubit>().state.isOngoing = false;
-                        // storage.saveTrainingSession(); //todo
+                        sesh.duration = DateTime.now().difference(sesh.date);
+
+                        context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
+                        context.read<TrainingSessionCubit>().reset();
+                        // Navigator.of(context).pop();
                       },
                       color: mediumGreen),
                 ),

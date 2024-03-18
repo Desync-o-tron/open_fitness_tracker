@@ -1,6 +1,7 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:open_fitness_tracker/utils/utils.dart';
 part 'training_metadata.g.dart';
 
 /*
@@ -14,21 +15,11 @@ dart run build_runner watch --delete-conflicting-outputs
 class TrainingSession {
   String? id;
   bool isOngoing = false;
-  String? name;
+  String name;
   Duration duration;
   DateTime date;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
-
-  // TrainingSession({
-  //   this.id,
-  //   this.isOngoing = false,
-  //   this.name,
-  //   required this.duration,
-  //   required this.date,
-  //   this.notes,
-  //   required this.trainingData,
-  // });
 
   TrainingSession({
     String? id,
@@ -90,7 +81,7 @@ class SetsOfAnExercise {
 @JsonSerializable()
 class Set {
   /*final*/ Exercise ex;
-  late /*final*/ String id;
+  late /*final*/ String id; //just the datetime for now
   num? reps;
   num? time;
   num? weight;
@@ -141,26 +132,26 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   }
 }
 
-class TrainingSessionCubit extends Cubit<TrainingSession> {
-  TrainingSessionCubit() : super(TrainingSession(trainingData: [], date: DateTime.now())) {
-    var bench = Exercise(
-      name: "Bench Press",
-      equipment: "Barbell",
-      primaryMuscles: ["Chest", "Triceps"],
-      setMetrics: ["reps", "weight"],
-    );
-    var squat = Exercise(
-      name: "Squat",
-      equipment: "Barbell",
-      primaryMuscles: ["Quadriceps", "Glutes"],
-      setMetrics: ["reps", "weight"],
-    );
-    state.trainingData.add(SetsOfAnExercise(bench));
-    state.trainingData.add(SetsOfAnExercise(squat));
-    //lets add some example sets
-    Set benchSet = state.trainingData[0].sets[0];
-    benchSet.reps = 10;
-    benchSet.weight = 135;
+class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
+  TrainingSessionCubit() : super(TrainingSession()) {
+    // var bench = Exercise(
+    //   name: "Bench Press",
+    //   equipment: "Barbell",
+    //   primaryMuscles: ["Chest", "Triceps"],
+    //   setMetrics: ["reps", "weight"],
+    // );
+    // var squat = Exercise(
+    //   name: "Squat",
+    //   equipment: "Barbell",
+    //   primaryMuscles: ["Quadriceps", "Glutes"],
+    //   setMetrics: ["reps", "weight"],
+    // );
+    // state.trainingData.addIfDNE(SetsOfAnExercise(bench));
+    // state.trainingData.addIfDNE(SetsOfAnExercise(squat));
+    // //lets add some example sets
+    // Set benchSet = state.trainingData[0].sets[0];
+    // benchSet.reps = 10;
+    // benchSet.weight = 135;
 
     // state.isOngoing = true;
   }
@@ -199,11 +190,10 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
 
   void updateSet(Exercise ex, Set set, int setIndex) {
     var newTrainingData = state.trainingData.toList();
-    // newTrainingData.firstWhere((element) => element.ex == ex).sets[setIndex] =
-    // set; // this firstWhere failed once. 3/16
+
     bool found = false;
     for (var i = 0; i < newTrainingData.length; i++) {
-      if (newTrainingData[i].ex == ex) {
+      if (newTrainingData[i].ex.name == ex.name) {
         newTrainingData[i].sets[setIndex] = set;
         found = true;
         break;
@@ -219,5 +209,15 @@ class TrainingSessionCubit extends Cubit<TrainingSession> {
 
   void reset() {
     emit(TrainingSession(trainingData: [], date: DateTime.now()));
+  }
+
+  @override
+  TrainingSession? fromJson(Map<String, dynamic> json) {
+    return TrainingSession.fromJson(json);
+  }
+
+  @override
+  Map<String, dynamic>? toJson(TrainingSession state) {
+    return state.toJson();
   }
 }

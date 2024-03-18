@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
-import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/muscle_selector.dart';
 
 //todo add logic to make sure the ex name does not exist already
 
-class CreateNewExCubit extends Cubit<Exercise> {
+class CreateNewExCubit extends HydratedCubit<Exercise> {
   CreateNewExCubit() : super(Exercise(name: '', primaryMuscles: [], equipment: ''));
 
   void updateExercise(Exercise exercise) {
     emit(Exercise.fromExercise(exercise));
+  }
+
+  @override
+  Exercise? fromJson(Map<String, dynamic> json) {
+    return Exercise.fromJson(json);
+  }
+
+  @override
+  Map<String, dynamic>? toJson(Exercise state) {
+    return state.toJson();
   }
 }
 
@@ -103,7 +114,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
 
   Widget equipmentDropdown(BuildContext context, Exercise newExerciseState) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String equipment in gExs.equipment) {
+    for (String equipment in ExDB.equipment) {
       dropdownMenuEntries.add(DropdownMenuEntry(label: equipment, value: equipment));
     }
 
@@ -157,7 +168,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
                         _controller.forward();
                         return;
                       }
-                      gExs.addExercises([newExerciseState]);
+                      ExDB.addExercises([newExerciseState]);
                       var cubit = context.read<ExSearchCubit>();
                       cubit.updateFilters(); //
                       Navigator.pop(context);

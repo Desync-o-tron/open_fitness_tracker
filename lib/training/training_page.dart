@@ -31,7 +31,7 @@ class TrainingPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(state.name ?? 'New Training Session',
+            Text(state.name.isEmpty ? 'New Training Session' : state.name,
                 style: Theme.of(context).textTheme.headlineSmall), //todo make these textfields
             Text(state.duration?.inMinutes.toString() ?? '00:00',
                 style: Theme.of(context).textTheme.bodySmall),
@@ -184,6 +184,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             onPressed: () {
               var cubit = context.read<TrainingSessionCubit>();
               cubit.addSet(setsOfAnEx.ex);
+              setState(() {}); //todo this is a bit hacky
             },
           ),
         ),
@@ -200,6 +201,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
               builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
+          setState(() {}); //todo this is weird
         },
         color: Theme.of(context).colorScheme.primary,
         textColor: Theme.of(context).colorScheme.onPrimary,

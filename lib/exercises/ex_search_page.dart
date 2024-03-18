@@ -4,7 +4,7 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
-import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart' show ExSearchCubit, ExSearchState;
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
@@ -161,9 +161,9 @@ class SearchMultiSelectModal extends StatelessWidget {
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: gExs.muscles.length,
+              itemCount: ExDB.muscles.length,
               itemBuilder: (context, index) {
-                final item = gExs.muscles[index];
+                final item = ExDB.muscles[index];
                 return CheckboxListTile(
                   value: state.musclesFilter.contains(item),
                   title: Text(item),
@@ -191,9 +191,9 @@ class SearchMultiSelectModal extends StatelessWidget {
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: gExs.categories.length,
+              itemCount: ExDB.categories.length,
               itemBuilder: (context, index) {
-                final item = gExs.categories[index];
+                final item = ExDB.categories[index];
                 return CheckboxListTile(
                   value: state.categoriesFilter.contains(item),
                   title: Text(item),

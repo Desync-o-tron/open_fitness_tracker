@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
-import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/training/training_page.dart';
 
@@ -29,7 +29,7 @@ class StartTrainingPage extends StatelessWidget {
             var trainingSesh = context.read<TrainingSessionCubit>().state;
             trainingSesh.isOngoing = true;
             trainingSesh.date = DateTime.now();
-            Storage.startAutoSavingActiveTrainingSession(trainingSesh);
+            // Storage.startAutoSavingActiveTrainingSession(trainingSesh);
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const TrainingPage(),

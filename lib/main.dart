@@ -6,15 +6,13 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
-import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
-import 'package:open_fitness_tracker/state.dart' as appState;
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await appState.Storage.init();
+  await ExDB.init();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
   );
@@ -75,10 +73,10 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: Builder(builder: (context) {
-        appState.Storage.loadCurrentTrainingSesh(
-          context,
-          context.read<TrainingSessionCubit>(),
-        );
+        // appState.Storage.loadCurrentTrainingSesh(
+        //   context,
+        //   context.read<TrainingSessionCubit>(),
+        // );
         return MaterialApp.router(
           theme: myTheme,
           routerConfig: routerConfig,

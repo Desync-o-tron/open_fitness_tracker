@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +24,8 @@ Future<void> main() async {
 
   runApp(const MyApp());
 }
+
+Timer? trainingDurationTimer;
 
 final myColorScheme = ColorScheme.fromSwatch(
   primarySwatch: MaterialColor(
@@ -77,6 +81,12 @@ class MyApp extends StatelessWidget {
         //   context,
         //   context.read<TrainingSessionCubit>(),
         // );
+        trainingDurationTimer = Timer.periodic(
+          const Duration(seconds: 1),
+          (timer) {
+            context.read<TrainingSessionCubit>().updateDuration();
+          },
+        );
         return MaterialApp.router(
           theme: myTheme,
           routerConfig: routerConfig,

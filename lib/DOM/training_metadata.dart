@@ -36,15 +36,14 @@ class TrainingSession {
         notes = notes ?? '',
         trainingData = trainingData ?? [];
 
-  void copyFrom(TrainingSession sesh) {
-    id = sesh.id;
-    name = sesh.name;
-    duration = sesh.duration;
-    dateTime = sesh.dateTime;
-    notes = sesh.notes;
-    isOngoing = sesh.isOngoing;
-    trainingData = sesh.trainingData;
-  }
+  TrainingSession.copy(TrainingSession sesh)
+      : id = sesh.id,
+        name = sesh.name,
+        duration = sesh.duration,
+        dateTime = sesh.dateTime,
+        notes = sesh.notes,
+        isOngoing = sesh.isOngoing,
+        trainingData = List<SetsOfAnExercise>.from(sesh.trainingData);
 
   //todo this copyWith kinda sucks bc I have to copy all the fields manually
   TrainingSession copyWith({required List<SetsOfAnExercise> trainingData}) {
@@ -108,8 +107,7 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   TrainingHistoryCubit() : super([]);
 
   void addSession(TrainingSession sesh) {
-    state.add(sesh);
-    emit(state);
+    emit(state..add(sesh));
   }
 
   @override
@@ -156,13 +154,15 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   }
 
   void addExercise(Exercise ex) {
-    state.trainingData.add(SetsOfAnExercise(ex));
-    emit(state);
+    var newState = TrainingSession.copy(state);
+    newState.trainingData.add(SetsOfAnExercise(ex));
+    emit(newState);
   }
 
   void removeExercise(Exercise ex) {
-    state.trainingData.removeWhere((element) => element.ex == ex);
-    emit(state);
+    var newState = TrainingSession.copy(state);
+    newState.trainingData.removeWhere((element) => element.ex == ex);
+    emit(newState); //.trainingData.removeWhere((element) => element.ex == ex));
   }
 
   void addSet(Exercise ex) {
@@ -172,7 +172,8 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   }
 
   void removeSet(Exercise ex, String setId) {
-    SetsOfAnExercise setsOfAnExercise = state.trainingData.firstWhere((element) => element.ex == ex);
+    TrainingSession newState = TrainingSession.copy(state);
+    SetsOfAnExercise setsOfAnExercise = newState.trainingData.firstWhere((element) => element.ex == ex);
     bool removed = false;
     for (var i = 0; i < setsOfAnExercise.sets.length; i++) {
       if (setsOfAnExercise.sets[i].id == setId) {
@@ -184,7 +185,7 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
     if (!removed) {
       // todo error handling
     }
-    emit(state);
+    emit(newState);
   }
 
   void updateSet(Exercise ex, Set set, int setIndex) {
@@ -220,8 +221,9 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
     return state.toJson();
   }
 
-  void updateDuration() async {
-    state.duration = DateTime.now().difference(state.dateTime);
-    emit(state);
+  void updateDuration() {
+    TrainingSession newState = TrainingSession.copy(state);
+    newState.duration = DateTime.now().difference(state.dateTime);
+    emit(newState);
   }
 }

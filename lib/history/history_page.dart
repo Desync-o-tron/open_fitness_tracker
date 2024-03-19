@@ -17,6 +17,17 @@ class HistoryPage extends StatelessWidget {
           'History',
           style: Theme.of(context).textTheme.displayLarge,
         ),
+        if (history.isEmpty)
+          const Text(
+            'No History',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          ),
+        if (!context.watch<TrainingSessionCubit>().state.isOngoing)
+          Container(
+            height: 20,
+            width: 100,
+            color: Colors.red,
+          ),
         Expanded(
           child: ListView.builder(
             itemCount: history.length,

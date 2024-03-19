@@ -9,25 +9,24 @@ part of 'training_metadata.dart';
 TrainingSession _$TrainingSessionFromJson(Map<String, dynamic> json) =>
     TrainingSession(
       id: json['id'] as String?,
-      isOngoing: json['isOngoing'] as bool? ?? false,
+      isOngoing: json['isOngoing'] as bool?,
       name: json['name'] as String?,
       duration: json['duration'] == null
           ? null
           : Duration(microseconds: json['duration'] as int),
-      date: DateTime.parse(json['date'] as String),
       notes: json['notes'] as String?,
-      trainingData: (json['trainingData'] as List<dynamic>)
-          .map((e) => SetsOfAnExercise.fromJson(e as Map<String, dynamic>))
+      trainingData: (json['trainingData'] as List<dynamic>?)
+          ?.map((e) => SetsOfAnExercise.fromJson(e as Map<String, dynamic>))
           .toList(),
-    );
+    )..dateTime = DateTime.parse(json['dateTime'] as String);
 
 Map<String, dynamic> _$TrainingSessionToJson(TrainingSession instance) =>
     <String, dynamic>{
       'id': instance.id,
       'isOngoing': instance.isOngoing,
       'name': instance.name,
-      'duration': instance.duration?.inMicroseconds,
-      'date': instance.date.toIso8601String(),
+      'duration': instance.duration.inMicroseconds,
+      'dateTime': instance.dateTime.toIso8601String(),
       'notes': instance.notes,
       'trainingData': instance.trainingData,
     };

@@ -1,7 +1,6 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
 part 'training_metadata.g.dart';
 
 /*
@@ -17,7 +16,7 @@ class TrainingSession {
   bool isOngoing = false;
   String name;
   Duration duration;
-  DateTime date;
+  DateTime dateTime;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
@@ -33,7 +32,7 @@ class TrainingSession {
         isOngoing = isOngoing ?? false,
         name = name ?? '',
         duration = duration ?? const Duration(),
-        date = date ?? DateTime.now(),
+        dateTime = date ?? DateTime.now(),
         notes = notes ?? '',
         trainingData = trainingData ?? [];
 
@@ -41,7 +40,7 @@ class TrainingSession {
     id = sesh.id;
     name = sesh.name;
     duration = sesh.duration;
-    date = sesh.date;
+    dateTime = sesh.dateTime;
     notes = sesh.notes;
     isOngoing = sesh.isOngoing;
     trainingData = sesh.trainingData;
@@ -53,7 +52,7 @@ class TrainingSession {
       id: id,
       name: name,
       duration: duration,
-      date: date,
+      date: dateTime,
       notes: notes,
       isOngoing: isOngoing,
       trainingData: trainingData,
@@ -219,5 +218,10 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   @override
   Map<String, dynamic>? toJson(TrainingSession state) {
     return state.toJson();
+  }
+
+  void updateDuration() async {
+    state.duration = DateTime.now().difference(state.dateTime);
+    emit(state);
   }
 }

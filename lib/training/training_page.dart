@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,11 +19,34 @@ Then I pass these into a MakeVisualTable widget which adds margins and spacing. 
 I could have the MakeVisualTable widget take in the exercise and the trainingData and generate the header and table content itself. idk if this is the best way to do it either.
 */
 //todo allow the unit to be set in the header of each column? or in settings??
-class TrainingPage extends StatelessWidget {
+class TrainingPage extends StatefulWidget {
   const TrainingPage({super.key});
+
+  @override
+  State<TrainingPage> createState() => _TrainingPageState();
+}
+
+class _TrainingPageState extends State<TrainingPage> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// Here you can have your context and do what ever you want
+      _timer = Timer.periodic(
+        const Duration(seconds: 1),
+        (timer) {
+          context.read<TrainingSessionCubit>().updateDuration();
+          setState(() {});
+        },
+      ); //TODO
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var state = context.read<TrainingSessionCubit>().state;
+    var state = context.watch<TrainingSessionCubit>().state;
     return Container(
       padding: const EdgeInsets.all(10.0),
       // color: Theme.of(context).colorScheme.secondary,
@@ -33,8 +58,8 @@ class TrainingPage extends StatelessWidget {
           children: [
             Text(state.name.isEmpty ? 'New Training Session' : state.name,
                 style: Theme.of(context).textTheme.headlineSmall), //todo make these textfields
-            Text(state.duration?.inMinutes.toString() ?? '00:00',
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(state.duration.toHoursMinutesSeconds(), style: Theme.of(context).textTheme.bodyMedium),
+            // Timer(duration, () { })
             Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
             const DisplayTrainingData(),
             const SizedBox(height: 70),
@@ -51,7 +76,7 @@ class TrainingPage extends StatelessWidget {
                         final sesh = context.read<TrainingSessionCubit>().state;
                         sesh.isOngoing = false;
 
-                        sesh.duration = DateTime.now().difference(sesh.date);
+                        sesh.duration = DateTime.now().difference(sesh.dateTime);
 
                         context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                         context.read<TrainingSessionCubit>().reset();
@@ -66,6 +91,12 @@ class TrainingPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }
 
@@ -280,12 +311,6 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(es.ex.name, style: Theme.of(context).textTheme.titleMedium),
-          // MyGenericButton(
-          //   label: es.ex.name,
-          //   onPressed: () {},
-          //   color: Theme.of(context).colorScheme.secondary,
-          //   shouldFillWidth: false,
-          // ),
           SizedBox(
             height: 40,
             child: Center(
@@ -293,8 +318,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
                 icon: Icon(FontAwesomeIcons.ellipsis,
                     size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
                 onPressed: () {
-                  // exOverlayController.toggle();
                   showDialog(context: context, builder: (context) => ExManagementDialog(es));
+                  setState(() {}); //todo lol
                 },
                 color: Theme.of(context).colorScheme.secondary,
                 shouldFillWidth: false,

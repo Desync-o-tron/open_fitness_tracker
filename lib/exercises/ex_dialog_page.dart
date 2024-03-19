@@ -53,7 +53,7 @@ class ExerciseDialog extends StatelessWidget {
                     const SizedBox(height: 8),
                     if (exercise.mechanic != null) Text('Mechanic: ${exercise.mechanic}'),
                     if (exercise.category != null) Text('Category: ${exercise.category}'),
-                    if (exercise.equipment != null) Text('Equipment: ${exercise.primaryMuscles.join(', ')}'),
+                    if (exercise.equipment != null) Text('Equipment: ${exercise.equipment}'),
                   ],
                 ),
               ),

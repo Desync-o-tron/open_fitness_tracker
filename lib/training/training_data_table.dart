@@ -9,6 +9,29 @@ import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/training/dialogs_for_training.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+class SetTableRowData {
+  final Set set;
+  List<Widget> rowData = [];
+  SetTableRowData(this.set, this.rowData);
+}
+
+class ExerciseTableData {
+  final Exercise ex;
+  final List<SetTableRowData> tableData;
+  const ExerciseTableData(this.ex, this.tableData);
+}
+
+class TrainingDataDisplay extends StatelessWidget {
+  const TrainingDataDisplay({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<TrainingSessionCubit>().state.trainingData;
+    for (SetsOfAnExercise setsOfAnEx in state) {}
+
+    return Container();
+  }
+}
+
 class MakeVisualTableWithSpacing extends StatelessWidget {
   final Map<int, double> columnWidthsRatio;
   final List<Widget> header;
@@ -82,18 +105,6 @@ class MakeVisualTableWithSpacing extends StatelessWidget {
   }
 }
 
-class SetTableRowData {
-  final Set set;
-  List<Widget> rowData = [];
-  SetTableRowData(this.set, this.rowData);
-}
-
-class ExerciseTableData {
-  final Exercise ex;
-  final List<SetTableRowData> tableData;
-  const ExerciseTableData(this.ex, this.tableData);
-}
-
 class DisplayTrainingData extends StatefulWidget {
   const DisplayTrainingData({super.key});
 
@@ -106,6 +117,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
   Widget build(BuildContext context) {
     List<Widget> pageContent = []; //
     for (SetsOfAnExercise setsOfAnEx in context.read<TrainingSessionCubit>().state.trainingData) {
+      // for (SetsOfAnExercise setsOfAnEx in context.watch<TrainingSessionCubit>().state.trainingData) {
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
@@ -124,7 +136,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             onPressed: () {
               var cubit = context.read<TrainingSessionCubit>();
               cubit.addSet(setsOfAnEx.ex);
-              // setState(() {}); //todo this is a bit hacky
+              setState(() {});
             },
           ),
         ),
@@ -135,8 +147,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
     pageContent.add(Center(
       child: MyGenericButton(
         label: "Add Exercise",
-        onPressed: () {
-          Navigator.of(context).push(
+        onPressed: () async {
+          await Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
             ),
@@ -197,7 +209,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             onPressed: () {
               set.completed = !set.completed;
               context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
-              setState(() {});
+              // setState(() {});
             },
             child: Icon(
               set.completed ? Icons.check_circle : Icons.check_circle_outline,
@@ -226,9 +238,9 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
               child: MyGenericButton(
                 icon: Icon(FontAwesomeIcons.ellipsis,
                     size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
-                onPressed: () {
-                  showDialog(context: context, builder: (context) => ExManagementDialog(es));
-                  // setState(() {}); //todo lol
+                onPressed: () async {
+                  await showDialog(context: context, builder: (context) => ExManagementDialog(es));
+                  setState(() {});
                 },
                 color: Theme.of(context).colorScheme.secondary,
                 shouldFillWidth: false,
@@ -279,6 +291,13 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
   void initState() {
     super.initState();
     textController = TextEditingController(text: widget.ogValue.toString());
+  }
+
+  @override
+  void didUpdateWidget(covariant SetDataTextField oldWidget) {
+    // TODO: implement didUpdateWidget
+    // super.didUpdateWidget(oldWidget);
+    print("object");
   }
 
   @override

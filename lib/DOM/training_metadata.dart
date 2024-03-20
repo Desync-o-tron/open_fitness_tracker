@@ -156,6 +156,7 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   void addExercise(Exercise ex) {
     var newState = TrainingSession.copy(state);
     newState.trainingData.add(SetsOfAnExercise(ex));
+    // state.trainingData.add(SetsOfAnExercise(ex));
     emit(newState);
   }
 

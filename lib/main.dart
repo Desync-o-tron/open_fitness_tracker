@@ -1,20 +1,31 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
-import 'package:open_fitness_tracker/state.dart';
+import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await loadExerciseData();
+  await ExDB.init();
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
+  );
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
 
   runApp(const MyApp());
 }
+
+Timer? trainingDurationTimer;
 
 final myColorScheme = ColorScheme.fromSwatch(
   primarySwatch: MaterialColor(
@@ -50,7 +61,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //this is weird but the providers I create in my gorouter routes are not available in dialogs /:
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -59,12 +69,30 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => TrainingSessionCubit(),
         ),
+        BlocProvider(
+          create: (_) => TrainingHistoryCubit(),
+        ),
+        BlocProvider(
+          create: (_) => CreateNewExCubit(),
+        ),
       ],
-      child: MaterialApp.router(
-        theme: myTheme,
-        routerConfig: routerConfig,
-        title: 'Open Fitness Tracker',
-      ),
+      child: Builder(builder: (context) {
+        // appState.Storage.loadCurrentTrainingSesh(
+        //   context,
+        //   context.read<TrainingSessionCubit>(),
+        // );
+        trainingDurationTimer = Timer.periodic(
+          const Duration(seconds: 1),
+          (timer) {
+            context.read<TrainingSessionCubit>().updateDuration();
+          },
+        );
+        return MaterialApp.router(
+          theme: myTheme,
+          routerConfig: routerConfig,
+          title: 'Open Fitness Tracker',
+        );
+      }),
     );
   }
 }

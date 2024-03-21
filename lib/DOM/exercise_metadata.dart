@@ -9,18 +9,19 @@ dart run build_runner watch --delete-conflicting-outputs
 */
 @JsonSerializable()
 class Exercise {
-  final String? id;
-  final String name;
-  final Force? force;
-  final Level? level;
-  final Mechanic? mechanic;
-  final String? equipment;
-  final List<String>? setMetrics;
-  final List<String> primaryMuscles;
-  final List<String>? secondaryMuscles;
-  final List<String>? instructions;
-  final String? category;
-  final List<String>? images;
+  String? id;
+  String name;
+  Force? force;
+  Level? level;
+  Mechanic? mechanic;
+  String? equipment;
+  List<String>? setMetrics; //todo not in the json schema. (time, weight, distance, speed, reps)
+  List<String> primaryMuscles;
+  List<String>? secondaryMuscles;
+  List<String>? instructions;
+  // powerlifting, strength, stretching, cardio, olympicWeightlifting, strongman, plyometrics,
+  String? category;
+  List<String>? images;
 
   Exercise({
     this.id,
@@ -35,7 +36,36 @@ class Exercise {
     this.instructions,
     this.category,
     this.images,
-  });
+  }) {
+    if (setMetrics == null) {
+      if (category == "cardio") {
+        setMetrics = ["time", "distance", "speed"];
+      } else if (category == "stretching") {
+        setMetrics = ["time"];
+      } else if (category == "plyometrics") {
+        setMetrics = ["reps", "weight", "speed"];
+      } else {
+        setMetrics = ["reps", "weight"];
+      }
+    }
+  }
+
+  factory Exercise.fromExercise(Exercise exercise) {
+    return Exercise(
+      id: exercise.id,
+      name: exercise.name,
+      force: exercise.force,
+      level: exercise.level,
+      mechanic: exercise.mechanic,
+      equipment: exercise.equipment,
+      setMetrics: exercise.setMetrics,
+      primaryMuscles: exercise.primaryMuscles,
+      secondaryMuscles: exercise.secondaryMuscles,
+      instructions: exercise.instructions,
+      category: exercise.category,
+      images: exercise.images,
+    );
+  }
 
   factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
@@ -52,7 +82,7 @@ enum Mechanic { isolation, compound }
 // enum Equipment {
 //   medicineBall,
 //   dumbbell,
-//   bodyOnly,
+//   bodyOnly, //todo change the header in an ex for weight to additonalWeight
 //   bands,
 //   kettlebells,
 //   foamRoll,

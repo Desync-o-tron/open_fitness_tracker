@@ -1,11 +1,20 @@
-import 'package:open_fitness_tracker/state.dart' show gExs;
+import 'package:open_fitness_tracker/DOM/exercise_db.dart' show ExDB;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+// //does this make sense here?
+// class SelectedExercises extends Cubit<List<Exercise>> {
+//   SelectedExercises() : super([]);
+
+//   void updateSelectedExercises(List<Exercise> exercises) {
+//     emit(exercises);
+//   }
+// }
+
 class ExSearchState {
-  List<Exercise> filteredExercises = gExs.exercises;
+  List<Exercise> filteredExercises = ExDB.exercises;
   List<String> categoriesFilter = [];
   List<String> musclesFilter = [];
   String enteredKeyword = '';
@@ -23,7 +32,7 @@ class ExSearchState {
   ExSearchState copyWithNewFilters(
       {List<String>? categoriesFilter, List<String>? musclesFilter, String? enteredKeyword}) {
     ExSearchState newState = ExSearchState(this);
-    newState.filteredExercises = gExs.exercises;
+    newState.filteredExercises = ExDB.exercises;
     newState.categoriesFilter = categoriesFilter ?? newState.categoriesFilter;
     newState.musclesFilter = musclesFilter ?? newState.musclesFilter;
     newState.enteredKeyword = enteredKeyword ?? newState.enteredKeyword;
@@ -48,10 +57,10 @@ class ExSearchState {
 
     // filter by keyword
     if (newState.enteredKeyword.isNotEmpty) {
-      var fuseForNames = Fuzzy(gExs.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var fuseForNames = Fuzzy(ExDB.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
       var resultsByName = fuseForNames.search(newState.enteredKeyword);
       var matchedNames = resultsByName.map((r) => r.item as String).toSet();
-      var fuseForMuscles = Fuzzy(gExs.muscles, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var fuseForMuscles = Fuzzy(ExDB.muscles, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
       var resultsByMuscles = fuseForMuscles.search(newState.enteredKeyword);
       var matchedMuscles = resultsByMuscles.map((r) => r.item as String).toSet();
       tempExs = [];

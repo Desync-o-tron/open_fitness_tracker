@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+
+//show Set, Exercise;
 
 class MyGenericButton extends StatelessWidget {
   final String label;
@@ -58,4 +62,16 @@ class MyGenericButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class SetTableRowData {
+  final Set set;
+  List<Widget> rowData = [];
+  SetTableRowData(this.set, this.rowData);
+}
+
+class ExerciseTableData {
+  final Exercise ex;
+  final List<SetTableRowData> tableData;
+  const ExerciseTableData(this.ex, this.tableData);
 }

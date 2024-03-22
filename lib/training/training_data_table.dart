@@ -2,35 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/training/dialogs_for_training.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-class SetTableRowData {
-  final Set set;
-  List<Widget> rowData = [];
-  SetTableRowData(this.set, this.rowData);
-}
-
-class ExerciseTableData {
-  final Exercise ex;
-  final List<SetTableRowData> tableData;
-  const ExerciseTableData(this.ex, this.tableData);
-}
-
-class TrainingDataDisplay extends StatelessWidget {
-  const TrainingDataDisplay({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final state = context.watch<TrainingSessionCubit>().state.trainingData;
-    for (SetsOfAnExercise setsOfAnEx in state) {}
-
-    return Container();
-  }
-}
+/*
+for future refactoring:
+I create a header and table content for each exercise.
+Then I pass these into a MakeVisualTable widget which adds margins and spacing. not <i>evil</i> but not great either.
+  I could have the MakeVisualTable widget take in the exercise and the trainingData and generate the header and table content itself. idk if this is the best way to do it either.
+*/
+//todo allow the unit to be set in the header of each column? or in settings??
 
 class MakeVisualTableWithSpacing extends StatelessWidget {
   final Map<int, double> columnWidthsRatio;
@@ -209,7 +193,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             onPressed: () {
               set.completed = !set.completed;
               context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
-              // setState(() {});
+              setState(() {});
             },
             child: Icon(
               set.completed ? Icons.check_circle : Icons.check_circle_outline,
@@ -291,13 +275,6 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
   void initState() {
     super.initState();
     textController = TextEditingController(text: widget.ogValue.toString());
-  }
-
-  @override
-  void didUpdateWidget(covariant SetDataTextField oldWidget) {
-    // TODO: implement didUpdateWidget
-    // super.didUpdateWidget(oldWidget);
-    print("object");
   }
 
   @override

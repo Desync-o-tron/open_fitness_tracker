@@ -37,7 +37,6 @@ dependencies:
   firebase_core: ^2.25.3
   cloud_firestore: ^4.15.3
   json_annotation: ^4.8.1
-  # fuzzywuzzy: ^1.1.6
   fuzzy: <1.0.0
   flutter_riverpod: ^2.4.10
   flex_dropdown: ^0.1.1

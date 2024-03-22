@@ -6,17 +6,14 @@ import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/training/training_data_table.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-/*
-for future refactoring:
-I create a header and table content for each exercise.
-Then I pass these into a MakeVisualTable widget which adds margins and spacing. not <i>evil</i> but not great either.
-  I could have the MakeVisualTable widget take in the exercise and the trainingData and generate the header and table content itself. idk if this is the best way to do it either.
-*/
-//todo allow the unit to be set in the header of each column? or in settings??
-
-class TrainingPage extends StatelessWidget {
+class TrainingPage extends StatefulWidget {
   const TrainingPage({super.key});
 
+  @override
+  State<TrainingPage> createState() => _TrainingPageState();
+}
+
+class _TrainingPageState extends State<TrainingPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,8 +28,6 @@ class TrainingPage extends StatelessWidget {
             const TrainingTitle(),
             const DisplayDurationTimer(),
             const NotesWidget(),
-            // Text(state.notes ?? 'Notes', style: Theme.of(context).textTheme.bodySmall),
-            const TrainingDataDisplay(),
             const DisplayTrainingData(),
             const SizedBox(height: 70),
             Row(
@@ -52,7 +47,7 @@ class TrainingPage extends StatelessWidget {
 
                         context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                         context.read<TrainingSessionCubit>().reset();
-                        // Navigator.of(context).pop();
+                        setState(() {});
                       },
                       color: mediumGreen),
                 ),
@@ -71,8 +66,18 @@ class TrainingTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var state = context.watch<TrainingSessionCubit>().state;
-    return Text(state.name.isEmpty ? 'New Training Session' : state.name,
-        style: Theme.of(context).textTheme.headlineSmall);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
+      child: TextField(
+        style: Theme.of(context).textTheme.headlineSmall,
+        controller: TextEditingController(text: state.name.isEmpty ? 'New Training Session' : state.name),
+        decoration: const InputDecoration(
+            icon: Icon(Icons.edit), border: OutlineInputBorder(borderSide: BorderSide())),
+        onChanged: (value) {
+          state.name = value;
+        },
+      ),
+    );
   } //todo make these textfields
 }
 
@@ -86,48 +91,25 @@ class DisplayDurationTimer extends StatelessWidget {
   }
 }
 
-//todo this is shit
-class NotesWidget extends StatefulWidget {
+class NotesWidget extends StatelessWidget {
   const NotesWidget({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _NotesWidgetState createState() => _NotesWidgetState();
-}
-
-class _NotesWidgetState extends State<NotesWidget> {
-  late TextEditingController _controller;
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final state = context.read<TrainingSessionCubit>().state;
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _controller,
-            enabled: _isEditing,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: TextEditingController(text: state.notes),
+              decoration: const InputDecoration(hintText: "training notes...", icon: Icon(Icons.edit)),
+              onChanged: (value) {
+                state.notes = value;
+              },
+            ),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: () {
-            setState(() {
-              _isEditing = !_isEditing;
-            });
-          },
         ),
       ],
     );

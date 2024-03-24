@@ -70,8 +70,13 @@ class TrainingSessionHistoryCard extends StatelessWidget {
               'Duration: ${session.duration.toHoursMinutes()}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
+            if (session.notes != null && session.notes!.isNotEmpty)
+              Text(
+                "Notes: ${session.notes!}",
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
             const SizedBox(height: 10),
-            DisplayTrainingData(session),
+            DisplayPastTrainingData(session),
           ],
         ),
       ),
@@ -79,16 +84,16 @@ class TrainingSessionHistoryCard extends StatelessWidget {
   }
 }
 
-class DisplayTrainingData extends StatefulWidget {
-  const DisplayTrainingData(this.session, {super.key});
+class DisplayPastTrainingData extends StatefulWidget {
+  const DisplayPastTrainingData(this.session, {super.key});
 
   final TrainingSession session;
 
   @override
-  State<DisplayTrainingData> createState() => _DisplayTrainingDataState();
+  State<DisplayPastTrainingData> createState() => _DisplayPastTrainingDataState();
 }
 
-class _DisplayTrainingDataState extends State<DisplayTrainingData> {
+class _DisplayPastTrainingDataState extends State<DisplayPastTrainingData> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pageContent = [];

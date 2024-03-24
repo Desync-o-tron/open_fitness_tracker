@@ -47,7 +47,8 @@ class _TrainingPageState extends State<TrainingPage> {
 
                         context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                         context.read<TrainingSessionCubit>().reset();
-                        setState(() {});
+                        // setState(() {});
+                        Navigator.pop(context);
                       },
                       color: mediumGreen),
                 ),
@@ -65,7 +66,7 @@ class TrainingTitle extends StatelessWidget {
   const TrainingTitle({super.key});
   @override
   Widget build(BuildContext context) {
-    var state = context.watch<TrainingSessionCubit>().state;
+    var state = context.read<TrainingSessionCubit>().state;
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
       child: TextField(
@@ -78,7 +79,7 @@ class TrainingTitle extends StatelessWidget {
         },
       ),
     );
-  } //todo make these textfields
+  }
 }
 
 class DisplayDurationTimer extends StatelessWidget {

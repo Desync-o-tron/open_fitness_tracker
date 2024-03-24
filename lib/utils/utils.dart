@@ -136,6 +136,21 @@ extension DurationExtensions on Duration {
   }
 }
 
+extension DateTimeExtensions on DateTime {
+  String toDaysAgo() {
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(this);
+    int daysAgo = difference.inDays;
+    if (daysAgo == 0) {
+      return 'Today';
+    } else if (daysAgo == 1) {
+      return 'Yesterday';
+    } else {
+      return '$daysAgo Days Ago';
+    }
+  }
+}
+
 //untested
 String enumToReadableString(Object o) {
   final String enumString = o.toString().split('.').last;

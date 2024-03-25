@@ -227,4 +227,10 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
     newState.duration = DateTime.now().difference(state.dateTime);
     emit(newState);
   }
+
+  void updateNotes(String value) {
+    TrainingSession newState = TrainingSession.copy(state);
+    newState.notes = value;
+    emit(newState);
+  }
 }

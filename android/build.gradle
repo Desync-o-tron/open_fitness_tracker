@@ -7,8 +7,17 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // classpath 'com.google.firebase:firebase-appdistribution-gradle:4.2.0'
     }
 }
+
+plugins {
+
+  // Add the dependency for the Google services Gradle plugin
+  id 'com.google.gms.google-services' version '4.4.1' apply false
+
+}
+
 
 allprojects {
     repositories {

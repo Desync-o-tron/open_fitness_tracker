@@ -22,41 +22,52 @@ class _TrainingPageState extends State<TrainingPage> {
       padding: const EdgeInsets.all(10.0),
       // color: Theme.of(context).colorScheme.secondary,
       color: darkTan,
-      child: SingleChildScrollView(
+      child: const SingleChildScrollView(
         clipBehavior: Clip.none,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const TrainingTitle(),
-            const DisplayDurationTimer(),
-            const NotesWidget(),
-            const DisplayTrainingData(),
-            const SizedBox(height: 70),
-            Row(
-              children: [
-                Expanded(child: Container()),
-                Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: MyGenericButton(
-                      label: "Finish",
-                      onPressed: () {
-                        //todo check if there are still empty sets
-                        final sesh = context.read<TrainingSessionCubit>().state;
-                        sesh.isOngoing = false;
-                        sesh.duration = DateTime.now().difference(sesh.dateTime);
-                        context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
-                        context.read<TrainingSessionCubit>().reset();
-                        context.goNamed(routeNames.History.text);
-                      },
-                      color: mediumGreen),
-                ),
-                Expanded(child: Container()),
-              ],
-            )
+            TrainingTitle(),
+            DisplayDurationTimer(),
+            NotesWidget(),
+            DisplayTrainingData(),
+            SizedBox(height: 70),
+            BottomCancelOrFinishButtons()
           ],
         ),
       ),
+    );
+  }
+}
+
+class BottomCancelOrFinishButtons extends StatelessWidget {
+  const BottomCancelOrFinishButtons({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Container()),
+        Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
+        const SizedBox(width: 20),
+        Expanded(
+          child: MyGenericButton(
+              label: "Finish",
+              onPressed: () {
+                //todo check if there are still empty sets
+                final sesh = context.read<TrainingSessionCubit>().state;
+                sesh.isOngoing = false;
+                sesh.duration = DateTime.now().difference(sesh.dateTime);
+                context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
+                context.read<TrainingSessionCubit>().reset();
+                context.goNamed(routeNames.History.text);
+              },
+              color: mediumGreen),
+        ),
+        Expanded(child: Container()),
+      ],
     );
   }
 }

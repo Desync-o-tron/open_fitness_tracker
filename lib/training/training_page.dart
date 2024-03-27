@@ -7,6 +7,7 @@ import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/training/training_data_table.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 
 class TrainingPage extends StatefulWidget {
   const TrainingPage({super.key});
@@ -62,7 +63,13 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
                 sesh.duration = DateTime.now().difference(sesh.dateTime);
                 context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                 context.read<TrainingSessionCubit>().reset();
-                context.goNamed(routeNames.History.text);
+
+                if (FirebaseAuth.instance.currentUser != null) {
+                  context.go(routeNames.History.text);
+                } else {
+                  context.go(routeNames.Community.text);
+                  // context.goNamed(routeNames.SignIn.text);
+                }
               },
               color: mediumGreen),
         ),

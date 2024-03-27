@@ -1,24 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-// import 'package:path_provider/path_provider.dart';
-
-// Future<String> localStoragePath() async {
-//   final directory = await getApplicationDocumentsDirectory();
-//   return directory.path;
-// }
-
-// const iOSClientId = 'your-client-id.apps.googleusercontent.com';
-// const webClientId = 'your-web-client-id.apps.googleusercontent.com';
-
-// String get googleClientId {
-//   return switch (defaultTargetPlatform) {
-//     // TargetPlatfrom.iOS ||
-//     TargetPlatform.macOS => iOSClientId,
-//     _ => webClientId,
-//   }
-// }
 
 class GenericScrollBehavior extends MaterialScrollBehavior {
   @override

@@ -1,7 +1,12 @@
 // ignore_for_file: constant_identifier_names, camel_case_types
+import 'package:flutter/material.dart';
+// import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
+// import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+// import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
+import 'package:open_fitness_tracker/community/profile_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/history/history_page.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
@@ -17,6 +22,9 @@ enum routeNames {
   History("/History"),
   Training("/Training"),
   Exercises("/Exercises"),
+  SignIn("/SignIn"),
+  Profile("/Profile"),
+  None("/None"),
   Temp("/Temp"),
   Home("/");
 
@@ -57,7 +65,14 @@ final GoRouter routerConfig = GoRouter(
           builder: (BuildContext context, GoRouterState state) => const ExerciseSearchPage(),
         ),
         GoRoute(
-          //temp
+          path: routeNames.SignIn.text,
+          builder: (BuildContext context, GoRouterState state) => const SignInScreenWrapper(),
+        ),
+        GoRoute(
+          path: routeNames.Profile.text,
+          builder: (BuildContext context, GoRouterState state) => const ProfileScreenWrapper(),
+        ),
+        GoRoute(
           path: routeNames.Temp.text,
           builder: (BuildContext context, GoRouterState state) => const TrainingPage(),
         ),

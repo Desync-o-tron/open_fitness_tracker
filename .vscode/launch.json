@@ -5,9 +5,18 @@
             "name": "open_fitness_tracker",
             "request": "launch",
             "type": "dart",
-            // "deviceId": "emulator-5554"
-            "deviceId": "windows"
+            "args": ["--debug"],
+            // "deviceId": "emulator-5556",
+            "deviceId": "emulator-5554",
+            // "deviceId": "windows"
             // "deviceId": "chrome"
+        },
+        {
+            "name": "open_fitness_tracker chrome",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--debug"],
+            "deviceId": "chrome"
         },
         {
             "name": "open_fitness_tracker (profile mode)",

@@ -4,6 +4,16 @@
 .dart_tool/
 .packages
 build/
+
+# Flutter auto-generated files
+**/flutter/generated_plugin_registrant.cc
+**/flutter/generated_plugins.cmake
+**/Flutter/GeneratedPluginRegistrant.swift
+**/flutter/generated_plugin_registrant.cc
+**/flutter/generated_plugins.cmake
+
+
+
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
 
@@ -26,6 +36,9 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 
+
+
+#firebase
 .firebase
 
 #API key stuff

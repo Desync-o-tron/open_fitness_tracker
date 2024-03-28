@@ -24,6 +24,7 @@ enum routeNames {
   Exercises("/Exercises"),
   SignIn("/SignIn"),
   Profile("/Profile"),
+  VerifyEmail("/VerifyEmail"),
   None("/None"),
   Temp("/Temp"),
   Home("/");
@@ -71,6 +72,10 @@ final GoRouter routerConfig = GoRouter(
         GoRoute(
           path: routeNames.Profile.text,
           builder: (BuildContext context, GoRouterState state) => const ProfileScreenWrapper(),
+        ),
+        GoRoute(
+          path: routeNames.VerifyEmail.text,
+          builder: (BuildContext context, GoRouterState state) => const EmailVerificationScreenWrapper(),
         ),
         GoRoute(
           path: routeNames.Temp.text,

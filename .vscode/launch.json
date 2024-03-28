@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "open_fitness_tracker",
+            "name": "android open_fitness_tracker",
             "request": "launch",
             "type": "dart",
             "args": ["--debug"],
@@ -12,7 +12,7 @@
             // "deviceId": "chrome"
         },
         {
-            "name": "open_fitness_tracker chrome",
+            "name": "chrome open_fitness_tracker",
             "request": "launch",
             "type": "dart",
             "args": ["--debug"],

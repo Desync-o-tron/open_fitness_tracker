@@ -31,7 +31,7 @@ class SignInOrProfileWidget extends StatelessWidget {
           ),
           MyGenericButton(
             onPressed: () {
-              context.go(routeNames.SignIn.text);
+              context.push(routeNames.SignIn.text);
             },
             label: 'Sign in',
           ),
@@ -40,7 +40,7 @@ class SignInOrProfileWidget extends StatelessWidget {
       );
     } else {
       return MyGenericButton(
-        onPressed: () => context.go(routeNames.Profile.text),
+        onPressed: () => context.push(routeNames.Profile.text),
         label: "Profile",
       );
     }

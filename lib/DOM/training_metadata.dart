@@ -114,6 +114,7 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   List<TrainingSession>? fromJson(Map<String, dynamic> json) {
     List<TrainingSession> seshes = [];
     for (var sesh in json['trainingHistory']) {
+      //todo this is lame? I would rather have the key be a hash of the object so I can compare the objects for changes (it would make syncing easier..not sure if it's worth it though)
       seshes.add(TrainingSession.fromJson(sesh));
     }
     return seshes;

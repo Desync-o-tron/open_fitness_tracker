@@ -18,3 +18,32 @@ ButtonStyle largeButtonStyle(BuildContext context, [borderRadius = 32.0]) => Ele
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(borderRadius),
     ));
+
+final myColorScheme = ColorScheme.fromSwatch(
+  primarySwatch: MaterialColor(
+    darkTan.value,
+    <int, Color>{
+      50: darkTan,
+      100: darkTan,
+      200: darkTan,
+      300: darkTan,
+      400: darkTan,
+      500: darkTan,
+      600: darkTan,
+      700: darkTan,
+      800: darkTan,
+      900: darkTan,
+    },
+  ),
+  accentColor: mediumGreen,
+  cardColor: darkTan,
+  backgroundColor: mediumTan,
+  errorColor: darkTan,
+  brightness: Brightness.light,
+);
+
+final myTheme = ThemeData(
+  useMaterial3: true,
+  // colorScheme: myColorScheme,
+  colorScheme: ColorScheme.fromSeed(seedColor: darkTan),
+);

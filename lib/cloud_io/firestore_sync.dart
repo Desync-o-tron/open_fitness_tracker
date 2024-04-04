@@ -1,69 +1,106 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 
-// class A {
-//   static int foo() {
-//     return 1;
-//   }
-// }
-
-// class B extends A {
-//   @override
-//   int foo() {
-//     return 2;
-//   }
-// }
+late FirestoreHydratedStorageSync cloudStorage;
 
 class FirestoreHydratedStorageSync {
   /*
   goal here: have a function to check the history and ex's, compare them with the last time they were updated, and update firestore with the new data.
   */
-
-  final HydratedStorage storage;
   FirestoreHydratedStorageSync(this.storage);
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final HydratedStorage storage;
   static const historyKey = 'TrainingHistoryCubit';
   static const tokenForLastSync = '^lastSync';
   // static const exercises = ''; //todo
-  void sync() {
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return;
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  Future<void> sync() async {
+    if (!FirebaseAuth.instance.currentUser!.emailVerified) return;
+    await _sendHistoryData();
+    await _receiveHistoryData();
+    //todo setup a listener for history data removal
+  }
+
+  /// will remove the history data corresponding to the id of the training session
+  Future<bool> removeHistoryData(final TrainingSession sesh) async {
+    if (!FirebaseAuth.instance.currentUser!.emailVerified) return false;
+    if (sesh.id == '') return false;
+
+    CollectionReference users = firestore.collection('users');
+    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+    await userDoc.collection(historyKey).doc(sesh.id).delete();
+    return true;
+    //this needs to get called manually if the user decides to delete something. klugdey, but overriding HydratedStorage is the alternative..
+  }
+
+  Future<void> _sendHistoryData() async {
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 
     var history = storage.read(historyKey);
+    if (history == null) return;
     var oldHistory = storage.read(historyKey + tokenForLastSync);
 
+    List<Map<String, dynamic>> stringifiedHistory = [];
+    for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
+      stringifiedHistory.add(sesh.cast<String, dynamic>());
+    }
+    if (history != oldHistory || oldHistory == null) {
+      for (var sesh in stringifiedHistory) {
+        var docSnapshot = await userDoc.collection(historyKey).doc(sesh['id']).get();
+        if (!docSnapshot.exists) {
+          userDoc.collection(historyKey).doc(sesh['id']).set(sesh);
+        } else {
+          var cloudSesh = docSnapshot.data() as Map<String, dynamic>;
+          DateTime cloudTime = DateTime.parse(cloudSesh['dateOfLastEdit']);
+          DateTime localTime = DateTime.parse(sesh['dateOfLastEdit']);
+          if (localTime.isAfter(cloudTime)) {
+            userDoc.collection(historyKey).doc(sesh['id']).set(sesh);
+          }
+        }
+      }
+      storage.write(historyKey + tokenForLastSync, history);
+    }
+  }
+
+  Future<void> _receiveHistoryData() async {
+    CollectionReference users = firestore.collection('users');
+    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+
+    List<Map<String, dynamic>> stringifiedCloudHistory = [];
+    userDoc.collection(historyKey).get().then((QuerySnapshot querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        stringifiedCloudHistory.add(doc.data() as Map<String, dynamic>);
+      }
+    });
+
+    final history = storage.read(historyKey);
     List<Map<String, dynamic>> stringifiedHistory = [];
     if (history != null) {
       for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
         stringifiedHistory.add(sesh.cast<String, dynamic>());
-        // stringifiedHistory[sesh.]
       }
     }
 
-    if (history != oldHistory) {
+    for (var cloudSesh in stringifiedCloudHistory) {
       for (var sesh in stringifiedHistory) {
-        userDoc.collection(historyKey).add(sesh);
+        if (sesh['id'] == cloudSesh['id']) {
+          DateTime cloudUpdatedTime = DateTime.parse(cloudSesh['dateOfLastEdit']);
+          DateTime localUpdatedTime = DateTime.parse(sesh['dateOfLastEdit']);
+          if (cloudUpdatedTime.isAfter(localUpdatedTime)) {
+            stringifiedHistory.remove(sesh);
+            stringifiedHistory.add(cloudSesh);
+          }
+          break;
+        } else {
+          stringifiedHistory.add(cloudSesh);
+        }
       }
-      // userDoc.collection('trainingHistory').add(history);
-      storage.write(historyKey + tokenForLastSync, history);
     }
-
-    // DocumentSnapshot userSnapshot = await userDoc.get();
-    // CollectionReference userAttributeCollection = userSnapshot.reference.collection(key);
-    // userAttributeCollection.add(read(key));
-    int i = 0;
-    // userAttributeCollection.doc()
-    // userAttributeCollection.
-    // .set({key: read(key)});
-
-    // await FirebaseFirestore.instance
-    // .collection(collection)
-    // .doc("doc_Id")
-    // .set(data);
-    // });
+    storage.write(historyKey, {'trainingHistory': stringifiedHistory});
+    storage.write(historyKey + tokenForLastSync, history);
   }
 }
 /*

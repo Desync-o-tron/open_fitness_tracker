@@ -1,6 +1,4 @@
 import 'dart:async';
-// import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +13,6 @@ import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,22 +22,13 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  HydratedStorage myStorage = await HydratedStorage.build(
+  HydratedStorage hydratedStorage = await HydratedStorage.build(
     storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
   );
-  HydratedBloc.storage = myStorage;
-  final firestoreStorage = FirestoreHydratedStorageSync(myStorage);
-  firestoreStorage.sync();
 
-  // myStorage.sync();
-
-  // HydratedBloc.storage = await FirestoreHydratedStorage.build(
-  //   storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
-  // );
-
-  // HydratedBloc.storage = await HydratedStorage.build(
-  //   storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
-  // );
+  HydratedBloc.storage = hydratedStorage;
+  cloudStorage = FirestoreHydratedStorageSync(hydratedStorage);
+  await cloudStorage.sync();
 
   runApp(const MyApp());
 }

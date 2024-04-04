@@ -19,6 +19,13 @@
             "deviceId": "chrome"
         },
         {
+            "name": "win open_fitness_tracker",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--debug"],
+            "deviceId": "windows"
+        },
+        {
             "name": "open_fitness_tracker (profile mode)",
             "request": "launch",
             "type": "dart",

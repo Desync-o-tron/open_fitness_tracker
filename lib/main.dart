@@ -28,7 +28,7 @@ Future<void> main() async {
 
   HydratedBloc.storage = hydratedStorage;
   cloudStorage = FirestoreHydratedStorageSync(hydratedStorage);
-  await cloudStorage.sync();
+  cloudStorage.sync();
 
   runApp(const MyApp());
 }
@@ -62,6 +62,13 @@ class MyApp extends StatelessWidget {
             context.read<TrainingSessionCubit>().updateDuration();
           },
         );
+
+        cloudStorage.setOnHistoryUpdate(() {
+          //just need to get the visual state update to trigger..
+          TrainingSession tempSesh = TrainingSession();
+          context.read<TrainingHistoryCubit>().addSession(tempSesh);
+          context.read<TrainingHistoryCubit>().removeSession(tempSesh);
+        });
 
         return MaterialApp.router(
           theme: myTheme,

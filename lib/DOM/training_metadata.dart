@@ -36,9 +36,7 @@ class TrainingSession {
         duration = duration ?? const Duration(),
         dateTime = date ?? DateTime.now(),
         notes = notes ?? '',
-        trainingData = trainingData ?? [] {
-    print('muh id: $id');
-  }
+        trainingData = trainingData ?? [];
 
   TrainingSession.copy(TrainingSession sesh)
       : id = sesh.id,

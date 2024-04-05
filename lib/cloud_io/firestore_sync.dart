@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 
@@ -12,27 +13,45 @@ class FirestoreHydratedStorageSync {
   FirestoreHydratedStorageSync(this.storage);
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final HydratedStorage storage;
+  Function _onHistoryUpdate = () {};
   static const historyKey = 'TrainingHistoryCubit';
   static const tokenForLastSync = '^lastSync';
   // static const exercises = ''; //todo
 
   Future<void> sync() async {
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return;
-    await _sendHistoryData();
-    await _receiveHistoryData();
-    //todo setup a listener for history data removal
+    _listenForHistoryRemoval();
+    while (true) {
+      if (FirebaseAuth.instance.currentUser != null && FirebaseAuth.instance.currentUser!.emailVerified) {
+        await _sendHistoryData();
+        await _receiveHistoryData();
+      } else {
+        //listen for auth changes, so we don't have to wait 5 minutes after the user logs in to sync the data.
+        FirebaseAuth.instance.authStateChanges().listen((User? user) {
+          if (user != null && user.emailVerified) {
+            _sendHistoryData();
+            _receiveHistoryData();
+          }
+        });
+      }
+      await Future.delayed(const Duration(seconds: 5));
+    }
+  }
+
+  void setOnHistoryUpdate(Function f) {
+    _onHistoryUpdate = f;
   }
 
   /// will remove the history data corresponding to the id of the training session
   Future<bool> removeHistoryData(final TrainingSession sesh) async {
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return false;
+    if (FirebaseAuth.instance.currentUser == null || !FirebaseAuth.instance.currentUser!.emailVerified) {
+      return false;
+    }
     if (sesh.id == '') return false;
 
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
     await userDoc.collection(historyKey).doc(sesh.id).delete();
     return true;
-    //this needs to get called manually if the user decides to delete something. klugdey, but overriding HydratedStorage is the alternative..
   }
 
   Future<void> _sendHistoryData() async {
@@ -47,7 +66,8 @@ class FirestoreHydratedStorageSync {
     for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
       stringifiedHistory.add(sesh.cast<String, dynamic>());
     }
-    if (history != oldHistory || oldHistory == null) {
+    if (mapEquals(history, oldHistory) || oldHistory == null) {
+      //todo mapEquals is not as good as DeepCollectionEquality, I should really be comparing the ids and last edited timestamps themselves.
       for (var sesh in stringifiedHistory) {
         var docSnapshot = await userDoc.collection(historyKey).doc(sesh['id']).get();
         if (!docSnapshot.exists) {
@@ -70,11 +90,10 @@ class FirestoreHydratedStorageSync {
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 
     List<Map<String, dynamic>> stringifiedCloudHistory = [];
-    userDoc.collection(historyKey).get().then((QuerySnapshot querySnapshot) {
-      for (var doc in querySnapshot.docs) {
-        stringifiedCloudHistory.add(doc.data() as Map<String, dynamic>);
-      }
-    });
+    var cloudTrainingHistory = await userDoc.collection(historyKey).get();
+    for (var doc in cloudTrainingHistory.docs) {
+      stringifiedCloudHistory.add(doc.data());
+    }
 
     final history = storage.read(historyKey);
     List<Map<String, dynamic>> stringifiedHistory = [];
@@ -84,25 +103,67 @@ class FirestoreHydratedStorageSync {
       }
     }
 
+    // List<Map<String, dynamic>> sessionsChangedToRemove = [];
+    // List<Map<String, dynamic>> sessionsToAdd = [];
+    List<Map<String, dynamic>> updatedHistory = stringifiedHistory.toList();
+    bool changed = false;
     for (var cloudSesh in stringifiedCloudHistory) {
+      bool found = false;
       for (var sesh in stringifiedHistory) {
         if (sesh['id'] == cloudSesh['id']) {
           DateTime cloudUpdatedTime = DateTime.parse(cloudSesh['dateOfLastEdit']);
           DateTime localUpdatedTime = DateTime.parse(sesh['dateOfLastEdit']);
-          if (cloudUpdatedTime.isAfter(localUpdatedTime)) {
-            stringifiedHistory.remove(sesh);
-            stringifiedHistory.add(cloudSesh);
+          if (localUpdatedTime.isBefore(cloudUpdatedTime)) {
+            updatedHistory.remove(sesh);
+            updatedHistory.add(cloudSesh);
+            changed = true;
           }
+          found = true;
           break;
-        } else {
-          stringifiedHistory.add(cloudSesh);
         }
       }
+      if (!found) {
+        changed = true;
+        updatedHistory.add(cloudSesh);
+      }
     }
-    storage.write(historyKey, {'trainingHistory': stringifiedHistory});
-    storage.write(historyKey + tokenForLastSync, history);
+
+    storage.write(historyKey, {'trainingHistory': updatedHistory});
+    // storage.write(historyKey + tokenForLastSync, {'trainingHistory': updatedHistory}); //hm
+    changed ? _onHistoryUpdate() : null;
+  }
+
+  _listenForHistoryRemoval() async {
+    while (true) {
+      if (FirebaseAuth.instance.currentUser == null || !FirebaseAuth.instance.currentUser!.emailVerified) {
+        await Future.delayed(const Duration(seconds: 5));
+      } else {
+        CollectionReference users = firestore.collection('users');
+        DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+        userDoc.collection(historyKey).snapshots().listen(
+          (event) {
+            for (var change in event.docChanges) {
+              if (change.type == DocumentChangeType.removed) {
+                var history = storage.read(historyKey);
+                List<Map<String, dynamic>> stringifiedHistory = [];
+                if (history != null) {
+                  for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
+                    stringifiedHistory.add(sesh.cast<String, dynamic>());
+                  }
+                }
+                stringifiedHistory.removeWhere((element) => element['id'] == change.doc.id);
+                storage.write(historyKey, {'trainingHistory': stringifiedHistory});
+                _onHistoryUpdate();
+              }
+            }
+          },
+        );
+        break;
+      }
+    }
   }
 }
+
 /*
 class FirestoreHydratedStorage extends HydratedStorage {
   FirestoreHydratedStorage(super.box);

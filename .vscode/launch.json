@@ -6,10 +6,8 @@
             "request": "launch",
             "type": "dart",
             "args": ["--debug"],
-            // "deviceId": "emulator-5556",
-            "deviceId": "emulator-5554",
-            // "deviceId": "windows"
-            // "deviceId": "chrome"
+            "deviceId": "emulator-5556",
+            // "deviceId": "emulator-5554",
         },
         {
             "name": "chrome open_fitness_tracker",

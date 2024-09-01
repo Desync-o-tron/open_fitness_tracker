@@ -45,6 +45,7 @@ doc/api/
 android/app/google-services.json
 google-services.json
 GoogleService-Info.plist
+api_keys.dart
 
 ios/firebase_app_id_file.json
 lib/firebase_options.dart

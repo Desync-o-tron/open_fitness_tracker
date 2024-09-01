@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
+import 'package:flutter/foundation.dart';
+import 'package:open_fitness_tracker/api_keys.dart';
 
-const googleWebClientId = '211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com';
+String get googleClientId {
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.iOS || TargetPlatform.macOS => googleiOSClientId,
+    TargetPlatform.android => googleAndroidClientId,
+    _ => googleWebClientId,
+  };
+}
 
 final List<AuthProvider<AuthListener, AuthCredential>> providers = [
   EmailAuthProvider(),
-  GoogleProvider(clientId: googleWebClientId),
+  GoogleProvider(clientId: googleClientId),
 ];
 
 class ProfileScreenWrapper extends StatelessWidget {

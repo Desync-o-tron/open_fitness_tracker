@@ -4,6 +4,10 @@
 // future. If not, the values below would default to using the project name when this becomes a
 // 'flutter create' template.
 
+#include "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+#include "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"
+
 // The application's name. By default this is also the title of the Flutter window.
 PRODUCT_NAME = open_fitness_tracker
 
@@ -11,4 +15,4 @@ PRODUCT_NAME = open_fitness_tracker
 PRODUCT_BUNDLE_IDENTIFIER = com.example.openFitnessTracker
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = open source software, god bless america buddy

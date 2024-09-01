@@ -2,12 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "open_fitness_tracker",
+            "name": "open_fitness_tracker any device",
             "request": "launch",
             "type": "dart",
             "args": ["--debug"],
+            // "args": ["--debug", "--verbose"],
             // "deviceId": "emulator-5556",
-            "deviceId": "emulator-5554",
+            // "deviceId": "emulator-5554",
             // "deviceId": "windows"
             // "deviceId": "chrome"
         },
@@ -17,6 +18,13 @@
             "type": "dart",
             "args": ["--debug"],
             "deviceId": "chrome"
+        },
+        {
+            "name": "open_fitness_tracker mac",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--debug", "--verbose"],
+            "deviceId": "macos"
         },
         {
             "name": "open_fitness_tracker (profile mode)",

@@ -1,13 +1,1 @@
-{
-  "hosting": {
-    "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-east1"
-    }
-  }
-}
+{"hosting":{"source":".","ignore":["firebase.json","**/.*","**/node_modules/**"],"frameworksBackend":{"region":"us-east1"}},"flutter":{"platforms":{"android":{"default":{"projectId":"openfitnesstracker-d8fgp5","appId":"1:211289236675:android:b606ed6eb4caf3b195ae76","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"openfitnesstracker-d8fgp5","appId":"1:211289236675:ios:2629e0e27f2f084e95ae76","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"openfitnesstracker-d8fgp5","appId":"1:211289236675:ios:2629e0e27f2f084e95ae76","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"openfitnesstracker-d8fgp5","configurations":{"android":"1:211289236675:android:b606ed6eb4caf3b195ae76","ios":"1:211289236675:ios:2629e0e27f2f084e95ae76","macos":"1:211289236675:ios:2629e0e27f2f084e95ae76","web":"1:211289236675:web:d377a233823e2e3895ae76"}}}}}}

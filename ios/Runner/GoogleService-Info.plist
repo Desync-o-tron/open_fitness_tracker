@@ -3,19 +3,19 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>211289236675-ukl69kitoa47hbvfi84kku4ka9s6buf0.apps.googleusercontent.com</string>
+	<string>211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.211289236675-ukl69kitoa47hbvfi84kku4ka9s6buf0</string>
+	<string>com.googleusercontent.apps.211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>211289236675-4fdbrih5492p02ssr3q1rf1ef2q9nkrb.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAgmL5HLmmo64HFu_a7G9WeJwy8CiKcZSg</string>
+	<string>AIzaSyD-GXaVCWa8QU6nu3_dtvncvGO40ZsxUx0</string>
 	<key>GCM_SENDER_ID</key>
 	<string>211289236675</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.openFitnessTracker</string>
+	<string>com.openfitnesstracker.go</string>
 	<key>PROJECT_ID</key>
 	<string>openfitnesstracker-d8fgp5</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:211289236675:ios:2629e0e27f2f084e95ae76</string>
+	<string>1:211289236675:ios:ae75879b09101dc395ae76</string>
 </dict>
 </plist>

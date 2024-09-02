@@ -18,6 +18,7 @@ class ExDB {
   static final List<String> _equipment = [];
   static final List<Exercise> _exercises = [];
 
+  //todo can we make this async?
   static addExercises(List<Exercise> exercises) {
     for (var exercise in exercises) {
       _exercises.addIfDNE(exercise);

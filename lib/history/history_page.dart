@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -56,11 +58,25 @@ class TrainingSessionHistoryCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (session.name.isNotEmpty)
-              Text(
-                session.name,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+            Column(
+              children: [
+                if (session.name.isNotEmpty)
+                  Text(
+                    session.name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (context) => TrainingHistoryCardManagementDialog(session));
+                      },
+                      child: const Icon(Icons.edit),
+                    )),
+              ],
+            ),
             Text("Completed ${session.dateTime.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
             Text(
               DateFormat('h:mm a EEEE, MMMM d, y').format(session.dateTime),
@@ -77,6 +93,44 @@ class TrainingSessionHistoryCard extends StatelessWidget {
               ),
             const SizedBox(height: 10),
             DisplayPastTrainingData(session),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TrainingHistoryCardManagementDialog extends StatelessWidget {
+  final TrainingSession sesh;
+  const TrainingHistoryCardManagementDialog(this.sesh, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    final trainingHistoryCubit = context.read<TrainingHistoryCubit>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    delSesh() async {
+      if (await cloudStorage.removeHistoryData(sesh)) {
+        trainingHistoryCubit.removeSession(sesh);
+      } else {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete training session'),
+            duration: Duration(seconds: 2),
+          ), //todo test me
+        );
+      }
+    }
+
+    return AlertDialog(
+      title: Text(sesh.name == "" ? "Training Session" : sesh.name),
+      content: SizedBox(
+        height: 499,
+        child: Column(
+          children: [
+            MyGenericButton(
+              label: "Delete",
+              onPressed: () => delSesh().then((value) => context.pop()),
+              color: Theme.of(context).colorScheme.error,
+            ),
           ],
         ),
       ),

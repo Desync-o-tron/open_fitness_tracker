@@ -61,6 +61,7 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
                 final sesh = context.read<TrainingSessionCubit>().state;
                 sesh.isOngoing = false;
                 sesh.duration = DateTime.now().difference(sesh.dateTime);
+                sesh.dateOfLastEdit = DateTime.now();
                 context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                 context.read<TrainingSessionCubit>().reset();
 

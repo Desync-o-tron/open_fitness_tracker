@@ -18,10 +18,19 @@ class CommunityPage extends StatelessWidget {
   }
 }
 
-class SignInOrProfileWidget extends StatelessWidget {
+class SignInOrProfileWidget extends StatefulWidget {
   const SignInOrProfileWidget({super.key});
+
+  @override
+  State<SignInOrProfileWidget> createState() => _SignInOrProfileWidgetState();
+}
+
+class _SignInOrProfileWidgetState extends State<SignInOrProfileWidget> {
   @override
   Widget build(BuildContext context) {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {});
+    });
     if (FirebaseAuth.instance.currentUser == null) {
       return Column(
         children: [
@@ -31,16 +40,15 @@ class SignInOrProfileWidget extends StatelessWidget {
           ),
           MyGenericButton(
             onPressed: () {
-              context.go(routeNames.SignIn.text);
+              context.push(routeNames.SignIn.text);
             },
             label: 'Sign in',
           ),
-          // ProfileWidget(),
         ],
       );
     } else {
       return MyGenericButton(
-        onPressed: () => context.go(routeNames.Profile.text),
+        onPressed: () => context.push(routeNames.Profile.text),
         label: "Profile",
       );
     }

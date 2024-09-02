@@ -12,7 +12,8 @@ dart run build_runner watch --delete-conflicting-outputs
 
 @JsonSerializable()
 class TrainingSession {
-  String? id;
+  String id;
+  DateTime? dateOfLastEdit;
   bool isOngoing = false;
   String name;
   Duration duration;
@@ -28,7 +29,8 @@ class TrainingSession {
     DateTime? date,
     String? notes,
     List<SetsOfAnExercise>? trainingData,
-  })  : id = id ?? '',
+    this.dateOfLastEdit,
+  })  : id = id ?? DateTime.now().toIso8601String(),
         isOngoing = isOngoing ?? false,
         name = name ?? '',
         duration = duration ?? const Duration(),
@@ -43,7 +45,8 @@ class TrainingSession {
         dateTime = sesh.dateTime,
         notes = sesh.notes,
         isOngoing = sesh.isOngoing,
-        trainingData = List<SetsOfAnExercise>.from(sesh.trainingData);
+        trainingData = List<SetsOfAnExercise>.from(sesh.trainingData),
+        dateOfLastEdit = sesh.dateOfLastEdit;
 
   //todo this copyWith kinda sucks bc I have to copy all the fields manually
   TrainingSession copyWith({required List<SetsOfAnExercise> trainingData}) {
@@ -55,6 +58,7 @@ class TrainingSession {
       notes: notes,
       isOngoing: isOngoing,
       trainingData: trainingData,
+      dateOfLastEdit: dateOfLastEdit,
     );
   }
 
@@ -107,13 +111,20 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   TrainingHistoryCubit() : super([]);
 
   void addSession(TrainingSession sesh) {
-    emit(state..add(sesh));
+    var newState = state.toList();
+    emit(newState..add(sesh));
+  }
+
+  void removeSession(TrainingSession sesh) {
+    var newState = state.toList();
+    emit(newState..remove(sesh));
   }
 
   @override
   List<TrainingSession>? fromJson(Map<String, dynamic> json) {
     List<TrainingSession> seshes = [];
     for (var sesh in json['trainingHistory']) {
+      //todo this is lame? I would rather have the key be a hash of the object so I can compare the objects for changes (it would make syncing easier..not sure if it's worth it though)
       seshes.add(TrainingSession.fromJson(sesh));
     }
     return seshes;

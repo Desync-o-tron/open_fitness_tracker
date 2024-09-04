@@ -68,6 +68,14 @@ class MyApp extends StatelessWidget {
           TrainingSession tempSesh = TrainingSession();
           context.read<TrainingHistoryCubit>().addSession(tempSesh);
           context.read<TrainingHistoryCubit>().removeSession(tempSesh);
+
+          //lets just update the traininghistorycubit here too & see what happens!
+          //storage.write(historyKey, {'trainingHistory': stringifiedHistory});
+          var json = cloudStorage.storage.read('TrainingHistoryCubit');
+
+          for (var str in json['trainingHistory']) {
+            context.read<TrainingHistoryCubit>().addSession(TrainingSession.fromJson(str));
+          }
         });
 
         return MaterialApp.router(

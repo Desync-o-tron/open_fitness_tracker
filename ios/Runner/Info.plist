@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>GIDClientID</key>
+	<!-- <key>GIDClientID</key> -->
 	<!-- Copied from GoogleService-Info.plist key CLIENT_ID -->
-	<string>211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com</string>
+	<!-- <string>211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com</string> -->
 	<!-- Put me in the [my_project]/ios/Runner/Info.plist file -->
 	<!-- Google Sign-in Section -->
 	<key>CFBundleURLTypes</key>
@@ -15,7 +15,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
-				<string>com.googleusercontent.apps.211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2</string>
+				<string>com.googleusercontent.apps.211289236675-ukl69kitoa47hbvfi84kku4ka9s6buf0</string>
 			</array>
 		</dict>
 	</array>

@@ -13,7 +13,7 @@ dart run build_runner watch --delete-conflicting-outputs
 @JsonSerializable()
 class TrainingSession {
   String id;
-  DateTime? dateOfLastEdit;
+  DateTime dateOfLastEdit;
   bool isOngoing = false;
   String name;
   Duration duration;
@@ -29,14 +29,15 @@ class TrainingSession {
     DateTime? date,
     String? notes,
     List<SetsOfAnExercise>? trainingData,
-    this.dateOfLastEdit,
+    DateTime? dateOfLastEdit,
   })  : id = id ?? DateTime.now().toIso8601String(),
         isOngoing = isOngoing ?? false,
         name = name ?? '',
         duration = duration ?? const Duration(),
         dateTime = date ?? DateTime.now(),
         notes = notes ?? '',
-        trainingData = trainingData ?? [];
+        trainingData = trainingData ?? [],
+        dateOfLastEdit = dateOfLastEdit ?? DateTime.now(); //does this logic make sense? i think so.
 
   TrainingSession.copy(TrainingSession sesh)
       : id = sesh.id,

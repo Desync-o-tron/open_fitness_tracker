@@ -77,6 +77,7 @@ class TrainingSessionHistoryCard extends StatelessWidget {
                     )),
               ],
             ),
+            Text("id: ${session.id}"),
             Text("Completed ${session.dateTime.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
             Text(
               DateFormat('h:mm a EEEE, MMMM d, y').format(session.dateTime),

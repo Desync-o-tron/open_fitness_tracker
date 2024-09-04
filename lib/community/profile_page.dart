@@ -1,24 +1,38 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_fitness_tracker/api_keys.dart';
 
+// String get googleClientId {
+//   return switch (defaultTargetPlatform) {
+//     TargetPlatform.iOS || TargetPlatform.macOS => googleiOSClientId,
+//     TargetPlatform.android => googleAndroidClientId,
+//     _ => googleWebClientId,
+//   };
+// }
 String get googleClientId {
   return switch (defaultTargetPlatform) {
-    TargetPlatform.iOS || TargetPlatform.macOS => googleiOSClientId,
-    TargetPlatform.android => googleAndroidClientId,
-    _ => googleWebClientId,
+    TargetPlatform.iOS => googleiOSClientId,
+    TargetPlatform.android => DefaultFirebaseOptions.android.apiKey,
+    // real weird, macOS will get triggered if using web on mac..
+    // TargetPlatform.macOS => throw Exception('run flutterfire config for mac when ready'),
+    // TargetPlatform.windows => throw Exception('run flutterfire config for win  when ready'),
+    // TargetPlatform.linux => throw Exception('no support yet in 2024'),
+    _ => DefaultFirebaseOptions.web.apiKey,
   };
 }
 
 final List<AuthProvider<AuthListener, AuthCredential>> providers = [
+  AppleProvider(),
   EmailAuthProvider(),
-  GoogleProvider(clientId: googleClientId),
+  GoogleProvider(clientId: googleClientId), //todo just grab from firebase_option duh
 ];
 
 class ProfileScreenWrapper extends StatelessWidget {

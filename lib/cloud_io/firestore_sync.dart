@@ -8,7 +8,8 @@ late FirestoreHydratedStorageSync cloudStorage;
 
 class FirestoreHydratedStorageSync {
   /*
-  goal here: have a function to check the history and ex's, compare them with the last time they were updated, and update firestore with the new data.
+  goal here: have a function to check the history and ex's,
+   compare them with the last time they were updated, and update firestore with the new data.
   */
   FirestoreHydratedStorageSync(this.storage);
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -25,7 +26,8 @@ class FirestoreHydratedStorageSync {
         await _sendHistoryData();
         await _receiveHistoryData();
       } else {
-        //listen for auth changes, so we don't have to wait N minutes after the user logs in to sync the data.
+        //listen for auth changes, so if the user logs in,
+        // they don't have to wait for the update interval to sync the data.
         FirebaseAuth.instance.authStateChanges().listen((User? user) {
           if (user != null && user.emailVerified) {
             _sendHistoryData();
@@ -63,10 +65,12 @@ class FirestoreHydratedStorageSync {
     var oldHistory = storage.read(historyKey + tokenForLastSync);
 
     List<Map<String, dynamic>> stringifiedHistory = [];
+
     for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
       stringifiedHistory.add(sesh.cast<String, dynamic>());
     }
-    if (mapEquals(history, oldHistory) || oldHistory == null) {
+    // if (mapEquals(history, oldHistory) || oldHistory == null) {
+    if (!mapEquals(history, oldHistory)) {
       //todo mapEquals is not as good as DeepCollectionEquality, I should really be comparing the ids and last edited timestamps themselves.
       for (var sesh in stringifiedHistory) {
         var docSnapshot = await userDoc.collection(historyKey).doc(sesh['id']).get();
@@ -79,9 +83,11 @@ class FirestoreHydratedStorageSync {
           if (localTime.isAfter(cloudTime)) {
             userDoc.collection(historyKey).doc(sesh['id']).set(sesh);
           }
+          //do something cool
         }
       }
       storage.write(historyKey + tokenForLastSync, history);
+      //todo this could probably be bad if interbutts disconnects, uknow?
     }
   }
 

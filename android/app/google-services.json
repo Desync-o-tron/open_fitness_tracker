@@ -1,0 +1,126 @@
+{
+  "project_info": {
+    "project_number": "211289236675",
+    "project_id": "openfitnesstracker-d8fgp5",
+    "storage_bucket": "openfitnesstracker-d8fgp5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211289236675:android:b606ed6eb4caf3b195ae76",
+        "android_client_info": {
+          "package_name": "app.example.openfitnesstracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211289236675-5vofljc14pdotujd85cpo9246br11gfg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.example.openfitnesstracker",
+            "certificate_hash": "6fadc402d9206e2b959e5f02e2d295bedca05665"
+          }
+        },
+        {
+          "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDBqXRO-INfqBksGkX7e4Out3mlQTe8Ug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.openfitnesstracker.go"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211289236675:android:e1cdbbc63296079895ae76",
+        "android_client_info": {
+          "package_name": "com.example.openfitnesstracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDBqXRO-INfqBksGkX7e4Out3mlQTe8Ug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.openfitnesstracker.go"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211289236675:android:91dd24553c6f70b495ae76",
+        "android_client_info": {
+          "package_name": "m.y.t"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDBqXRO-INfqBksGkX7e4Out3mlQTe8Ug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211289236675-k3i6icakr22iqlu63ponloimuh75506a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "211289236675-5fccu1tnlguma7b9bqkvv2u1bubofgq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.openfitnesstracker.go"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

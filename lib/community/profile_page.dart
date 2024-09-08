@@ -8,15 +8,9 @@ import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:flutter/foundation.dart';
-import 'package:open_fitness_tracker/api_keys.dart';
 
-// String get googleClientId {
-//   return switch (defaultTargetPlatform) {
-//     TargetPlatform.iOS || TargetPlatform.macOS => googleiOSClientId,
-//     TargetPlatform.android => googleAndroidClientId,
-//     _ => googleWebClientId,
-//   };
-// }
+const googleiOSClientId =
+    '211289236675-ukl69kitoa47hbvfi84kku4ka9s6buf0.apps.googleusercontent.com'; //not a secret.
 String get googleClientId {
   return switch (defaultTargetPlatform) {
     TargetPlatform.iOS => googleiOSClientId,
@@ -32,7 +26,7 @@ String get googleClientId {
 final List<AuthProvider<AuthListener, AuthCredential>> providers = [
   AppleProvider(),
   EmailAuthProvider(),
-  GoogleProvider(clientId: googleClientId), //todo just grab from firebase_option duh
+  GoogleProvider(clientId: googleClientId),
 ];
 
 class ProfileScreenWrapper extends StatelessWidget {

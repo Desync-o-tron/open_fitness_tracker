@@ -7,6 +7,8 @@ import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
+//todo when new history syncs in, the page needs to be updated to reflect the new data!
+
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 

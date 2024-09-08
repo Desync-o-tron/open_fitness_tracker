@@ -37,16 +37,18 @@ doc/api/
 #firebase
 .firebase
 
-#API key stuff
-android/app/google-services.json
-google-services.json
-GoogleService-Info.plist
-api_keys.dart
+# #API key stuff
+# android/app/google-services.json
+# google-services.json
+# api_keys.dart
+# GoogleService-Info.plist
+# ios/Runner/GoogleService-Info.plist
+# ios/Runner/Info.plist
 
-ios/firebase_app_id_file.json
-lib/firebase_options.dart
-firebase_options.dart
-firebase_app_id_file.json
+# ios/firebase_app_id_file.json
+# lib/firebase_options.dart
+# firebase_options.dart
+# firebase_app_id_file.json
 
 #mac crap!
 .DS_Store

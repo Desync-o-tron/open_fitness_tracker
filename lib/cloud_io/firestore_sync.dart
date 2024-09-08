@@ -15,7 +15,8 @@ class FirestoreHydratedStorageSync {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final HydratedStorage storage;
   Function _onHistoryUpdate = () {};
-  static const historyKey = 'TrainingHistoryCubit';
+  // static const historyKey = 'TrainingHistoryCubit';
+  final historyKey = 'TrainingHistoryCubit';
   static const tokenForLastSync = '^lastSync';
   // static const exercises = ''; //todo
 
@@ -105,6 +106,7 @@ class FirestoreHydratedStorageSync {
     List<Map<String, dynamic>> stringifiedHistory = [];
     if (history != null) {
       for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
+        //todo
         stringifiedHistory.add(sesh.cast<String, dynamic>());
       }
     }

@@ -40,7 +40,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD2mmadHCpQYKSI9GZ3vtv72wG-Te6WBII',
+    apiKey: 'AIzaSyASCmEAyd_Fxk60lx5hhwteNgPQaILOzbQ',
     appId: '1:211289236675:web:d377a233823e2e3895ae76',
     messagingSenderId: '211289236675',
     projectId: 'openfitnesstracker-d8fgp5',

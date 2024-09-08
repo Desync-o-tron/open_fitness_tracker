@@ -14,6 +14,7 @@ import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
 
+//todo when signing out on ios.. I get an err!
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ExDB.init();

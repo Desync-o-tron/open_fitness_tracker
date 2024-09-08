@@ -15,34 +15,57 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var history = context.watch<TrainingHistoryCubit>().state;
-    return Container(
-      color: Colors.blueGrey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'History',
-            style: Theme.of(context).textTheme.displayLarge,
-          ),
-          const SizedBox(height: 10),
-          if (history.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.0),
-              child: Text(
-                'No History',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              ),
-            ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: history.length,
-              itemBuilder: (context, index) {
-                return TrainingSessionHistoryCard(session: history[index]);
-              },
-            ),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('History'),
+        actions: [
+          _buildMenu(context),
         ],
       ),
+      body: Container(
+        color: Colors.blueGrey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (history.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  'No History',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                ),
+              ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: history.length,
+                itemBuilder: (context, index) {
+                  return TrainingSessionHistoryCard(session: history[index]);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_horiz_outlined, size: 30),
+      onSelected: (String result) {
+        if (result == 'import') {
+          // TODO: Implement import functionality
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Import functionality not implemented yet')),
+          );
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        const PopupMenuItem<String>(
+          value: 'import',
+          child: Text('Import exercise & training data'),
+        ),
+      ],
     );
   }
 }

@@ -75,6 +75,13 @@ class SignInScreenWrapper extends StatelessWidget {
     return SignInScreen(
       providers: providers,
       actions: [
+        // AuthStateChangeAction<AuthFailed>(
+        //   (context, state) {
+        //     ErrorText.localizeError = (BuildContext context, FirebaseAuthException e) {
+        //       return "You rock";
+        //     };
+        //   },
+        // ),
         AuthStateChangeAction<SignedIn>((context, state) {
           if (!state.user!.emailVerified) {
             context.push(routeNames.VerifyEmail.text);

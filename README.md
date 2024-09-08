@@ -8,7 +8,7 @@ If you're interested in collaborating, please reach out.
 ## Roadmap
 - [x] Create a basic UI for searching exercises, and adding them to a training session. 
 - [x] (in progress) Add history and permanant state 
-- [ ] Add the ability to ingest training data from other apps
+- [ ] (in progress) Add the ability to ingest training data from other apps
 - [ ] Reach out for help to prettify the UI
 - [ ] Add the ability to upload custom exercises so they can be added to the database for all users
 - [ ] Add the ability to store photos & videos? in a training session notes data

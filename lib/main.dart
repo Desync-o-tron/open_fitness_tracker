@@ -13,11 +13,8 @@ import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:open_fitness_tracker/DOM/history_importing.dart';
 
 Future<void> main() async {
-  importStrongCsv("/Users/lukeknoble/depot/open_fitness_tracker/strong.csv");
-
   WidgetsFlutterBinding.ensureInitialized();
   await ExDB.init();
 

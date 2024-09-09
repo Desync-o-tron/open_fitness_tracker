@@ -116,6 +116,12 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
     emit(newState..add(sesh));
   }
 
+  void addSessions(List<TrainingSession> sessions) {
+    // var newState = state.toList();
+    // emit(newState..addAll(sessions));
+    state.addAll(sessions);
+  }
+
   void removeSession(TrainingSession sesh) {
     var newState = state.toList();
     emit(newState..remove(sesh));

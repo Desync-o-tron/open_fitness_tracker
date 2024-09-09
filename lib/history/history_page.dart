@@ -5,9 +5,82 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/history/import_training.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 //todo when new history syncs in, the page needs to be updated to reflect the new data!
+/*
+class HistoryPage extends StatefulWidget {
+  const HistoryPage({super.key});
+
+  @override
+  _HistoryPageState createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  final ScrollController _scrollController = ScrollController();
+  List<TrainingSession> _displayedHistory = [];
+  int _currentPage = 0;
+  final int _itemsPerPage = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMoreItems();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      _loadMoreItems();
+    }
+  }
+
+  void _loadMoreItems() {
+    final history = context.read<TrainingHistoryCubit>().state;
+    final start = _currentPage * _itemsPerPage;
+    final end = ((_currentPage + 1) * _itemsPerPage).clamp(0, history.length);
+    if (start < history.length) {
+      setState(() {
+        _displayedHistory.addAll(history.sublist(start, end));
+        _currentPage++;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('History'),
+        actions: [
+          _hamburgerMenuActions(context),
+        ],
+      ),
+      body: Container(
+        color: Colors.blueGrey,
+        child: ListView.builder(
+          controller: _scrollController,
+          itemCount: _displayedHistory.length + 1,
+          itemBuilder: (context, index) {
+            if (index < _displayedHistory.length) {
+              return TrainingSessionHistoryCard(session: _displayedHistory[index]);
+            } else if (index == _displayedHistory.length) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return null;
+          },
+        ),
+      ),
+    );
+  }
+*/
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -19,7 +92,7 @@ class HistoryPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('History'),
         actions: [
-          _buildMenu(context),
+          _hamburgerMenuActions(context),
         ],
       ),
       body: Container(
@@ -38,6 +111,7 @@ class HistoryPage extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 itemCount: history.length,
+                // itemCount: 10,
                 itemBuilder: (context, index) {
                   return TrainingSessionHistoryCard(session: history[index]);
                 },
@@ -49,15 +123,16 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenu(BuildContext context) {
+  Widget _hamburgerMenuActions(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_horiz_outlined, size: 30),
       onSelected: (String result) {
         if (result == 'import') {
-          // TODO: Implement import functionality
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Import functionality not implemented yet')),
-          );
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return const ExternalAppTrainingImportDialog();
+              });
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[

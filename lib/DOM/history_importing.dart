@@ -4,17 +4,10 @@ import 'package:intl/intl.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
 
-Future<List<TrainingSession>> importStrongCsv(String filePath) async {
-  // Read the CSV file
+List<TrainingSession> importStrongCsv(String filePath) {
   final List<String> rows = File(filePath).readAsLinesSync();
-  // final rows2 = const CsvToListConverter().convert(rows);
-
-  // final input = File(filePath).readAsStringSync();
-  // final input = File(filePath).readAsLinesSync();
-  // final rows = const CsvToListConverter().convert(input, eol: '\n');
-  // // Remove header row
-  rows.removeAt(0);
-
+  rows.removeAt(0); //todo we should save teh header & compare it to see if it ever changes and bricks shit
+  //todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!
   List<TrainingSession> sessions = [];
   Exercise exercise = Exercise(
     name: "temp",
@@ -29,32 +22,18 @@ Future<List<TrainingSession>> importStrongCsv(String filePath) async {
   SetsOfAnExercise setsOfExercise = SetsOfAnExercise(exercise);
   bool firstRun = true;
   for (var row in rows) {
-    // List<List<String>>
     final rowList = const CsvToListConverter().convert(row, shouldParseNumbers: false); // as List<String>;
-    // for (var rowStr in rows) {
-    //   var row = rowStr.split(',');
     final date = DateFormat("yyyy-MM-dd HH:mm:ss").parse(rowList[0][0]);
     final workoutName = rowList[0][1];
     final duration = parseStrongWorkoutDuration(rowList[0][2]);
     final exerciseName = rowList[0][3];
-    // final _setOrder = int.parse(rowList[0][4]); // unused
+    // final _setOrder = int.parse(rowList[0][4]); // unused..why this here
     final weight = double.tryParse(rowList[0][5]) ?? 0;
     final reps = int.tryParse(rowList[0][6]) ?? 0;
     final distance = double.tryParse(rowList[0][7]) ?? 0;
     final seconds = int.tryParse(rowList[0][8]) ?? 0;
-    final notes = rowList[0][9];
+    // final notes = rowList[0][9]; //todo add me
     final workoutNotes = rowList[0][10];
-    // final date = DateFormat("yyyy-MM-dd HH:mm:ss").parse(row[0]);
-    // final workoutName = row[1];
-    // final duration = parseStrongWorkoutDuration(row[2]);
-    // final exerciseName = row[3];
-    // // final _setOrder = int.parse(row[4]); // unused
-    // final weight = double.tryParse(row[5]) ?? 0;
-    // final reps = int.tryParse(row[6]) ?? 0;
-    // final distance = double.tryParse(row[7]) ?? 0;
-    // final seconds = int.tryParse(row[8]) ?? 0;
-    // final notes = row[9];
-    // final workoutNotes = row[10];
 
     if ((duration != session.duration || session.name != workoutName || date != session.dateTime) &&
         !firstRun) {
@@ -67,15 +46,25 @@ Future<List<TrainingSession>> importStrongCsv(String filePath) async {
       session.notes = workoutNotes;
     }
 
-    if (exerciseName != exercise.name) {
-      exercise = Exercise(
-        name: exerciseName,
-        setMetrics: ['reps', 'weight', 'distance', 'time'],
-        equipment: 'todo',
-        primaryMuscles: ['todo'],
-        // notes: notes, //todo add this in!
-      );
-      setsOfExercise = SetsOfAnExercise(exercise);
+    if (exerciseName != exercise.name && !firstRun) {
+      List<String> setMetrics = []; // ['reps', 'weight', 'distance', 'time'];
+      //I hope we dont condition on the nully-ness of set.reps, etc..
+      //strong is going to give a value of 0 instead of null for things.
+      for (var set in setsOfExercise.sets) {
+        if (set.reps! > 0) {
+          setMetrics.add("reps");
+        }
+        if (set.weight! > 0) {
+          setMetrics.add("weight");
+        }
+        if (set.distance! > 0) {
+          setMetrics.add("distance");
+        }
+        if (set.time! > 0) {
+          setMetrics.add("time");
+        }
+      }
+      setsOfExercise.ex.setMetrics = setMetrics;
       session.trainingData.add(setsOfExercise);
     }
 
@@ -85,6 +74,7 @@ Future<List<TrainingSession>> importStrongCsv(String filePath) async {
       ..distance = distance
       ..time = seconds.toDouble()
       ..completed = true;
+
     setsOfExercise.sets.add(set);
 
     firstRun = false;
@@ -116,4 +106,3 @@ Duration parseStrongWorkoutDuration(String s) {
   return Duration(hours: hours, minutes: minutes, seconds: seconds);
 }
 //todo break this and make sure it fails well..
-//todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!

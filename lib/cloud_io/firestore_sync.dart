@@ -36,7 +36,7 @@ class FirestoreHydratedStorageSync {
           }
         });
       }
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 60 * 5));
     }
   }
 
@@ -88,7 +88,6 @@ class FirestoreHydratedStorageSync {
         }
       }
       storage.write(historyKey + tokenForLastSync, history);
-      //todo this could probably be bad if interbutts disconnects, uknow?
     }
   }
 
@@ -97,7 +96,9 @@ class FirestoreHydratedStorageSync {
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 
     List<Map<String, dynamic>> stringifiedCloudHistory = [];
-    var cloudTrainingHistory = await userDoc.collection(historyKey).get();
+    var cloudTrainingHistory = await userDoc
+        .collection(historyKey)
+        .get(); //this has got to be expensive, right? I'm pulling the whole collection down, no? check docs.
     for (var doc in cloudTrainingHistory.docs) {
       stringifiedCloudHistory.add(doc.data());
     }

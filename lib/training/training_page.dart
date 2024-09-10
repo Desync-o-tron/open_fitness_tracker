@@ -60,7 +60,7 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
                 //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
                 sesh.isOngoing = false;
-                sesh.duration = DateTime.now().difference(sesh.dateTime);
+                sesh.duration = DateTime.now().difference(sesh.date);
                 sesh.dateOfLastEdit = DateTime.now();
                 context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
                 context.read<TrainingSessionCubit>().reset();

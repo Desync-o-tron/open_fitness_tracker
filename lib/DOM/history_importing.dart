@@ -13,6 +13,7 @@ List<TrainingSession> importStrongCsv(String filePath) {
     name: "temp",
     setMetrics: ['reps', 'weight', 'distance', 'time'],
     equipment: 'temp',
+    notes: 'temp',
     primaryMuscles: ['temp'],
   );
   TrainingSession session = TrainingSession(
@@ -21,7 +22,9 @@ List<TrainingSession> importStrongCsv(String filePath) {
   );
   SetsOfAnExercise setsOfExercise = SetsOfAnExercise(exercise);
   bool firstRun = true;
-  for (var row in rows) {
+
+  for (int i = 0; i < rows.length; i++) {
+    var row = rows[i];
     final rowList = const CsvToListConverter().convert(row, shouldParseNumbers: false); // as List<String>;
     final date = DateFormat("yyyy-MM-dd HH:mm:ss").parse(rowList[0][0]);
     final workoutName = rowList[0][1];
@@ -32,49 +35,67 @@ List<TrainingSession> importStrongCsv(String filePath) {
     final reps = int.tryParse(rowList[0][6]) ?? 0;
     final distance = double.tryParse(rowList[0][7]) ?? 0;
     final seconds = int.tryParse(rowList[0][8]) ?? 0;
-    // final notes = rowList[0][9]; //todo add me
+    final notes = rowList[0][9];
     final workoutNotes = rowList[0][10];
 
-    if ((duration != session.duration || session.name != workoutName || date != session.dateTime) &&
+    if (firstRun) {
+      exercise.name = exerciseName;
+      exercise.notes = notes;
+    }
+
+    //log the session
+    if ((duration != session.duration ||
+            session.name != workoutName ||
+            date != session.date ||
+            (i == rows.length - 1)) &&
         !firstRun) {
       sessions.add(session);
-
-      session.name = workoutName;
-      session.dateOfLastEdit = date;
-      session.dateTime = date;
-      session.duration = duration;
-      session.notes = workoutNotes;
+      session = TrainingSession(
+        name: workoutName,
+        dateOfLastEdit: date,
+        date: date,
+        duration: duration,
+        notes: workoutNotes,
+      );
     }
 
-    if (exerciseName != exercise.name && !firstRun) {
-      List<String> setMetrics = []; // ['reps', 'weight', 'distance', 'time'];
-      //I hope we dont condition on the nully-ness of set.reps, etc..
+    //log the exercise
+    if ((exerciseName != exercise.name) || (i == rows.length - 1) && !firstRun) {
+      List<String> setMetrics = [];
       //strong is going to give a value of 0 instead of null for things.
       for (var set in setsOfExercise.sets) {
-        if (set.reps! > 0) {
-          setMetrics.add("reps");
-        }
-        if (set.weight! > 0) {
-          setMetrics.add("weight");
-        }
-        if (set.distance! > 0) {
-          setMetrics.add("distance");
-        }
-        if (set.time! > 0) {
-          setMetrics.add("time");
-        }
+        if (set.reps! > 0) setMetrics.add("reps");
+        if (set.weight! > 0) setMetrics.add("weight");
+        if (set.distance! > 0) setMetrics.add("distance");
+        if (set.time! > 0) setMetrics.add("time");
+      }
+      for (var set in setsOfExercise.sets) {
+        if (!setMetrics.contains('reps')) set.reps = null;
+        if (!setMetrics.contains('weight')) set.weight = null;
+        if (!setMetrics.contains('distance')) set.distance = null;
+        if (!setMetrics.contains('time')) set.time = null;
       }
       setsOfExercise.ex.setMetrics = setMetrics;
+      setsOfExercise.prevSet = setsOfExercise.sets.last;
       session.trainingData.add(setsOfExercise);
+
+      exercise = Exercise(
+        name: exerciseName,
+        equipment: "temp",
+        primaryMuscles: ["temp"],
+        notes: notes,
+        setMetrics: ['reps', 'weight', 'distance', 'time'],
+      );
+      setsOfExercise = SetsOfAnExercise(exercise);
     }
 
+    //every time is a new set!
     final set = Set(exercise)
       ..reps = reps
       ..weight = weight
       ..distance = distance
       ..time = seconds.toDouble()
       ..completed = true;
-
     setsOfExercise.sets.add(set);
 
     firstRun = false;

@@ -13,6 +13,7 @@ Exercise _$ExerciseFromJson(Map<String, dynamic> json) => Exercise(
       level: $enumDecodeNullable(_$LevelEnumMap, json['level']),
       mechanic: $enumDecodeNullable(_$MechanicEnumMap, json['mechanic']),
       equipment: json['equipment'] as String?,
+      notes: json['notes'] as String?,
       setMetrics: (json['setMetrics'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -37,6 +38,7 @@ Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
       'level': _$LevelEnumMap[instance.level],
       'mechanic': _$MechanicEnumMap[instance.mechanic],
       'equipment': instance.equipment,
+      'notes': instance.notes,
       'setMetrics': instance.setMetrics,
       'primaryMuscles': instance.primaryMuscles,
       'secondaryMuscles': instance.secondaryMuscles,

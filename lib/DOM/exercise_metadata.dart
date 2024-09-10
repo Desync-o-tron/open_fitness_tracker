@@ -15,6 +15,7 @@ class Exercise {
   Level? level;
   Mechanic? mechanic;
   String? equipment;
+  String? notes; //maybe make a note history
   List<String>? setMetrics; //todo not in the json schema. (time, weight, distance, speed, reps)
   List<String> primaryMuscles;
   List<String>? secondaryMuscles;
@@ -30,6 +31,7 @@ class Exercise {
     this.level,
     this.mechanic,
     required this.equipment,
+    this.notes,
     this.setMetrics,
     required this.primaryMuscles,
     this.secondaryMuscles,
@@ -58,6 +60,7 @@ class Exercise {
       level: exercise.level,
       mechanic: exercise.mechanic,
       equipment: exercise.equipment,
+      notes: exercise.notes,
       setMetrics: exercise.setMetrics,
       primaryMuscles: exercise.primaryMuscles,
       secondaryMuscles: exercise.secondaryMuscles,

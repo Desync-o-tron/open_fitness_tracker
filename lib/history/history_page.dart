@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/history/import_training.dart';
+import 'package:open_fitness_tracker/history/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 //todo when new history syncs in, the page needs to be updated to reflect the new data!
@@ -178,9 +178,9 @@ class TrainingSessionHistoryCard extends StatelessWidget {
               ],
             ),
             Text("id: ${session.id}"),
-            Text("Completed ${session.dateTime.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
+            Text("Completed ${session.date.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
             Text(
-              DateFormat('h:mm a EEEE, MMMM d, y').format(session.dateTime),
+              DateFormat('h:mm a EEEE, MMMM d, y').format(session.date),
               style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(

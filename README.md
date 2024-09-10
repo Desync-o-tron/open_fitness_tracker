@@ -29,8 +29,6 @@ Thank you:
 
 
 ## Contributing /getting started/ building for the first time
-Install flutter and your target of choice (web/ios emulator/android virtual device emulator)  
-Setup flutter_ui_auth so you can sign in to your OpenFitnessTracker account (https://github.com/firebase/FirebaseUI-Flutter/blob/main/docs/firebase-ui-auth/README.md)   
-
+make a ticket on github and I'll be happy to discuss any contribs ideas.
 
 

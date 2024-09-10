@@ -1,6 +1,8 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
+import 'package:open_fitness_tracker/utils/utils.dart';
 part 'training_metadata.g.dart';
 
 /*
@@ -17,7 +19,7 @@ class TrainingSession {
   bool isOngoing = false;
   String name;
   Duration duration;
-  DateTime dateTime;
+  DateTime date;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
@@ -34,7 +36,7 @@ class TrainingSession {
         isOngoing = isOngoing ?? false,
         name = name ?? '',
         duration = duration ?? const Duration(),
-        dateTime = date ?? DateTime.now(),
+        date = date ?? DateTime.now(),
         notes = notes ?? '',
         trainingData = trainingData ?? [],
         dateOfLastEdit = dateOfLastEdit ?? DateTime.now(); //does this logic make sense? i think so.
@@ -43,7 +45,7 @@ class TrainingSession {
       : id = sesh.id,
         name = sesh.name,
         duration = sesh.duration,
-        dateTime = sesh.dateTime,
+        date = sesh.date,
         notes = sesh.notes,
         isOngoing = sesh.isOngoing,
         trainingData = List<SetsOfAnExercise>.from(sesh.trainingData),
@@ -55,7 +57,7 @@ class TrainingSession {
       id: id,
       name: name,
       duration: duration,
-      date: dateTime,
+      date: date,
       notes: notes,
       isOngoing: isOngoing,
       trainingData: trainingData,
@@ -69,8 +71,8 @@ class TrainingSession {
 
 @JsonSerializable()
 class SetsOfAnExercise {
-  /*final*/ Exercise ex;
-  /*final*/ Set prevSet; //also functions as a header template
+  Exercise ex;
+  Set prevSet; //also functions as a header template
   List<Set> sets = [];
 
   SetsOfAnExercise(this.ex) : prevSet = Set(ex) {
@@ -83,8 +85,8 @@ class SetsOfAnExercise {
 
 @JsonSerializable()
 class Set {
-  /*final*/ Exercise ex;
-  late /*final*/ String id; //just the datetime for now
+  Exercise ex;
+  late String id; //just the datetime for now
   num? reps;
   num? time;
   num? weight;
@@ -117,9 +119,9 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   }
 
   void addSessions(List<TrainingSession> sessions) {
-    // var newState = state.toList();
-    // emit(newState..addAll(sessions));
-    state.addAll(sessions);
+    var newState = state.toList();
+    emit(newState..addAllIfDNE(sessions));
+    // state.addAll(sessions);
   }
 
   void removeSession(TrainingSession sesh) {
@@ -242,7 +244,7 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
 
   void updateDuration() {
     TrainingSession newState = TrainingSession.copy(state);
-    newState.duration = DateTime.now().difference(state.dateTime);
+    newState.duration = DateTime.now().difference(state.date);
     emit(newState);
   }
 

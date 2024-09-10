@@ -53,10 +53,6 @@ class ExternalAppTrainingImportDialog extends StatelessWidget {
       return;
     }
 
-    // scaffoldMessenger.showSnackBar(
-    //   SnackBar(content: Text('Selected file.')),
-    // );
-
     List<TrainingSession> sessions = [];
     if (source == 'strong') {
       sessions = importStrongCsv(filePath);
@@ -64,7 +60,10 @@ class ExternalAppTrainingImportDialog extends StatelessWidget {
 
     //todo for web
     // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ
+    // trainingHistoryCubit.addSession(sessions.first);
     trainingHistoryCubit.addSessions(sessions);
+    //todo (low-priority) tell the user if they are importing duplicates..we already discard them. maybe it doesn't matter.
+
     // for (var session in sessions) {
     //   trainingHistoryCubit.addSession(session);
     // }

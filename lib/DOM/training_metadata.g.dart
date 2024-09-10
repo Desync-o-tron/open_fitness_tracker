@@ -14,6 +14,8 @@ TrainingSession _$TrainingSessionFromJson(Map<String, dynamic> json) =>
       duration: json['duration'] == null
           ? null
           : Duration(microseconds: (json['duration'] as num).toInt()),
+      date:
+          json['date'] == null ? null : DateTime.parse(json['date'] as String),
       notes: json['notes'] as String?,
       trainingData: (json['trainingData'] as List<dynamic>?)
           ?.map((e) => SetsOfAnExercise.fromJson(e as Map<String, dynamic>))
@@ -21,7 +23,7 @@ TrainingSession _$TrainingSessionFromJson(Map<String, dynamic> json) =>
       dateOfLastEdit: json['dateOfLastEdit'] == null
           ? null
           : DateTime.parse(json['dateOfLastEdit'] as String),
-    )..dateTime = DateTime.parse(json['dateTime'] as String);
+    );
 
 Map<String, dynamic> _$TrainingSessionToJson(TrainingSession instance) =>
     <String, dynamic>{
@@ -30,7 +32,7 @@ Map<String, dynamic> _$TrainingSessionToJson(TrainingSession instance) =>
       'isOngoing': instance.isOngoing,
       'name': instance.name,
       'duration': instance.duration.inMicroseconds,
-      'dateTime': instance.dateTime.toIso8601String(),
+      'date': instance.date.toIso8601String(),
       'notes': instance.notes,
       'trainingData': instance.trainingData,
     };

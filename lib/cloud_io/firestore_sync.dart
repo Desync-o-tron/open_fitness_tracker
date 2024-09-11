@@ -24,8 +24,8 @@ class FirestoreHydratedStorageSync {
     _listenForHistoryRemoval();
     while (true) {
       if (FirebaseAuth.instance.currentUser != null && FirebaseAuth.instance.currentUser!.emailVerified) {
-        await _sendHistoryData();
-        await _receiveHistoryData();
+        // await _sendHistoryData();
+        // await _receiveHistoryData();
       } else {
         //listen for auth changes, so if the user logs in,
         // they don't have to wait for the update interval to sync the data.

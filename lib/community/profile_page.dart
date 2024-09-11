@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
@@ -24,7 +26,7 @@ String get googleClientId {
 }
 
 final List<AuthProvider<AuthListener, AuthCredential>> providers = [
-  AppleProvider(),
+  if (kIsWeb || Platform.isMacOS || Platform.isIOS) AppleProvider(),
   EmailAuthProvider(),
   GoogleProvider(clientId: googleClientId),
 ];
@@ -41,8 +43,8 @@ class ProfileScreenWrapper extends StatelessWidget {
       showUnlinkConfirmationDialog: true,
       providers: providers,
       actions: [
-        SignedOutAction((context) {
-          context.go(routeNames.Community.text);
+        SignedOutAction((BuildContext context) {
+          context.pushReplacement(routeNames.SignIn.text);
         }),
       ],
       appBar: AppBar(
@@ -75,13 +77,20 @@ class SignInScreenWrapper extends StatelessWidget {
     return SignInScreen(
       providers: providers,
       actions: [
-        AuthStateChangeAction<SignedIn>((context, state) {
-          if (!state.user!.emailVerified) {
-            context.push(routeNames.VerifyEmail.text);
-          } else {
-            context.go(routeNames.Community.text);
+        AuthStateChangeAction((context, state) {
+          final user = switch (state) {
+            SignedIn(user: final user) => user,
+            CredentialLinked(user: final user) => user,
+            UserCreated(credential: final cred) => cred.user,
+            _ => null,
+          };
+          switch (user) {
+            case User(emailVerified: true):
+              context.pushReplacement(routeNames.Profile.text);
+            case User(emailVerified: false, email: final String _):
+              context.pushReplacement(routeNames.VerifyEmail.text);
           }
-        }),
+        })
       ],
     );
   }

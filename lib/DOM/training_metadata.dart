@@ -1,7 +1,6 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 part 'training_metadata.g.dart';
 

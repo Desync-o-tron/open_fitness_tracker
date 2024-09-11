@@ -229,7 +229,10 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
           children: [
             MyGenericButton(
               label: "Delete",
-              onPressed: () => delSesh().then((value) => context.pop()),
+              onPressed: () {
+                delSesh();
+                if (context.mounted) context.pop();
+              },
               color: Theme.of(context).colorScheme.error,
             ),
           ],

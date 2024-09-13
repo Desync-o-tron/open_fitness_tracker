@@ -140,6 +140,22 @@ class HistoryPage extends StatelessWidget {
           value: 'import',
           child: Text('Import exercise & training data'),
         ),
+        PopupMenuItem<String>(
+            value: 'delete history',
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<TrainingHistoryCubit>().deleteHistory();
+              },
+              child: const Text("dont click me"),
+            )),
+        PopupMenuItem<String>(
+            value: 'resync history',
+            child: ElevatedButton(
+              onPressed: () {
+                cloudStorage.fetchHistoryData();
+              },
+              child: const Text("sync history?"),
+            )),
       ],
     );
   }

@@ -15,7 +15,6 @@ class FirestoreHydratedStorageSync {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final HydratedStorage storage;
   Function _onHistoryUpdate = () {};
-  // static const historyKey = 'TrainingHistoryCubit';
   final historyKey = 'TrainingHistoryCubit';
   static const tokenForLastSync = '^lastSync';
   // static const exercises = ''; //todo
@@ -24,7 +23,7 @@ class FirestoreHydratedStorageSync {
     _listenForHistoryRemoval();
     while (true) {
       if (FirebaseAuth.instance.currentUser != null && FirebaseAuth.instance.currentUser!.emailVerified) {
-        // await _sendHistoryData();
+        await _sendHistoryData();
         // await _receiveHistoryData();
       } else {
         //listen for auth changes, so if the user logs in,
@@ -32,7 +31,7 @@ class FirestoreHydratedStorageSync {
         FirebaseAuth.instance.authStateChanges().listen((User? user) {
           if (user != null && user.emailVerified) {
             _sendHistoryData();
-            _receiveHistoryData();
+            fetchHistoryData();
           }
         });
       }
@@ -45,6 +44,7 @@ class FirestoreHydratedStorageSync {
   }
 
   /// will remove the history data corresponding to the id of the training session
+  // this smells. why do I have two rm calls (look at the caller) also, do I need to rm from the local oldhistory?
   Future<bool> removeHistoryData(final TrainingSession sesh) async {
     if (FirebaseAuth.instance.currentUser == null || !FirebaseAuth.instance.currentUser!.emailVerified) {
       return false;
@@ -55,6 +55,22 @@ class FirestoreHydratedStorageSync {
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
     await userDoc.collection(historyKey).doc(sesh.id).delete();
     return true;
+  }
+
+  bool _pendingWritesToCloud() {
+    var history = storage.read(historyKey);
+    if (history == null) return false;
+    var oldHistory = storage.read(historyKey + tokenForLastSync);
+    if (oldHistory == null) return true;
+
+    List<Map<String, dynamic>> stringifiedHistory = [];
+    for (Map<dynamic, dynamic> sesh in history['trainingHistory']) {
+      stringifiedHistory.add(sesh.cast<String, dynamic>());
+    }
+
+    // DeepCollectionEquality();
+
+    return false;
   }
 
   Future<void> _sendHistoryData() async {
@@ -71,7 +87,8 @@ class FirestoreHydratedStorageSync {
       stringifiedHistory.add(sesh.cast<String, dynamic>());
     }
     // if (mapEquals(history, oldHistory) || oldHistory == null) {
-    if (!mapEquals(history, oldHistory)) {
+    // if (!mapEquals(history, oldHistory)) {
+    if (_pendingWritesToCloud()) {
       //todo mapEquals is not as good as DeepCollectionEquality, I should really be comparing the ids and last edited timestamps themselves.
       for (var sesh in stringifiedHistory) {
         var docSnapshot = await userDoc.collection(historyKey).doc(sesh['id']).get();
@@ -89,9 +106,24 @@ class FirestoreHydratedStorageSync {
       }
       storage.write(historyKey + tokenForLastSync, history);
     }
+    // }
   }
 
-  Future<void> _receiveHistoryData() async {
+  //turn on auth persistance! firesbase auth
+
+  //todo why don't we use firebase offline for this..
+  //though I want to use a custom offline for exercises, right? theres a ton.
+  //todo maybe full sync on sign in and use Firestore's onSnapshot method!
+  Future<void> fetchHistoryData() async {
+    /*
+      make sure we've pushed writes to the server before we pull.
+      ..then just take the whole online storage as the truth and overwrite what we have.
+    */
+
+    //todo I should give the user an error if they try and call this w/o signing in.
+    if (FirebaseAuth.instance.currentUser == null) return;
+    if (FirebaseAuth.instance.currentUser!.emailVerified) return;
+
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 

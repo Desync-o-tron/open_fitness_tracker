@@ -64,6 +64,15 @@ class TrainingSession {
     );
   }
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TrainingSession && other.id == id && other.dateOfLastEdit == dateOfLastEdit;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ dateOfLastEdit.hashCode;
+
   factory TrainingSession.fromJson(Map<String, dynamic> json) => _$TrainingSessionFromJson(json);
   Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
 }
@@ -126,6 +135,10 @@ class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   void removeSession(TrainingSession sesh) {
     var newState = state.toList();
     emit(newState..remove(sesh));
+  }
+
+  void deleteHistory() {
+    emit(<TrainingSession>[]);
   }
 
   @override

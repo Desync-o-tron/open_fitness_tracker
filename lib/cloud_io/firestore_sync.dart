@@ -1,9 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+//todo
+//turn on auth persistance! firesbase auth
+//enable firestore caching on web lul
 
+const historyKey = 'TrainingHistoryCubit';
+
+//todo I wonder if I can use listen to firebase in combination with relying on cache otherwise.
+
+//todo can I make this lazy?
+Future<List<TrainingSession>> getUserTrainingHistory({required bool useCache}) async {
+  // useCache = false;
+  // todo auth persitance
+  if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
+  if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  CollectionReference users = firestore.collection('users');
+  DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+  var cloudTrainingHistory = await userDoc.collection(historyKey).get(GetOptions(
+        source: useCache ? Source.cache : Source.serverAndCache,
+      ));
+  // List<Map<String, dynamic>> stringifiedCloudHistory = [];
+  List<TrainingSession> sessions = [];
+  for (var doc in cloudTrainingHistory.docs) {
+    // stringifiedCloudHistory.add(doc.data());
+    sessions.add(TrainingSession.fromJson(doc.data()));
+  }
+  // for (var sesh in stringifiedCloudHistory) {
+  //   sessions.add(TrainingSession.fromJson(sesh));
+  // }
+
+  return sessions;
+}
+
+/// will remove the history data corresponding to the id of the training session
+// this smells. why do I have two rm calls (look at the caller) also, do I need to rm from the local oldhistory?
+Future<void> removeHistoryData(final TrainingSession sesh) async {
+  if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
+  if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
+
+  if (sesh.id == '') return Future.error("no session id!");
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  CollectionReference users = firestore.collection('users');
+  DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+  return userDoc.collection(historyKey).doc(sesh.id).delete();
+}
+
+
+////
+////
+////
+////
+
+/*
 late FirestoreHydratedStorageSync cloudStorage;
 
 class FirestoreHydratedStorageSync {
@@ -79,7 +131,7 @@ class FirestoreHydratedStorageSync {
 
     var history = storage.read(historyKey);
     if (history == null) return;
-    var oldHistory = storage.read(historyKey + tokenForLastSync);
+    // var oldHistory = storage.read(historyKey + tokenForLastSync);
 
     List<Map<String, dynamic>> stringifiedHistory = [];
 
@@ -108,8 +160,6 @@ class FirestoreHydratedStorageSync {
     }
     // }
   }
-
-  //turn on auth persistance! firesbase auth
 
   //todo why don't we use firebase offline for this..
   //though I want to use a custom offline for exercises, right? theres a ton.
@@ -202,148 +252,6 @@ class FirestoreHydratedStorageSync {
         break;
       }
     }
-  }
-}
-
-/*
-class FirestoreHydratedStorage extends HydratedStorage {
-  FirestoreHydratedStorage(super.box);
-  static List<String> dirtyKeys = [];
-
-  // static Future<HydratedStorage> build({
-  //   required Directory storageDirectory,
-  //   HydratedCipher? encryptionCipher,
-  // }) {
-  //   return HydratedStorage.build(storageDirectory: storageDirectory, encryptionCipher: encryptionCipher);
-  // }
-
-  @override
-  Future<void> write(String key, dynamic value) async {
-    dirtyKeys.add(key);
-    return super.write(key, value);
-  }
-
-  @override
-  Future<void> delete(String key) {
-    dirtyKeys.add(key);
-    return super.delete(key);
-  }
-
-  void sync() {
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return;
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    //right now all our keys will be for a collection in the user's document
-    dirtyKeys.forEach((key) async {
-      // DocumentSnapshot snapshot = await firestore.collection(collectionPath).doc(key).get();
-
-      CollectionReference users = firestore.collection('users');
-      DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-      DocumentSnapshot userSnapshot = await userDoc.get();
-      CollectionReference userAttributeCollection = userSnapshot.reference.collection(key);
-      userAttributeCollection.add(read(key));
-      int i = 0;
-      // userAttributeCollection.doc()
-      // userAttributeCollection.
-      // .set({key: read(key)});
-
-      /*
-      await FirebaseFirestore.instance
-      .collection(collection)
-      .doc("doc_Id")
-      .set(data);
-    */
-    });
-  }
-}
-*/
-
-// ok we need to use firestore to store data, so we can have a timer that runs in the background and updates firestore with the current data.
-// teh local data is always the source of truth, but we can use firestore to store the data and sync it between devices.
-// in conjunction with a timer, we can inherit HydratedStorage with a flag that tells us if we have pending changes
-// for reads... we can have a listener for firestore that updates the local data when it changes.
-// you would think that
-/*
-class FirestoreHydratedStorage implements Storage {
-  final FirebaseFirestore firestore;
-  // late final String collectionPath;
-
-  // FirestoreHydratedStorage({FirebaseFirestore? firestore, required this.collectionPath})
-  // : firestore = firestore ?? FirebaseFirestore.instance;
-  FirestoreHydratedStorage({FirebaseFirestore? firestore})
-      : firestore = firestore ?? FirebaseFirestore.instance;
-
-  @override
-  dynamic read(String key) async {
-    try {
-      if (FirebaseAuth.instance.currentUser!.emailVerified) {}
-      // DocumentSnapshot snapshot = await firestore.collection(collectionPath).doc(key).get();
-
-      // CollectionReference users = firestore.collection('users');
-      // QuerySnapshot usersSnapshot = await users.get();
-
-      FirebaseFirestore firestore = FirebaseFirestore.instance;
-      CollectionReference users = firestore.collection('users');
-      DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-      DocumentSnapshot userSnapshot = await userDoc.get();
-      CollectionReference userAttributeCollection = userSnapshot.reference.collection(key);
-      return userAttributeCollection.get();
-      // userSnapshot.data()
-
-      // user
-
-      // firebase.us
-      // CollectionReference collection = firestore.collection(key);
-      // QuerySnapshot snapshot = await collection.get();
-
-      // snapshot.docs.forEach((doc) {
-      //   print("doc.data():");
-      //   print(doc.data());
-      // });
-      // return snapshot.docs;
-
-      //todo json stuff!
-      // return snapshot.
-      // return snapshot.exists ? snapshot.data() : null;
-    } catch (e) {
-      print("Error reading from Firestore: $e");
-      return null;
-    }
-  }
-
-  @override
-  Future<void> write(String key, dynamic value) async {
-    try {
-      // await firestore.collection(collectionPath).doc(key).set(value);
-    } catch (e) {
-      print("Error writing to Firestore: $e");
-    }
-  }
-
-  @override
-  Future<void> delete(String key) async {
-    try {
-      // await firestore.collection(collectionPath).doc(key).delete();
-    } catch (e) {
-      print("Error deleting from Firestore: $e");
-    }
-  }
-
-  @override
-  Future<void> clear() async {
-    try {
-      // Firestore does not support clearing a collection via a single operation in client-side code.
-      // You would need to delete documents individually or use a server-side solution like Cloud Functions.
-      print(
-          "FirestoreStorage.clear() is not supported directly. Consider implementing a server-side solution.");
-    } catch (e) {
-      print("Error clearing Firestore collection: $e");
-    }
-  }
-
-  @override
-  Future<void> close() {
-    // TODO: implement close
-    throw UnimplementedError();
   }
 }
 */

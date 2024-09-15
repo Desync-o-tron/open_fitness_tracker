@@ -87,7 +87,6 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var history = context.watch<TrainingHistoryCubit>().state;
     return Scaffold(
       appBar: AppBar(
         title: const Text('History'),
@@ -96,30 +95,26 @@ class HistoryPage extends StatelessWidget {
         ],
       ),
       body: Container(
-        color: Colors.blueGrey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (history.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0),
-                child: Text(
-                  'No History',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-              ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: history.length,
-                // itemCount: 10,
-                itemBuilder: (context, index) {
-                  return TrainingSessionHistoryCard(session: history[index]);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+          color: Colors.blueGrey,
+          child: FutureBuilder<List<TrainingSession>>(
+            future: getUserTrainingHistory(useCache: true),
+            builder: (BuildContext context, AsyncSnapshot<List<TrainingSession>> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No History'));
+              } else {
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return TrainingSessionHistoryCard(session: snapshot.data![index]);
+                  },
+                );
+              }
+            },
+          )),
     );
   }
 
@@ -149,10 +144,11 @@ class HistoryPage extends StatelessWidget {
               child: const Text("dont click me"),
             )),
         PopupMenuItem<String>(
-            value: 'resync history',
+            value: 'resync history w/ server',
             child: ElevatedButton(
               onPressed: () {
-                cloudStorage.fetchHistoryData();
+                // have this do a pull down?
+                getUserTrainingHistory(useCache: false);
               },
               child: const Text("sync history?"),
             )),
@@ -222,19 +218,12 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
   const TrainingHistoryCardManagementDialog(this.sesh, {super.key});
   @override
   Widget build(BuildContext context) {
-    final trainingHistoryCubit = context.read<TrainingHistoryCubit>();
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     delSesh() async {
-      if (await cloudStorage.removeHistoryData(sesh)) {
-        trainingHistoryCubit.removeSession(sesh);
-      } else {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
+      removeHistoryData(sesh).onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
             content: Text('Failed to delete training session'),
             duration: Duration(seconds: 2),
-          ), //todo test me
-        );
-      }
+          )));
     }
 
     return AlertDialog(

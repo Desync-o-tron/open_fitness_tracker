@@ -9,113 +9,48 @@ import 'package:open_fitness_tracker/history/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 //todo when new history syncs in, the page needs to be updated to reflect the new data!
-/*
-class HistoryPage extends StatefulWidget {
-  const HistoryPage({super.key});
-
-  @override
-  _HistoryPageState createState() => _HistoryPageState();
-}
-
-class _HistoryPageState extends State<HistoryPage> {
-  final ScrollController _scrollController = ScrollController();
-  List<TrainingSession> _displayedHistory = [];
-  int _currentPage = 0;
-  final int _itemsPerPage = 20;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMoreItems();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      _loadMoreItems();
-    }
-  }
-
-  void _loadMoreItems() {
-    final history = context.read<TrainingHistoryCubit>().state;
-    final start = _currentPage * _itemsPerPage;
-    final end = ((_currentPage + 1) * _itemsPerPage).clamp(0, history.length);
-    if (start < history.length) {
-      setState(() {
-        _displayedHistory.addAll(history.sublist(start, end));
-        _currentPage++;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-        actions: [
-          _hamburgerMenuActions(context),
-        ],
-      ),
-      body: Container(
-        color: Colors.blueGrey,
-        child: ListView.builder(
-          controller: _scrollController,
-          itemCount: _displayedHistory.length + 1,
-          itemBuilder: (context, index) {
-            if (index < _displayedHistory.length) {
-              return TrainingSessionHistoryCard(session: _displayedHistory[index]);
-            } else if (index == _displayedHistory.length) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return null;
-          },
-        ),
-      ),
-    );
-  }
-*/
+// we should be listening to state changes on firebase
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-        actions: [
-          _hamburgerMenuActions(context),
-        ],
-      ),
-      body: Container(
-          color: Colors.blueGrey,
-          child: FutureBuilder<List<TrainingSession>>(
-            future: getUserTrainingHistory(useCache: true),
-            builder: (BuildContext context, AsyncSnapshot<List<TrainingSession>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No History'));
-              } else {
-                return ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return TrainingSessionHistoryCard(session: snapshot.data![index]);
-                  },
-                );
-              }
-            },
-          )),
+    return FutureBuilder<List<TrainingSession>>(
+      future: getUserTrainingHistory(useCache: true),
+      builder: (BuildContext context, AsyncSnapshot<List<TrainingSession>> snapshot) {
+        String sessionCountText = "";
+        if (snapshot.data != null) {
+          sessionCountText = " (${snapshot.data!.length} Sessions)";
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('History$sessionCountText'),
+            actions: [
+              _hamburgerMenuActions(context),
+            ],
+          ),
+          body: _buildBody(snapshot),
+        );
+      },
     );
+  }
+
+  Widget _buildBody(AsyncSnapshot<List<TrainingSession>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return const Center(child: Text('No History'));
+    } else {
+      return ListView.builder(
+        itemCount: snapshot.data!.length,
+        itemBuilder: (context, index) {
+          return TrainingSessionHistoryCard(session: snapshot.data![index]);
+        },
+      );
+    }
   }
 
   Widget _hamburgerMenuActions(BuildContext context) {

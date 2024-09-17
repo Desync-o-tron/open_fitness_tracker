@@ -40,40 +40,40 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  _myAsyncMethod() async {
-    var ff = FirebaseFirestore.instance;
-    final user = <String, dynamic>{"first": "Adaa", "last": "Lovelace", "born": 1815};
-    await ff.collection("users").get().then((event) {
-      for (var doc in event.docs) {
-        print("${doc.id} => ${doc.data()}");
-      }
-    });
-    // Add a new document with a generated ID
-    ff
-        .collection("users")
-        .add(user)
-        .then((DocumentReference doc) => print('DocumentSnapshot added with ID: ${doc.id}'));
+  // _myAsyncMethod() async {
+  //   var ff = FirebaseFirestore.instance;
+  //   final user = <String, dynamic>{"first": "hmm!", "last": "Lovelace", "born": 1815};
+  //   // await ff.collection("users").get().then((event) {
+  //   //   for (var doc in event.docs) {
+  //   //     print("${doc.id} => ${doc.data()}");
+  //   //   }
+  //   // });
+  //   // Add a new document with a generated ID
+  //   ff
+  //       .collection("users")
+  //       .add(user)
+  //       .then((DocumentReference doc) => print('DocumentSnapshot added with ID: ${doc.id}'));
 
-    var usrCollection = ff.collection('users');
-    var athing = await usrCollection.get();
+  //   var usrCollection = ff.collection('users');
+  //   // var athing = await usrCollection.get();
 
-    // await usrCollection.add({"aoeu": "sth"});
-    var usrdoc = usrCollection.doc("0qYo6ihSKsh8s6dsLksQ2N6WLek2");
-    await usrdoc.set({"buttt": "stuff"}); //, SetOptions());
-    try {
-      var newcol = usrdoc.collection("newcol");
-      await newcol.add({"akey": "aval"});
-    } catch (e) {
-      print('crap');
-    }
-    print("object");
-  }
+  //   // await usrCollection.add({"aoeu": "sth"});
+  //   var usrdoc = usrCollection.doc("0qYo6ihSKsh8s6dsLksQ2N6WLek2");
+  //   await usrdoc.set({"buttttX new": "stuff"}); //, SetOptions());
+  //   try {
+  //     var newcol = usrdoc.collection("newcol");
+  //     await newcol.add({"akey": "aval"});
+  //   } catch (e) {
+  //     print('crap');
+  //   }
+  //   print("object");
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    _myAsyncMethod();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _myAsyncMethod();
+  // }
 
   @override
   Widget build(BuildContext context) {

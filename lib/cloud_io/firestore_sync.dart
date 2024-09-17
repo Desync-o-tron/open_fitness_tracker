@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
@@ -18,7 +17,6 @@ class MyStorage {
       CollectionReference users = firestore.collection('users');
       DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
       await userDoc.collection(historyKey).add(session.toJson());
-      print("geh");
     } catch (e) {
       print("Error adding session to history: $e");
     }

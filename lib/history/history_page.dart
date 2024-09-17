@@ -8,7 +8,6 @@ import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/history/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 //todo when new history syncs in, the page needs to be updated to reflect the new data!
 // we should be listening to state changes on firebase
@@ -117,7 +116,7 @@ class _HistoryPageState extends State<HistoryPage> {
               width: 300,
               height: 300,
               decoration: BoxDecoration(color: Colors.blue[300]),
-              child: CircularProgressIndicator(),
+              child: const CircularProgressIndicator(),
             ));
           } else {
             return Container();

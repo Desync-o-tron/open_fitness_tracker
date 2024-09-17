@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,17 +8,172 @@ import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/history/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 //todo when new history syncs in, the page needs to be updated to reflect the new data!
 // we should be listening to state changes on firebase
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
+
+  @override
+  _HistoryPageState createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  final int _pageSize = 10; // Number of items per page
+  final List<TrainingSession> _sessions = [];
+  bool _isLoading = false;
+  bool _hasMore = true;
+  DateTime? _lastTimestamp;
+  final ScrollController _scrollController = ScrollController();
+  StreamSubscription<List<TrainingSession>>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMoreData();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+          !_isLoading &&
+          _hasMore) {
+        _loadMoreData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _loadMoreData() {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final stream = myStorage.getUserTrainingHistoryStream(
+      limit: _pageSize,
+      startAfterTimestamp: _lastTimestamp,
+    );
+
+    _subscription = stream.listen((sessions) {
+      setState(() {
+        if (sessions.isNotEmpty) {
+          _lastTimestamp = sessions.last.date;
+          _sessions.addAll(sessions);
+          if (sessions.length < _pageSize) {
+            _hasMore = false;
+          }
+        } else {
+          _hasMore = false;
+        }
+        _isLoading = false;
+      });
+    }, onError: (error) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error loading data: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: $error')),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String sessionCountText = " (${_sessions.length} Sessions)";
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('History$sessionCountText'),
+        actions: [
+          _hamburgerMenuActions(context),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_sessions.isEmpty && _isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_sessions.isEmpty && !_hasMore) {
+      return const Center(child: Text('No History'));
+    } else {
+      return ListView.builder(
+        controller: _scrollController,
+        itemCount: _sessions.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index < _sessions.length) {
+            return TrainingSessionHistoryCard(session: _sessions[index]);
+          } else if (_hasMore) {
+            return Center(
+                child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(color: Colors.blue[300]),
+              child: CircularProgressIndicator(),
+            ));
+          } else {
+            return Container();
+          }
+        },
+      );
+    }
+  }
+
+  Widget _hamburgerMenuActions(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_horiz_outlined, size: 30),
+      onSelected: (String result) {
+        if (result == 'import') {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return const ExternalAppTrainingImportDialog();
+              });
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        const PopupMenuItem<String>(
+          value: 'import',
+          child: Text('Import exercise & training data'),
+        ),
+        PopupMenuItem<String>(
+            value: 'delete history',
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<TrainingHistoryCubit>().deleteHistory();
+              },
+              child: const Text("dont click me"),
+            )),
+        // PopupMenuItem<String>(
+        //     value: 'resync history w/ server',
+        //     child: ElevatedButton(
+        //       onPressed: () {
+        //         // have this do a pull down?
+        //         // getUserTrainingHistory();
+        //       },
+        //       child: const Text("sync history?"),
+        //     )),
+      ],
+    );
+  }
+}
+
+/*
+class HistoryPageOld extends StatelessWidget {
+  const HistoryPageOld({super.key});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<TrainingSession>>(
-      future: getUserTrainingHistory(useCache: true),
+      future: myStorage.getUserTrainingHistory(),
       builder: (BuildContext context, AsyncSnapshot<List<TrainingSession>> snapshot) {
         String sessionCountText = "";
         if (snapshot.data != null) {
@@ -53,44 +209,9 @@ class HistoryPage extends StatelessWidget {
     }
   }
 
-  Widget _hamburgerMenuActions(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_horiz_outlined, size: 30),
-      onSelected: (String result) {
-        if (result == 'import') {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return const ExternalAppTrainingImportDialog();
-              });
-        }
-      },
-      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        const PopupMenuItem<String>(
-          value: 'import',
-          child: Text('Import exercise & training data'),
-        ),
-        PopupMenuItem<String>(
-            value: 'delete history',
-            child: ElevatedButton(
-              onPressed: () {
-                context.read<TrainingHistoryCubit>().deleteHistory();
-              },
-              child: const Text("dont click me"),
-            )),
-        PopupMenuItem<String>(
-            value: 'resync history w/ server',
-            child: ElevatedButton(
-              onPressed: () {
-                // have this do a pull down?
-                getUserTrainingHistory(useCache: false);
-              },
-              child: const Text("sync history?"),
-            )),
-      ],
-    );
-  }
+ 
 }
+*/
 
 class TrainingSessionHistoryCard extends StatelessWidget {
   final TrainingSession session;
@@ -124,7 +245,6 @@ class TrainingSessionHistoryCard extends StatelessWidget {
                     )),
               ],
             ),
-            Text("id: ${session.id}"),
             Text("Completed ${session.date.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
             Text(
               DateFormat('h:mm a EEEE, MMMM d, y').format(session.date),
@@ -141,6 +261,7 @@ class TrainingSessionHistoryCard extends StatelessWidget {
               ),
             const SizedBox(height: 10),
             DisplayPastTrainingData(session),
+            Text("id: ${session.id}"),
           ],
         ),
       ),
@@ -155,10 +276,12 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     delSesh() async {
-      removeHistoryData(sesh).onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
-            content: Text('Failed to delete training session'),
-            duration: Duration(seconds: 2),
-          )));
+      myStorage
+          .removeHistoryData(sesh)
+          .onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
+                content: Text('Failed to delete training session'),
+                duration: Duration(seconds: 2),
+              )));
     }
 
     return AlertDialog(

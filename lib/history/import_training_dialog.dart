@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/history_importing.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 
 class ExternalAppTrainingImportDialog extends StatelessWidget {
   const ExternalAppTrainingImportDialog({super.key});
@@ -24,6 +26,19 @@ class ExternalAppTrainingImportDialog extends StatelessWidget {
           ListTile(
             title: const Text('Whatever-Example'),
             onTap: () {},
+          ),
+          ListTile(
+            title: const Text('aaa'),
+            onTap: () {
+              // Create a new user with a first and last name
+              final user = <String, dynamic>{"first": "Ada", "last": "Lovelace", "born": 1815};
+              // Add a new document with a generated ID
+              FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+              firebaseFirestore
+                  .collection("users")
+                  .add(user)
+                  .then((DocumentReference doc) => print('DocumentSnapshot added with ID: ${doc.id}'));
+            },
           ),
         ],
       ),
@@ -60,13 +75,15 @@ class ExternalAppTrainingImportDialog extends StatelessWidget {
 
     //todo for web
     // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ
-    // trainingHistoryCubit.addSession(sessions.first);
-    trainingHistoryCubit.addSessions(sessions);
+
+    for (var session in sessions) {
+      print("test");
+      print(session.toJson());
+      myStorage.addTrainingSessionToHistory(session);
+    }
+
     //todo (low-priority) tell the user if they are importing duplicates..we already discard them. maybe it doesn't matter.
 
-    // for (var session in sessions) {
-    //   trainingHistoryCubit.addSession(session);
-    // }
     scaffoldMessenger.showSnackBar(
       SnackBar(content: Text("imported ${sessions.length} sessions.")),
     );

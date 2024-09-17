@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -11,40 +12,43 @@ to do it continuously run:
 dart run build_runner watch --delete-conflicting-outputs
 */
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class TrainingSession {
   String id;
+  @DateTimeTimestampConverter()
   DateTime dateOfLastEdit;
+  @DateTimeTimestampConverter()
+  DateTime date;
   bool isOngoing = false;
   String name;
+  // @JsonKey(fromJson: _durationFromMilliseconds, toJson: _durationToMilliseconds)
   Duration duration;
-  DateTime date;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
 
   TrainingSession({
     String? id,
-    bool? isOngoing,
-    String? name,
     Duration? duration,
     DateTime? date,
+    bool? isOngoing,
+    String? name,
     String? notes,
     List<SetsOfAnExercise>? trainingData,
     DateTime? dateOfLastEdit,
   })  : id = id ?? DateTime.now().toIso8601String(),
-        isOngoing = isOngoing ?? false,
-        name = name ?? '',
         duration = duration ?? const Duration(),
         date = date ?? DateTime.now(),
+        isOngoing = isOngoing ?? false,
+        name = name ?? '',
         notes = notes ?? '',
         trainingData = trainingData ?? [],
         dateOfLastEdit = dateOfLastEdit ?? DateTime.now(); //does this logic make sense? i think so.
 
   TrainingSession.copy(TrainingSession sesh)
       : id = sesh.id,
-        name = sesh.name,
         duration = sesh.duration,
         date = sesh.date,
+        name = sesh.name,
         notes = sesh.notes,
         isOngoing = sesh.isOngoing,
         trainingData = List<SetsOfAnExercise>.from(sesh.trainingData),
@@ -77,7 +81,7 @@ class TrainingSession {
   Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SetsOfAnExercise {
   Exercise ex;
   Set prevSet; //also functions as a header template
@@ -91,8 +95,9 @@ class SetsOfAnExercise {
   Map<String, dynamic> toJson() => _$SetsOfAnExerciseToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Set {
+  @JsonKey(includeToJson: false)
   Exercise ex;
   late String id; //just the datetime for now
   num? reps;
@@ -118,6 +123,21 @@ class Set {
   Map<String, dynamic> toJson() => _$SetToJson(this);
 }
 
+// Custom converter
+class DateTimeTimestampConverter implements JsonConverter<DateTime, Timestamp> {
+  const DateTimeTimestampConverter();
+
+  @override
+  DateTime fromJson(Timestamp timestamp) => timestamp.toDate();
+  @override
+  Timestamp toJson(DateTime date) => Timestamp.fromDate(date);
+}
+
+// // Duration converters
+// Duration _durationFromMilliseconds(int milliseconds) => Duration(milliseconds: milliseconds);
+// int _durationToMilliseconds(Duration duration) => duration.inMilliseconds;
+
+//TODO rm me
 class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
   TrainingHistoryCubit() : super([]);
 

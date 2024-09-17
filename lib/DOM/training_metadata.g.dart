@@ -71,6 +71,7 @@ Set _$SetFromJson(Map<String, dynamic> json) => Set(
       ..completed = json['completed'] as bool;
 
 Map<String, dynamic> _$SetToJson(Set instance) => <String, dynamic>{
+      'ex': instance.ex.toJson(),
       'id': instance.id,
       'reps': instance.reps,
       'time': instance.time,

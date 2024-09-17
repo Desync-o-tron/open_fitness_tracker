@@ -97,7 +97,7 @@ class SetsOfAnExercise {
 
 @JsonSerializable(explicitToJson: true)
 class Set {
-  @JsonKey(includeToJson: false)
+  // @JsonKey(includeToJson: false)
   Exercise ex;
   late String id; //just the datetime for now
   num? reps;

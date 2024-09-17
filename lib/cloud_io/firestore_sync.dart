@@ -36,10 +36,8 @@ class MyStorage {
     final String userUid = FirebaseAuth.instance.currentUser!.uid;
     final String collectionPath = 'users/$userUid/$historyKey';
 
-    Query query = FirebaseFirestore.instance
-        .collection(collectionPath)
-        .orderBy('dateTime', descending: true)
-        .limit(limit);
+    Query query =
+        FirebaseFirestore.instance.collection(collectionPath).orderBy('date', descending: true).limit(limit);
 
     if (startAfterTimestamp != null) {
       query = query.startAfter([startAfterTimestamp]);

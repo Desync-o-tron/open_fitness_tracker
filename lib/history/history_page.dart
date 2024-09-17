@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -9,13 +10,11 @@ import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/history/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-//todo when new history syncs in, the page needs to be updated to reflect the new data!
-// we should be listening to state changes on firebase
-
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _HistoryPageState createState() => _HistoryPageState();
 }
 
@@ -86,7 +85,6 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     String sessionCountText = " (${_sessions.length} Sessions)";
-
     return Scaffold(
       appBar: AppBar(
         title: Text('History$sessionCountText'),
@@ -111,13 +109,7 @@ class _HistoryPageState extends State<HistoryPage> {
           if (index < _sessions.length) {
             return TrainingSessionHistoryCard(session: _sessions[index]);
           } else if (_hasMore) {
-            return Center(
-                child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(color: Colors.blue[300]),
-              child: const CircularProgressIndicator(),
-            ));
+            return const CircularProgressIndicator();
           } else {
             return Container();
           }

@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_const
-
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
@@ -21,6 +19,8 @@ class DateAndWeight {
 
 class _CoolChartState extends State<CoolChart> {
   List<DateAndWeight> bestWeightsOnDates = [];
+  List<double> xValues = [];
+  DateTime? firstDate;
 
   @override
   void initState() {
@@ -31,7 +31,6 @@ class _CoolChartState extends State<CoolChart> {
   void _loadData() async {
     List<TrainingSession> trainHist =
         await myStorage.getEntireUserTrainingHistory(useCache: true);
-    trainHist.sort((a, b) => a.date.compareTo(b.date)); //old -> new
 
     for (var trainSesh in trainHist) {
       for (var setsOfAnExercise in trainSesh.trainingData) {
@@ -46,6 +45,14 @@ class _CoolChartState extends State<CoolChart> {
         }
       }
     }
+    bestWeightsOnDates.sort((a, b) => a.date.compareTo(b.date));
+
+    firstDate = bestWeightsOnDates.first.date;
+    // Convert dates to numerical x-values (days since first date)
+    xValues = bestWeightsOnDates
+        .map((e) => e.date.difference(firstDate!).inDays.toDouble())
+        .toList();
+
     setState(() {});
   }
 
@@ -79,7 +86,24 @@ class _CoolChartState extends State<CoolChart> {
   }
 
   LineChartData _buildLineChart() {
-    double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 20;
+    double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 30;
+
+    // Calculate dynamic intervals for X-axis labels
+    double minX = xValues.first;
+    double maxX = xValues.last;
+
+    int desiredLabelCount = 5; // Adjust this number based on your preference
+    double intervalX = (maxX - minX) / (desiredLabelCount - 1);
+    if (intervalX <= 0) intervalX = 1;
+
+    // Calculate the best fit line
+    List<FlSpot> bestFitLineSpots = _calculateBestFitLine();
+
+    // Create data spots using numerical x-values
+    List<FlSpot> dataSpots = [];
+    for (int i = 0; i < xValues.length; i++) {
+      dataSpots.add(FlSpot(xValues[i], bestWeightsOnDates[i].weight));
+    }
 
     return LineChartData(
       gridData: FlGridData(
@@ -170,11 +194,19 @@ class _CoolChartState extends State<CoolChart> {
             },
           ),
         ),
+        // Best Fit Line
+        LineChartBarData(
+          spots: bestFitLineSpots,
+          isCurved: false,
+          color: Colors.redAccent,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+        ),
       ],
       lineTouchData: LineTouchData(
         enabled: true,
         touchTooltipData: LineTouchTooltipData(
-          // tooltipBgColor: Colors.black87,
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((LineBarSpot touchedSpot) {
               // Retrieve the date corresponding to the touched spot
@@ -189,6 +221,56 @@ class _CoolChartState extends State<CoolChart> {
         ),
       ),
     );
+  }
+
+  int _findClosestIndex(double xValue) {
+    double minDiff = double.infinity;
+    int closestIndex = 0;
+    for (int i = 0; i < xValues.length; i++) {
+      double diff = (xValues[i] - xValue).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    }
+    return closestIndex;
+  }
+
+  List<FlSpot> _calculateBestFitLine() {
+    int n = xValues.length;
+    if (n == 0) return [];
+
+    // xValues and yValues are already defined
+    List<double> yValues = bestWeightsOnDates.map((e) => e.weight).toList();
+
+    // Calculate sums
+    double sumX = xValues.reduce((a, b) => a + b);
+    double sumY = yValues.reduce((a, b) => a + b);
+    double sumXY = 0;
+    double sumX2 = 0;
+
+    for (int i = 0; i < n; i++) {
+      sumXY += xValues[i] * yValues[i];
+      sumX2 += xValues[i] * xValues[i];
+    }
+
+    // Calculate slope (m) and intercept (b) for y = mx + b
+    double denominator = (n * sumX2 - sumX * sumX);
+    if (denominator == 0) return []; // Prevent division by zero
+
+    double m = (n * sumXY - sumX * sumY) / denominator;
+    double b = (sumY - m * sumX) / n;
+
+    // Generate two points for the best fit line (start and end)
+    double x0 = xValues.first;
+    double y0 = m * x0 + b;
+    double x1 = xValues.last;
+    double y1 = m * x1 + b;
+
+    return [
+      FlSpot(x0, y0),
+      FlSpot(x1, y1),
+    ];
   }
 
   static int lastSeshYear = 0;

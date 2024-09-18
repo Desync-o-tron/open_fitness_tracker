@@ -53,6 +53,7 @@ dependencies:
   firebase_ui_oauth_apple: ^1.2.21
   csv: ^6.0.0
   file_picker: ^8.0.7
+  fl_chart: ^0.69.0
   
 dev_dependencies:
   flutter_test:

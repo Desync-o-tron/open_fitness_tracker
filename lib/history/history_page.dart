@@ -87,10 +87,9 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    String sessionCountText = " (${_sessions.length} Sessions)";
     return Scaffold(
       appBar: AppBar(
-        title: Text('History$sessionCountText'),
+        title: const Text('History'),
         actions: [
           _hamburgerMenuActions(context),
         ],
@@ -107,7 +106,7 @@ class _HistoryPageState extends State<HistoryPage> {
     } else {
       return ListView.builder(
         controller: _scrollController,
-        itemCount: _sessions.length + (_hasMore ? 1 : 0),
+        itemCount: _sessions.length + 1, // (_hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index < _sessions.length) {
             return TrainingSessionHistoryCard(session: _sessions[index]);

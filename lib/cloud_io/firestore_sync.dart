@@ -47,46 +47,24 @@ class MyStorage {
     });
   }
 
-  /*
-  Stream<List<TrainingSession>> getUserTrainingHistoryStream() {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return Stream.error("Please sign in");
+  // todo can I make this lazy?
+  // rmme
+  Future<List<TrainingSession>> getEntireUserTrainingHistory() async {
+    if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
+    if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
+
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    CollectionReference users = firestore.collection('users');
+    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+
+    var cloudTrainingHistory = await userDoc.collection(historyKey).getSavy();
+    List<TrainingSession> sessions = [];
+    for (var doc in cloudTrainingHistory.docs) {
+      sessions.add(TrainingSession.fromJson(doc.data() as Map<String, dynamic>));
     }
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      return Stream.error("Please verify email");
-    }
 
-    final String userUid = FirebaseAuth.instance.currentUser!.uid;
-    final String collectionPath = 'users/$userUid/$historyKey';
-
-    final repository = FirestoreCollectionRepository(collectionPath);
-
-    return repository.stream.map((List<DocumentSnapshot> docs) {
-      return docs.map((doc) {
-        return TrainingSession.fromJson(doc.data() as Map<String, dynamic>);
-      }).toList();
-    });
+    return sessions;
   }
-  */
-
-  //todo can I make this lazy?
-  //rmme
-  // Future<List<TrainingSession>> getUserTrainingHistory() async {
-  //   if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
-  //   if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
-
-  //   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  //   CollectionReference users = firestore.collection('users');
-  //   DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-
-  //   var cloudTrainingHistory = await userDoc.collection(historyKey).getSavy();
-  //   List<TrainingSession> sessions = [];
-  //   for (var doc in cloudTrainingHistory.docs) {
-  //     sessions.add(TrainingSession.fromJson(doc.data() as Map<String, dynamic>));
-  //   }
-
-  //   return sessions;
-  // }
 
   // this smells. why do I have two rm calls (look at the caller) also, do I need to rm from the local oldhistory?
 
@@ -104,6 +82,7 @@ class MyStorage {
   }
 }
 
+//todo..if I've only loaded some docs via pagination..will this get everything?
 // https://github.com/furkansarihan/firestore_collection/blob/master/lib/firestore_document.dart
 extension FirestoreDocumentExtension on DocumentReference {
   Future<DocumentSnapshot> getSavy() async {

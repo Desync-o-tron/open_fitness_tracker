@@ -31,9 +31,11 @@ List<TrainingSession> importStrongCsv(String filePath) {
     final duration = parseStrongWorkoutDuration(rowList[0][2]);
     final exerciseName = rowList[0][3];
     // final _setOrder = int.parse(rowList[0][4]); // unused..why this here
-    final weight = double.tryParse(rowList[0][5]) ?? 0;
+    final weightRaw = double.tryParse(rowList[0][5]) ?? 0;
+    final weight = double.parse(weightRaw.toStringAsFixed(2));
     final reps = int.tryParse(rowList[0][6]) ?? 0;
-    final distance = double.tryParse(rowList[0][7]) ?? 0;
+    final distanceRaw = double.tryParse(rowList[0][7]) ?? 0;
+    final distance = double.parse(distanceRaw.toStringAsFixed(2));
     final seconds = int.tryParse(rowList[0][8]) ?? 0;
     final notes = rowList[0][9];
     final workoutNotes = rowList[0][10];

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthPr
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/community/charts.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 
 class CommunityPage extends StatelessWidget {
@@ -9,10 +10,12 @@ class CommunityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        CommunityPageTitle(),
-        SignInOrProfileWidget(),
+        const CommunityPageTitle(),
+        const SignInOrProfileWidget(),
+        Container(height: 50),
+        const CoolChart(),
       ],
     );
   }

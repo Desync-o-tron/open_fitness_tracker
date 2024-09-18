@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +17,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ExDB.init();
 
-  FirebaseApp firebase = await Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
@@ -32,48 +31,8 @@ Future<void> main() async {
 
 Timer? trainingDurationTimer;
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  // _myAsyncMethod() async {
-  //   var ff = FirebaseFirestore.instance;
-  //   final user = <String, dynamic>{"first": "hmm!", "last": "Lovelace", "born": 1815};
-  //   // await ff.collection("users").get().then((event) {
-  //   //   for (var doc in event.docs) {
-  //   //     print("${doc.id} => ${doc.data()}");
-  //   //   }
-  //   // });
-  //   // Add a new document with a generated ID
-  //   ff
-  //       .collection("users")
-  //       .add(user)
-  //       .then((DocumentReference doc) => print('DocumentSnapshot added with ID: ${doc.id}'));
-
-  //   var usrCollection = ff.collection('users');
-  //   // var athing = await usrCollection.get();
-
-  //   // await usrCollection.add({"aoeu": "sth"});
-  //   var usrdoc = usrCollection.doc("0qYo6ihSKsh8s6dsLksQ2N6WLek2");
-  //   await usrdoc.set({"buttttX new": "stuff"}); //, SetOptions());
-  //   try {
-  //     var newcol = usrdoc.collection("newcol");
-  //     await newcol.add({"akey": "aval"});
-  //   } catch (e) {
-  //     print('crap');
-  //   }
-  //   print("object");
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _myAsyncMethod();
-  // }
 
   @override
   Widget build(BuildContext context) {

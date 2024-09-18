@@ -29,7 +29,7 @@ class _SignInOrProfileWidgetState extends State<SignInOrProfileWidget> {
   @override
   Widget build(BuildContext context) {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      setState(() {});
+      if (mounted) setState(() {});
     });
     if (FirebaseAuth.instance.currentUser == null) {
       return Column(

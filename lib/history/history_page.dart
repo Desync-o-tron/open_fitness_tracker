@@ -33,7 +33,7 @@ class _HistoryPageState extends State<HistoryPage> {
     _loadMoreData();
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 400 &&
           !_isLoading &&
           _hasMore) {
         _loadMoreData();
@@ -75,10 +75,13 @@ class _HistoryPageState extends State<HistoryPage> {
       setState(() {
         _isLoading = false;
       });
-      print('Error loading data: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading data: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $error')),
+        );
+      } else {
+        //todo error handling?
+      }
     });
   }
 
@@ -111,7 +114,17 @@ class _HistoryPageState extends State<HistoryPage> {
           } else if (_hasMore) {
             return const CircularProgressIndicator();
           } else {
-            return Container();
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: const Text("that's everything!"),
+            );
           }
         },
       );
@@ -143,66 +156,10 @@ class _HistoryPageState extends State<HistoryPage> {
               },
               child: const Text("dont click me"),
             )),
-        // PopupMenuItem<String>(
-        //     value: 'resync history w/ server',
-        //     child: ElevatedButton(
-        //       onPressed: () {
-        //         // have this do a pull down?
-        //         // getUserTrainingHistory();
-        //       },
-        //       child: const Text("sync history?"),
-        //     )),
       ],
     );
   }
 }
-
-/*
-class HistoryPageOld extends StatelessWidget {
-  const HistoryPageOld({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<TrainingSession>>(
-      future: myStorage.getUserTrainingHistory(),
-      builder: (BuildContext context, AsyncSnapshot<List<TrainingSession>> snapshot) {
-        String sessionCountText = "";
-        if (snapshot.data != null) {
-          sessionCountText = " (${snapshot.data!.length} Sessions)";
-        }
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('History$sessionCountText'),
-            actions: [
-              _hamburgerMenuActions(context),
-            ],
-          ),
-          body: _buildBody(snapshot),
-        );
-      },
-    );
-  }
-
-  Widget _buildBody(AsyncSnapshot<List<TrainingSession>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-      return Center(child: Text('Error: ${snapshot.error}'));
-    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-      return const Center(child: Text('No History'));
-    } else {
-      return ListView.builder(
-        itemCount: snapshot.data!.length,
-        itemBuilder: (context, index) {
-          return TrainingSessionHistoryCard(session: snapshot.data![index]);
-        },
-      );
-    }
-  }
-
- 
-}
-*/
 
 class TrainingSessionHistoryCard extends StatelessWidget {
   final TrainingSession session;

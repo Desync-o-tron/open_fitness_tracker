@@ -13,13 +13,9 @@ class MyStorage {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
-    try {
-      CollectionReference users = firestore.collection('users');
-      DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-      await userDoc.collection(historyKey).add(session.toJson());
-    } catch (e) {
-      print("Error adding session to history: $e");
-    }
+    CollectionReference users = firestore.collection('users');
+    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
+    userDoc.collection(historyKey).add(session.toJson());
   }
 
   Stream<List<TrainingSession>> getUserTrainingHistoryStream({
@@ -45,6 +41,7 @@ class MyStorage {
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
+        // print(doc.data());
         return TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id;
       }).toList();
     });

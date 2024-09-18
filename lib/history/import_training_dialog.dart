@@ -61,8 +61,6 @@ class ExternalAppTrainingImportDialog extends StatelessWidget {
     // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ
 
     for (var session in sessions) {
-      print("test");
-      print(session.toJson());
       myStorage.addTrainingSessionToHistory(session);
     }
 

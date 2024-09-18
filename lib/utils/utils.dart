@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -157,4 +158,30 @@ String enumToReadableString(Object o) {
         onNonMatch: (n) => n,
       )
       .toLowerCase();
+}
+
+/// Returns `true` if X hours have passed since the last `true` return,
+/// otherwise returns `false`.
+Future<bool> canReturnTrueOnceEveryXHours(int hours) async {
+  final prefs = await SharedPreferences.getInstance();
+  final lastTimeMillis = prefs.getInt('last_true_time');
+  final now = DateTime.now();
+
+  if (lastTimeMillis == null) {
+    // No timestamp stored yet; return true and store current time.
+    await prefs.setInt('last_true_time', now.millisecondsSinceEpoch);
+    return true;
+  } else {
+    final lastTime = DateTime.fromMillisecondsSinceEpoch(lastTimeMillis);
+    final difference = now.difference(lastTime);
+
+    if (difference >= Duration(hours: hours)) {
+      // More than X hours have passed; return true and update stored time.
+      await prefs.setInt('last_true_time', now.millisecondsSinceEpoch);
+      return true;
+    } else {
+      // Less than X hours have passed; return false.
+      return false;
+    }
+  }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -47,9 +49,7 @@ class MyStorage {
     });
   }
 
-  // todo can I make this lazy?
-  // rmme
-  Future<List<TrainingSession>> getEntireUserTrainingHistory() async {
+  Future<List<TrainingSession>> getEntireUserTrainingHistory({required bool useCache}) async {
     if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
     if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
 
@@ -57,7 +57,12 @@ class MyStorage {
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 
-    var cloudTrainingHistory = await userDoc.collection(historyKey).getSavy();
+    QuerySnapshot<Object?> cloudTrainingHistory;
+    if (useCache)
+      cloudTrainingHistory = await userDoc.collection(historyKey).getSavy();
+    else
+      cloudTrainingHistory = await userDoc.collection(historyKey).get();
+
     List<TrainingSession> sessions = [];
     for (var doc in cloudTrainingHistory.docs) {
       sessions.add(TrainingSession.fromJson(doc.data() as Map<String, dynamic>));

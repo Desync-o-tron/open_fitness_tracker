@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_const
+
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
@@ -27,10 +29,15 @@ class _CoolChartState extends State<CoolChart> {
   }
 
   void _loadData() async {
-    List<TrainingSession> trainHist = await myStorage.getEntireUserTrainingHistory();
+    List<TrainingSession> trainHist =
+        await myStorage.getEntireUserTrainingHistory(useCache: true);
+    trainHist.sort((a, b) => a.date.compareTo(b.date)); //old -> new
+
     for (var trainSesh in trainHist) {
       for (var setsOfAnExercise in trainSesh.trainingData) {
-        if (setsOfAnExercise.ex.name.toLowerCase().contains("deadlift")) {
+        if (setsOfAnExercise.ex.name.toLowerCase().contains("deadlift") &&
+            !setsOfAnExercise.ex.name.toLowerCase().contains("roma") &&
+            !setsOfAnExercise.ex.name.toLowerCase().contains("straight")) {
           double bestWeight = 0;
           for (var mySet in setsOfAnExercise.sets) {
             bestWeight = max(mySet.weight!, bestWeight).toDouble();
@@ -63,7 +70,7 @@ class _CoolChartState extends State<CoolChart> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: LineChart(
-              _buildLineChartData(),
+              _buildLineChart(),
             ),
           ),
         ),
@@ -71,18 +78,15 @@ class _CoolChartState extends State<CoolChart> {
     );
   }
 
-  LineChartData _buildLineChartData() {
-    double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 10;
+  LineChartData _buildLineChart() {
+    double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 20;
 
     return LineChartData(
       gridData: FlGridData(
-        show: true,
         horizontalInterval: 10,
         verticalInterval: 1,
-        getDrawingHorizontalLine: (value) => FlLine(
-          color: Colors.grey.withOpacity(0.2),
-          strokeWidth: 1,
-        ),
+        getDrawingHorizontalLine: (value) =>
+            FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
         getDrawingVerticalLine: (value) => FlLine(
           color: Colors.grey.withOpacity(0.2),
           strokeWidth: 1,
@@ -90,32 +94,32 @@ class _CoolChartState extends State<CoolChart> {
       ),
       titlesData: FlTitlesData(
         leftTitles: AxisTitles(
-          axisNameWidget: const Padding(
-            padding: EdgeInsets.only(right: 8.0),
-            child: Text('Weight (lb)', style: TextStyle(fontSize: 14)),
-          ),
-          axisNameSize: 16,
+          axisNameWidget: const Text('Weight (lb)', style: const TextStyle(fontSize: 14)),
+          axisNameSize: 18,
           sideTitles: SideTitles(
-            showTitles: true,
-            interval: 10,
-            getTitlesWidget: (value, meta) {
-              return Text('${value.toInt()} lb', style: const TextStyle(fontSize: 12));
-            },
-          ),
+              showTitles: true,
+              interval: 50,
+              getTitlesWidget: (value, meta) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text('${value.toInt()}', style: const TextStyle(fontSize: 12)),
+                );
+              },
+              reservedSize: 40),
         ),
         bottomTitles: AxisTitles(
           axisNameWidget: const Text('Date', style: TextStyle(fontSize: 14)),
-          axisNameSize: 16,
+          axisNameSize: 18,
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 1,
-            getTitlesWidget: _bottomTitleWidgets,
+            interval: 8,
+            getTitlesWidget: _bottomDateLabels,
           ),
         ),
-        topTitles: AxisTitles(
+        topTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        rightTitles: AxisTitles(
+        rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
       ),
@@ -167,19 +171,42 @@ class _CoolChartState extends State<CoolChart> {
           ),
         ),
       ],
+      lineTouchData: LineTouchData(
+        enabled: true,
+        touchTooltipData: LineTouchTooltipData(
+          // tooltipBgColor: Colors.black87,
+          getTooltipItems: (touchedSpots) {
+            return touchedSpots.map((LineBarSpot touchedSpot) {
+              // Retrieve the date corresponding to the touched spot
+              DateTime date = bestWeightsOnDates[touchedSpot.x.toInt()].date;
+              String formattedDate = "${date.year}/${date.month}/${date.day}";
+              return LineTooltipItem(
+                '${touchedSpot.y} lb\n $formattedDate',
+                const TextStyle(color: Colors.white, fontSize: 14),
+              );
+            }).toList();
+          },
+        ),
+      ),
     );
   }
 
-  Widget _bottomTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontSize: 10,
-    );
+  static int lastSeshYear = 0;
+  Widget _bottomDateLabels(double value, TitleMeta meta) {
+    const style = TextStyle(fontSize: 12);
     int index = value.toInt();
     if (index < 0 || index >= bestWeightsOnDates.length) {
       return Container();
     }
     DateTime date = bestWeightsOnDates[index].date;
-    String formattedDate = "${date.month}/${date.day}";
+    String formattedDate;
+
+    if (date.year != lastSeshYear) {
+      formattedDate = "${date.year.toString().substring(2)}/${date.month}/${date.day}";
+    } else {
+      formattedDate = "${date.month}/${date.day}";
+    }
+    lastSeshYear = date.year;
     return SideTitleWidget(
       axisSide: meta.axisSide,
       space: 8.0,
@@ -187,51 +214,3 @@ class _CoolChartState extends State<CoolChart> {
     );
   }
 }
-
-
-/*
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:open_fitness_tracker/DOM/training_metadata.dart';
-import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
-
-class CoolChart extends StatefulWidget {
-  const CoolChart({super.key});
-
-  @override
-  State<CoolChart> createState() => _CoolChartState();
-}
-
-class DateAndWeight {
-  DateAndWeight(this.date, this.weight);
-  DateTime date;
-  double weight;
-}
-
-class _CoolChartState extends State<CoolChart> {
-  List<DateAndWeight> bestWeightsOnDates = [];
-
-  @override
-  void initState() async {
-    super.initState();
-    List<TrainingSession> trainHist = await myStorage.getEntireUserTrainingHistory();
-    for (var trainSesh in trainHist) {
-      for (var setsOfAnExercise in trainSesh.trainingData) {
-        if (setsOfAnExercise.ex.name.contains("deadlift") || setsOfAnExercise.ex.name.contains("Deadlift")) {
-          double bestWeight = 0;
-          for (var mySet in setsOfAnExercise.sets) {
-            bestWeight = max(mySet.weight!, bestWeight).toDouble();
-          }
-          bestWeightsOnDates.add(DateAndWeight(trainSesh.date, bestWeight));
-        }
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-}
-*/

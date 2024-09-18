@@ -14,8 +14,10 @@ import 'package:open_fitness_tracker/navigation/scaffold_with_nav_bar.dart';
 import 'package:open_fitness_tracker/training/start_training_page.dart';
 import 'package:open_fitness_tracker/training/training_page.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 enum routeNames {
   Community("/Community"),
@@ -39,15 +41,18 @@ final GoRouter routerConfig = GoRouter(
   // initialLocation: routeNames.Temp.text,
   // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
-  initialLocation: routeNames.History.text, //////////<--- This is the initial route
+  // initialLocation: routeNames.History.text, //////////<--- This is the initial route
+  initialLocation: routeNames.Community.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
-      builder: (BuildContext context, GoRouterState state, Widget child) => ScaffoldWithNavBar(child: child),
+      builder: (BuildContext context, GoRouterState state, Widget child) =>
+          ScaffoldWithNavBar(child: child),
       routes: [
         GoRoute(
           path: routeNames.Home.text,
-          builder: (BuildContext context, GoRouterState state) => const StartTrainingPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const StartTrainingPage(),
         ),
         GoRoute(
           path: routeNames.Community.text,
@@ -59,23 +64,28 @@ final GoRouter routerConfig = GoRouter(
         ),
         GoRoute(
           path: routeNames.Training.text,
-          builder: (BuildContext context, GoRouterState state) => const StartTrainingPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const StartTrainingPage(),
         ),
         GoRoute(
           path: routeNames.Exercises.text,
-          builder: (BuildContext context, GoRouterState state) => const ExerciseSearchPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const ExerciseSearchPage(),
         ),
         GoRoute(
           path: routeNames.SignIn.text,
-          builder: (BuildContext context, GoRouterState state) => const SignInScreenWrapper(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const SignInScreenWrapper(),
         ),
         GoRoute(
           path: routeNames.Profile.text,
-          builder: (BuildContext context, GoRouterState state) => const ProfileScreenWrapper(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const ProfileScreenWrapper(),
         ),
         GoRoute(
           path: routeNames.VerifyEmail.text,
-          builder: (BuildContext context, GoRouterState state) => const EmailVerificationScreenWrapper(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const EmailVerificationScreenWrapper(),
         ),
         GoRoute(
           path: routeNames.Temp.text,

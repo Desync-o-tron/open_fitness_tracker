@@ -10,7 +10,7 @@ class CommunityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return ListView(
       children: [
         const CommunityPageTitle(),
         const SignInOrProfileWidget(),
@@ -62,11 +62,13 @@ class CommunityPageTitle extends StatelessWidget {
   const CommunityPageTitle({super.key});
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10.0),
-      child: Text(
-        'Community',
-        style: Theme.of(context).textTheme.headlineMedium,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10.0),
+        child: Text(
+          'Community & Stats',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
       ),
     );
   }

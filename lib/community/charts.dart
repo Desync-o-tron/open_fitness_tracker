@@ -19,8 +19,11 @@ class DateAndWeight {
 
 class _CoolChartState extends State<CoolChart> {
   List<DateAndWeight> bestWeightsOnDates = [];
-  List<double> xValues = [];
-  DateTime? firstDate;
+  List<double> xValues = []; //
+  late DateTime firstDate;
+
+  late double _slope;
+  late double _intercept;
 
   @override
   void initState() {
@@ -41,7 +44,9 @@ class _CoolChartState extends State<CoolChart> {
           for (var mySet in setsOfAnExercise.sets) {
             bestWeight = max(mySet.weight!, bestWeight).toDouble();
           }
-          bestWeightsOnDates.add(DateAndWeight(trainSesh.date, bestWeight));
+          if (bestWeight > 0) {
+            bestWeightsOnDates.add(DateAndWeight(trainSesh.date, bestWeight));
+          }
         }
       }
     }
@@ -50,7 +55,7 @@ class _CoolChartState extends State<CoolChart> {
     firstDate = bestWeightsOnDates.first.date;
     // Convert dates to numerical x-values (days since first date)
     xValues = bestWeightsOnDates
-        .map((e) => e.date.difference(firstDate!).inDays.toDouble())
+        .map((e) => e.date.difference(firstDate).inDays.toDouble())
         .toList();
 
     setState(() {});
@@ -74,11 +79,28 @@ class _CoolChartState extends State<CoolChart> {
         const SizedBox(height: 16),
         AspectRatio(
           aspectRatio: 1.7,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: LineChart(
-              _buildLineChart(),
-            ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: LineChart(
+                  _buildLineChart(),
+                ),
+              ),
+              // Display the equation of the best fit line
+              Positioned(
+                bottom: 55,
+                right: 16,
+                child: Container(
+                  color: Colors.white.withOpacity(0.3),
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    'line of best fit: lbs(days) = ${_slope.toStringAsFixed(2)}*days + ${_intercept.toStringAsFixed(0)}lbs',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -87,7 +109,6 @@ class _CoolChartState extends State<CoolChart> {
 
   LineChartData _buildLineChart() {
     double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 30;
-
     // Calculate dynamic intervals for X-axis labels
     double minX = xValues.first;
     double maxX = xValues.last;
@@ -99,26 +120,18 @@ class _CoolChartState extends State<CoolChart> {
     // Calculate the best fit line
     List<FlSpot> bestFitLineSpots = _calculateBestFitLine();
 
-    // Create data spots using numerical x-values
-    List<FlSpot> dataSpots = [];
-    for (int i = 0; i < xValues.length; i++) {
-      dataSpots.add(FlSpot(xValues[i], bestWeightsOnDates[i].weight));
-    }
-
     return LineChartData(
       gridData: FlGridData(
         horizontalInterval: 10,
         verticalInterval: 1,
         getDrawingHorizontalLine: (value) =>
             FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-        getDrawingVerticalLine: (value) => FlLine(
-          color: Colors.grey.withOpacity(0.2),
-          strokeWidth: 1,
-        ),
+        getDrawingVerticalLine: (value) =>
+            FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
       ),
       titlesData: FlTitlesData(
         leftTitles: AxisTitles(
-          axisNameWidget: const Text('Weight (lb)', style: const TextStyle(fontSize: 14)),
+          axisNameWidget: const Text('Weight (lb)', style: TextStyle(fontSize: 14)),
           axisNameSize: 18,
           sideTitles: SideTitles(
               showTitles: true,
@@ -131,17 +144,20 @@ class _CoolChartState extends State<CoolChart> {
               },
               reservedSize: 40),
         ),
-        bottomTitles: AxisTitles(
+        topTitles: AxisTitles(
           axisNameWidget: const Text('Date', style: TextStyle(fontSize: 14)),
           axisNameSize: 18,
           sideTitles: SideTitles(
             showTitles: true,
             interval: 8,
-            getTitlesWidget: _bottomDateLabels,
+            getTitlesWidget: _dateLabels,
           ),
         ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
+        bottomTitles: AxisTitles(
+          axisNameWidget: const Text('Days', style: TextStyle(fontSize: 14)),
+          axisNameSize: 18,
+          sideTitles:
+              SideTitles(showTitles: true, interval: 5, getTitlesWidget: _daysLabels),
         ),
         rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
@@ -168,7 +184,7 @@ class _CoolChartState extends State<CoolChart> {
             gradient: LinearGradient(
               colors: [
                 Colors.blueAccent.withOpacity(0.5),
-                Colors.blueAccent.withOpacity(0.0),
+                Colors.blueAccent.withOpacity(0.02),
               ],
               stops: const [0.5, 1.0],
               begin: Alignment.topCenter,
@@ -223,24 +239,10 @@ class _CoolChartState extends State<CoolChart> {
     );
   }
 
-  int _findClosestIndex(double xValue) {
-    double minDiff = double.infinity;
-    int closestIndex = 0;
-    for (int i = 0; i < xValues.length; i++) {
-      double diff = (xValues[i] - xValue).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = i;
-      }
-    }
-    return closestIndex;
-  }
-
   List<FlSpot> _calculateBestFitLine() {
     int n = xValues.length;
     if (n == 0) return [];
 
-    // xValues and yValues are already defined
     List<double> yValues = bestWeightsOnDates.map((e) => e.weight).toList();
 
     // Calculate sums
@@ -258,14 +260,15 @@ class _CoolChartState extends State<CoolChart> {
     double denominator = (n * sumX2 - sumX * sumX);
     if (denominator == 0) return []; // Prevent division by zero
 
-    double m = (n * sumXY - sumX * sumY) / denominator;
-    double b = (sumY - m * sumX) / n;
+    _slope = (n * sumXY - sumX * sumY) / denominator;
+    _intercept = (sumY - _slope * sumX) / n;
 
     // Generate two points for the best fit line (start and end)
-    double x0 = xValues.first;
-    double y0 = m * x0 + b;
-    double x1 = xValues.last;
-    double y1 = m * x1 + b;
+    // double x0 = xValues.first;
+    double x0 = 0;
+    double y0 = _slope * xValues.first + _intercept;
+    double x1 = xValues.length.toDouble() - 1;
+    double y1 = _slope * xValues.last + _intercept;
 
     return [
       FlSpot(x0, y0),
@@ -274,7 +277,7 @@ class _CoolChartState extends State<CoolChart> {
   }
 
   static int lastSeshYear = 0;
-  Widget _bottomDateLabels(double value, TitleMeta meta) {
+  Widget _dateLabels(double value, TitleMeta meta) {
     const style = TextStyle(fontSize: 12);
     int index = value.toInt();
     if (index < 0 || index >= bestWeightsOnDates.length) {
@@ -293,6 +296,21 @@ class _CoolChartState extends State<CoolChart> {
       axisSide: meta.axisSide,
       space: 8.0,
       child: Text(formattedDate, style: style),
+    );
+  }
+
+  Widget _daysLabels(double value, TitleMeta meta) {
+    const style = TextStyle(fontSize: 12);
+    int index = value.toInt();
+    if (index < 0 || index >= bestWeightsOnDates.length) {
+      return Container();
+    }
+    DateTime currDate = bestWeightsOnDates[index].date;
+    int day = currDate.difference(firstDate).inDays;
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      space: 8.0,
+      child: Text(day.toString(), style: style),
     );
   }
 }

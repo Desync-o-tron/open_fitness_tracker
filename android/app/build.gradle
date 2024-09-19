@@ -71,7 +71,8 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
 
     // Import the BoM for the Firebase platform
-    implementation platform('com.google.firebase:firebase-bom:32.8.0')
+    implementation platform('com.google.firebase:firebase-bom:33.3.0')
+    // implementation platform('com.google.firebase:firebase-bom:32.8.0')
 
     // Add the dependency for the Firebase SDK for Google Analytics
     implementation("com.google.firebase:firebase-analytics")
@@ -82,6 +83,8 @@ dependencies {
      
     implementation("com.google.firebase:firebase-firestore")
 
+    // Also add the dependency for the Google Play services library and dont? specify its version
+    implementation("com.google.android.gms:play-services-auth")
     // Also add the dependency for the Google Play services library and specify its version
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    // implementation("com.google.android.gms:play-services-auth:21.0.0")
 }

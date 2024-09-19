@@ -21,6 +21,7 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   final int _pageSize = 10; // Number of items per page
   final List<TrainingSession> _sessions = [];
+  var numSessions = 0;
   bool _isLoading = false;
   bool _hasMore = true;
   DateTime? _lastTimestamp;
@@ -49,7 +50,7 @@ class _HistoryPageState extends State<HistoryPage> {
     super.dispose();
   }
 
-  void _loadMoreData() {
+  void _loadMoreData() async {
     setState(() {
       _isLoading = true;
     });
@@ -84,19 +85,25 @@ class _HistoryPageState extends State<HistoryPage> {
         //todo error handling?
       }
     });
+    numSessions = (await myStorage.getEntireUserTrainingHistory(useCache: true)).length;
+    setState(() {
+      //numSessions
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-        actions: [
-          _hamburgerMenuActions(context),
-        ],
-      ),
-      body: _buildBody(),
-    );
+    return Builder(builder: (context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('History ($numSessions)'),
+          actions: [
+            _hamburgerMenuActions(context),
+          ],
+        ),
+        body: _buildBody(),
+      );
+    });
   }
 
   Widget _buildBody() {
@@ -107,7 +114,7 @@ class _HistoryPageState extends State<HistoryPage> {
     } else {
       return ListView.builder(
         controller: _scrollController,
-        itemCount: _sessions.length + 1, // (_hasMore ? 1 : 0),
+        itemCount: _sessions.length + 1,
         itemBuilder: (context, index) {
           if (index < _sessions.length) {
             return TrainingSessionHistoryCard(session: _sessions[index]);
@@ -143,7 +150,7 @@ class _HistoryPageState extends State<HistoryPage> {
               });
         }
         if (result == 'refresh training history') {
-          myStorage.getEntireUserTrainingHistory(useCache: true);
+          myStorage.getEntireUserTrainingHistory(useCache: false);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[

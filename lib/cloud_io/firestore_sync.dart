@@ -1,6 +1,3 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
-
-import 'dart:async';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,7 +12,7 @@ MyStorage myStorage = MyStorage();
 class MyStorage {
   static const _historyKey = 'TrainingHistory';
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  var _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
+  final _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
     CollectionReference users = firestore.collection('users');
@@ -48,7 +45,6 @@ class MyStorage {
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        // print(doc.data());
         return TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id;
       }).toList();
     });
@@ -62,9 +58,8 @@ class MyStorage {
 
   Future<List<TrainingSession>> getEntireUserTrainingHistory(
       {required bool useCache}) async {
-    if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
-    if (!FirebaseAuth.instance.currentUser!.emailVerified)
-      return Future.error("please verify email");
+    if (FirebaseAuth.instance.currentUser == null) return [];
+    if (!FirebaseAuth.instance.currentUser!.emailVerified) return [];
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference users = firestore.collection('users');
@@ -72,9 +67,16 @@ class MyStorage {
 
     QuerySnapshot<Object?> cloudTrainingHistory;
     if (useCache) {
-      cloudTrainingHistory = await userDoc.collection(_historyKey).getSavy();
+      cloudTrainingHistory = await userDoc
+          .collection(_historyKey)
+          .get(const GetOptions(source: Source.cache));
+      print('cache had ${cloudTrainingHistory.docs.length} items');
     } else {
-      cloudTrainingHistory = await userDoc.collection(_historyKey).get();
+      cloudTrainingHistory = await userDoc
+          .collection(_historyKey)
+          .get(const GetOptions(source: Source.server));
+      // cloudTrainingHistory = await userDoc.collection(_historyKey).get();
+      print('server had ${cloudTrainingHistory.docs.length} items');
       _historyCacheClock.resetClock();
     }
 
@@ -103,13 +105,12 @@ class MyStorage {
   }
 }
 
+//todo I should be selective about how I call this...gets esp. to server can fail!
 class CollectionCacheUpdateClock {
-  // static const String shared_prefs_label = 'last_true_time';
-  final String _collectionName;
   final String _sharedPrefsLabel;
   late final Future<SharedPreferences> _prefs;
-  CollectionCacheUpdateClock(this._collectionName)
-      : _sharedPrefsLabel = 'last_set_$_collectionName' {
+  CollectionCacheUpdateClock(String collectionName)
+      : _sharedPrefsLabel = 'last_set_$collectionName' {
     _prefs = SharedPreferences.getInstance();
   }
 

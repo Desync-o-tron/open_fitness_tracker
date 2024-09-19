@@ -1,9 +1,11 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'dart:async';
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //todo
 //turn on auth persistance! firesbase auth
@@ -11,13 +13,14 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 MyStorage myStorage = MyStorage();
 
 class MyStorage {
-  static const historyKey = 'TrainingHistory';
+  static const _historyKey = 'TrainingHistory';
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  var _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    userDoc.collection(historyKey).add(session.toJson());
+    userDoc.collection(_historyKey).add(session.toJson());
   }
 
   Stream<List<TrainingSession>> getUserTrainingHistoryStream({
@@ -32,10 +35,12 @@ class MyStorage {
     }
 
     final String userUid = FirebaseAuth.instance.currentUser!.uid;
-    final String collectionPath = 'users/$userUid/$historyKey';
+    final String collectionPath = 'users/$userUid/$_historyKey';
 
-    Query query =
-        FirebaseFirestore.instance.collection(collectionPath).orderBy('date', descending: true).limit(limit);
+    Query query = FirebaseFirestore.instance
+        .collection(collectionPath)
+        .orderBy('date', descending: true)
+        .limit(limit);
 
     if (startAfterTimestamp != null) {
       query = query.startAfter([startAfterTimestamp]);
@@ -49,19 +54,29 @@ class MyStorage {
     });
   }
 
-  Future<List<TrainingSession>> getEntireUserTrainingHistory({required bool useCache}) async {
+  Future<void> refreshTrainingHistoryCacheIfItsBeenXHours(int hours) async {
+    if (await _historyCacheClock.timeSinceCacheWasUpdated() > Duration(hours: hours)) {
+      getEntireUserTrainingHistory(useCache: false);
+    }
+  }
+
+  Future<List<TrainingSession>> getEntireUserTrainingHistory(
+      {required bool useCache}) async {
     if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
+    if (!FirebaseAuth.instance.currentUser!.emailVerified)
+      return Future.error("please verify email");
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
 
     QuerySnapshot<Object?> cloudTrainingHistory;
-    if (useCache)
-      cloudTrainingHistory = await userDoc.collection(historyKey).getSavy();
-    else
-      cloudTrainingHistory = await userDoc.collection(historyKey).get();
+    if (useCache) {
+      cloudTrainingHistory = await userDoc.collection(_historyKey).getSavy();
+    } else {
+      cloudTrainingHistory = await userDoc.collection(_historyKey).get();
+      _historyCacheClock.resetClock();
+    }
 
     List<TrainingSession> sessions = [];
     for (var doc in cloudTrainingHistory.docs) {
@@ -76,18 +91,46 @@ class MyStorage {
   /// will remove the history data corresponding to the id of the training session
   Future<void> removeHistoryData(final TrainingSession sesh) async {
     if (FirebaseAuth.instance.currentUser == null) return Future.error("please sign in");
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return Future.error("please verify email");
+    if (!FirebaseAuth.instance.currentUser!.emailVerified)
+      return Future.error("please verify email");
 
     if (sesh.id == '') return Future.error("no session id!");
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference users = firestore.collection('users');
     DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    return userDoc.collection(historyKey).doc(sesh.id).delete();
+    return userDoc.collection(_historyKey).doc(sesh.id).delete();
   }
 }
 
-//todo..if I've only loaded some docs via pagination..will this get everything?
+class CollectionCacheUpdateClock {
+  // static const String shared_prefs_label = 'last_true_time';
+  final String _collectionName;
+  final String _sharedPrefsLabel;
+  late final Future<SharedPreferences> _prefs;
+  CollectionCacheUpdateClock(this._collectionName)
+      : _sharedPrefsLabel = 'last_set_$_collectionName' {
+    _prefs = SharedPreferences.getInstance();
+  }
+
+  Future<bool> resetClock() async {
+    var prefs = await _prefs;
+    return prefs.setInt(_sharedPrefsLabel, DateTime.now().millisecondsSinceEpoch);
+    //todo err handling
+  }
+
+  Future<Duration> timeSinceCacheWasUpdated() async {
+    var prefs = await _prefs;
+    final lastTimeMillis = prefs.getInt(_sharedPrefsLabel);
+    final now = DateTime.now();
+    var then = DateTime.fromMillisecondsSinceEpoch(0);
+    if (lastTimeMillis != null) {
+      then = DateTime.fromMillisecondsSinceEpoch(lastTimeMillis);
+    }
+    return now.difference(then);
+  }
+}
+
 // https://github.com/furkansarihan/firestore_collection/blob/master/lib/firestore_document.dart
 extension FirestoreDocumentExtension on DocumentReference {
   Future<DocumentSnapshot> getSavy() async {
@@ -117,7 +160,8 @@ extension FirestoreQueryExtension on Query {
 class FirestoreCollectionRepository {
   final CollectionReference _collectionRef;
   final List<DocumentSnapshot> _documents = [];
-  final StreamController<List<DocumentSnapshot>> _controller = StreamController.broadcast();
+  final StreamController<List<DocumentSnapshot>> _controller =
+      StreamController.broadcast();
   late StreamSubscription _subscription;
 
   final bool keepInMemory;
@@ -129,7 +173,8 @@ class FirestoreCollectionRepository {
   FirestoreCollectionRepository(String collectionPath, {this.keepInMemory = true})
       : _collectionRef = FirebaseFirestore.instance.collection(collectionPath) {
     if (FirebaseAuth.instance.currentUser == null) throw Exception("please sign in");
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) throw Exception("please verify email");
+    if (!FirebaseAuth.instance.currentUser!.emailVerified)
+      throw Exception("please verify email");
     _initialize();
   }
 
@@ -186,7 +231,6 @@ class FirestoreCollectionRepository {
     _controller.close();
   }
 }
-
 
 ////
 ////

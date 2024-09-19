@@ -41,8 +41,8 @@ final GoRouter routerConfig = GoRouter(
   // initialLocation: routeNames.Temp.text,
   // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
-  // initialLocation: routeNames.History.text, //////////<--- This is the initial route
-  initialLocation: routeNames.Community.text, //////////<--- This is the initial route
+  initialLocation: routeNames.History.text, //////////<--- This is the initial route
+  // initialLocation: routeNames.Community.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(
       navigatorKey: _shellNavigatorKey,

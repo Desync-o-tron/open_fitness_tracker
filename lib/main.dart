@@ -12,7 +12,6 @@ import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
@@ -23,15 +22,12 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  //refresh the training history cache every X hours
-  if (await canReturnTrueOnceEveryXHours(14)) {
-    myStorage.getEntireUserTrainingHistory(useCache: false);
-  } else {
-    myStorage.getEntireUserTrainingHistory(useCache: true);
-  }
+  myStorage.refreshTrainingHistoryCacheIfItsBeenXHours(12);
 
   HydratedStorage hydratedStorage = await HydratedStorage.build(
-    storageDirectory: kIsWeb ? HydratedStorage.webStorageDirectory : await getApplicationDocumentsDirectory(),
+    storageDirectory: kIsWeb
+        ? HydratedStorage.webStorageDirectory
+        : await getApplicationDocumentsDirectory(),
   );
   HydratedBloc.storage = hydratedStorage;
 

@@ -33,7 +33,8 @@ class _HistoryPageState extends State<HistoryPage> {
     _loadMoreData();
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 400 &&
+      if (_scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 400 &&
           !_isLoading &&
           _hasMore) {
         _loadMoreData();
@@ -141,11 +142,18 @@ class _HistoryPageState extends State<HistoryPage> {
                 return const ExternalAppTrainingImportDialog();
               });
         }
+        if (result == 'refresh training history') {
+          myStorage.getEntireUserTrainingHistory(useCache: true);
+        }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         const PopupMenuItem<String>(
           value: 'import',
           child: Text('Import exercise & training data'),
+        ),
+        const PopupMenuItem<String>(
+          value: 'refresh training history',
+          child: Text('refresh training history cache'),
         ),
         PopupMenuItem<String>(
             value: 'delete history',
@@ -186,13 +194,15 @@ class TrainingSessionHistoryCard extends StatelessWidget {
                       onPressed: () async {
                         await showDialog(
                             context: context,
-                            builder: (context) => TrainingHistoryCardManagementDialog(session));
+                            builder: (context) =>
+                                TrainingHistoryCardManagementDialog(session));
                       },
                       child: const Icon(Icons.edit),
                     )),
               ],
             ),
-            Text("Completed ${session.date.toDaysAgo()}", style: Theme.of(context).textTheme.titleSmall),
+            Text("Completed ${session.date.toDaysAgo()}",
+                style: Theme.of(context).textTheme.titleSmall),
             Text(
               DateFormat('h:mm a EEEE, MMMM d, y').format(session.date),
               style: Theme.of(context).textTheme.titleSmall,
@@ -306,7 +316,8 @@ class _DisplayPastTrainingDataState extends State<DisplayPastTrainingData> {
   ) {
     //utility function
     Widget tableText(String text) {
-      return Text(text, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center);
+      return Text(text,
+          style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center);
     }
 
     for (int setNum = 0; setNum < es.sets.length; setNum++) {
@@ -342,7 +353,8 @@ class _DisplayPastTrainingDataState extends State<DisplayPastTrainingData> {
 
     //utility function
     Widget headerText(String text, BuildContext context) {
-      return Text(text, style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
+      return Text(text,
+          style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
     }
 
     header.addAll(
@@ -384,11 +396,13 @@ class MakeHistoryVisualTableWithSpacing extends StatelessWidget {
 
     List<Widget> pageContent = [];
     pageContent.add(createHeaderRowWithSpacing(header, columnWidths, context));
-    pageContent.addAll(createTableRowsWithSpacing(exerciseTableData, columnWidths, context));
+    pageContent
+        .addAll(createTableRowsWithSpacing(exerciseTableData, columnWidths, context));
     return Column(children: pageContent);
   }
 
-  Row createHeaderRowWithSpacing(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
+  Row createHeaderRowWithSpacing(
+      List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> headerRow = [];
     for (int i = 0; i < header.length; i++) {
       headerRow.add(Container(
@@ -403,8 +417,8 @@ class MakeHistoryVisualTableWithSpacing extends StatelessWidget {
     );
   }
 
-  List<Widget> createTableRowsWithSpacing(
-      ExerciseTableData exerciseTableData, Map<int, double> columnWidths, BuildContext context) {
+  List<Widget> createTableRowsWithSpacing(ExerciseTableData exerciseTableData,
+      Map<int, double> columnWidths, BuildContext context) {
     List<Widget> tableRows = [];
     for (int i = 0; i < exerciseTableData.tableData.length; i++) {
       List<Widget> row = [];

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/training/training_data_table.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 
 class TrainingPage extends StatefulWidget {
   const TrainingPage({super.key});
@@ -51,26 +51,22 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Container()),
-        Expanded(child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
+        Expanded(
+            child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
         const SizedBox(width: 20),
         Expanded(
           child: MyGenericButton(
               label: "Finish",
               onPressed: () {
+                //TODO force user to sign in & email verify..at app level?
                 //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
                 sesh.isOngoing = false;
                 sesh.duration = DateTime.now().difference(sesh.date);
                 sesh.dateOfLastEdit = DateTime.now();
-                context.read<TrainingHistoryCubit>().addSession(sesh); //saved.
+                myStorage.addTrainingSessionToHistory(sesh);
                 context.read<TrainingSessionCubit>().reset();
-
-                if (FirebaseAuth.instance.currentUser != null) {
-                  context.go(routeNames.History.text);
-                } else {
-                  context.go(routeNames.Community.text);
-                  // context.goNamed(routeNames.SignIn.text);
-                }
+                context.go(routeNames.History.text);
               },
               color: mediumGreen),
         ),
@@ -89,7 +85,8 @@ class TrainingTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
       child: TextField(
         style: Theme.of(context).textTheme.headlineSmall,
-        controller: TextEditingController(text: state.name.isEmpty ? 'New Training Session' : state.name),
+        controller: TextEditingController(
+            text: state.name.isEmpty ? 'New Training Session' : state.name),
         decoration: const InputDecoration(
             icon: Icon(Icons.edit), border: OutlineInputBorder(borderSide: BorderSide())),
         onChanged: (value) {
@@ -106,7 +103,8 @@ class DisplayDurationTimer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var state = context.watch<TrainingSessionCubit>().state;
-    return Text(state.duration.toHoursMinutesSeconds(), style: Theme.of(context).textTheme.bodyMedium);
+    return Text(state.duration.toHoursMinutesSeconds(),
+        style: Theme.of(context).textTheme.bodyMedium);
   }
 }
 
@@ -124,7 +122,8 @@ class NotesWidget extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: TextEditingController(text: state.notes),
-              decoration: const InputDecoration(hintText: "training notes...", icon: Icon(Icons.edit)),
+              decoration: const InputDecoration(
+                  hintText: "training notes...", icon: Icon(Icons.edit)),
               onChanged: (value) {
                 // state.notes = value;
                 context.read<TrainingSessionCubit>().updateNotes(value);

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -15,13 +14,12 @@ dart run build_runner watch --delete-conflicting-outputs
 @JsonSerializable(explicitToJson: true)
 class TrainingSession {
   String id;
-  @DateTimeTimestampConverter()
+  @JsonKey(toJson: _dateTimetoJson, fromJson: _dateTimefromJson)
   DateTime dateOfLastEdit;
-  @DateTimeTimestampConverter()
+  @JsonKey(toJson: _dateTimetoJson, fromJson: _dateTimefromJson)
   DateTime date;
   bool isOngoing = false;
   String name;
-  // @JsonKey(fromJson: _durationFromMilliseconds, toJson: _durationToMilliseconds)
   Duration duration;
   String? notes;
   List<SetsOfAnExercise> trainingData = [];
@@ -42,7 +40,8 @@ class TrainingSession {
         name = name ?? '',
         notes = notes ?? '',
         trainingData = trainingData ?? [],
-        dateOfLastEdit = dateOfLastEdit ?? DateTime.now(); //does this logic make sense? i think so.
+        dateOfLastEdit =
+            dateOfLastEdit ?? DateTime.now(); //does this logic make sense? i think so.
 
   TrainingSession.copy(TrainingSession sesh)
       : id = sesh.id,
@@ -68,17 +67,26 @@ class TrainingSession {
     );
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TrainingSession && other.id == id && other.dateOfLastEdit == dateOfLastEdit;
-  }
+  // @override
+  // bool operator ==(Object other) {
+  //   if (identical(this, other)) return true;
+  //   return other is TrainingSession &&
+  //       other.id == id &&
+  //       other.dateOfLastEdit == dateOfLastEdit &&
 
-  @override
-  int get hashCode => id.hashCode ^ dateOfLastEdit.hashCode;
+  //       ;
+  // }
 
-  factory TrainingSession.fromJson(Map<String, dynamic> json) => _$TrainingSessionFromJson(json);
+  // @override
+  // int get hashCode => id.hashCode ^ dateOfLastEdit.hashCode;
+
+  factory TrainingSession.fromJson(Map<String, dynamic> json) =>
+      _$TrainingSessionFromJson(json);
   Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
+
+  static int _dateTimetoJson(DateTime value) => value.millisecondsSinceEpoch;
+  static DateTime _dateTimefromJson(int value) =>
+      DateTime.fromMillisecondsSinceEpoch(value);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -91,7 +99,8 @@ class SetsOfAnExercise {
     if (sets.isEmpty) sets.add(Set(ex));
   }
 
-  factory SetsOfAnExercise.fromJson(Map<String, dynamic> json) => _$SetsOfAnExerciseFromJson(json);
+  factory SetsOfAnExercise.fromJson(Map<String, dynamic> json) =>
+      _$SetsOfAnExerciseFromJson(json);
   Map<String, dynamic> toJson() => _$SetsOfAnExerciseToJson(this);
 }
 
@@ -123,64 +132,6 @@ class Set {
   Map<String, dynamic> toJson() => _$SetToJson(this);
 }
 
-// Custom converter
-class DateTimeTimestampConverter implements JsonConverter<DateTime, Timestamp> {
-  const DateTimeTimestampConverter();
-
-  @override
-  DateTime fromJson(Timestamp timestamp) => timestamp.toDate();
-  @override
-  Timestamp toJson(DateTime date) => Timestamp.fromDate(date);
-}
-
-// // Duration converters
-// Duration _durationFromMilliseconds(int milliseconds) => Duration(milliseconds: milliseconds);
-// int _durationToMilliseconds(Duration duration) => duration.inMilliseconds;
-
-//TODO rm me
-class TrainingHistoryCubit extends HydratedCubit<List<TrainingSession>> {
-  TrainingHistoryCubit() : super([]);
-
-  void addSession(TrainingSession sesh) {
-    var newState = state.toList();
-    emit(newState..add(sesh));
-  }
-
-  void addSessions(List<TrainingSession> sessions) {
-    var newState = state.toList();
-    emit(newState..addAllIfDNE(sessions));
-    // state.addAll(sessions);
-  }
-
-  void removeSession(TrainingSession sesh) {
-    var newState = state.toList();
-    emit(newState..remove(sesh));
-  }
-
-  void deleteHistory() {
-    emit(<TrainingSession>[]);
-  }
-
-  @override
-  List<TrainingSession>? fromJson(Map<String, dynamic> json) {
-    List<TrainingSession> seshes = [];
-    for (var sesh in json['trainingHistory']) {
-      //todo this is lame? I would rather have the key be a hash of the object so I can compare the objects for changes (it would make syncing easier..not sure if it's worth it though)
-      seshes.add(TrainingSession.fromJson(sesh));
-    }
-    return seshes;
-  }
-
-  @override
-  Map<String, dynamic>? toJson(List<TrainingSession> state) {
-    List<Map<String, dynamic>> seshes = [];
-    for (var sesh in state) {
-      seshes.add(sesh.toJson());
-    }
-    return {'trainingHistory': seshes};
-  }
-}
-
 class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   TrainingSessionCubit() : super(TrainingSession()) {
     // var bench = Exercise(
@@ -208,7 +159,6 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   void addExercise(Exercise ex) {
     var newState = TrainingSession.copy(state);
     newState.trainingData.add(SetsOfAnExercise(ex));
-    // state.trainingData.add(SetsOfAnExercise(ex));
     emit(newState);
   }
 
@@ -226,7 +176,8 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
 
   void removeSet(Exercise ex, String setId) {
     TrainingSession newState = TrainingSession.copy(state);
-    SetsOfAnExercise setsOfAnExercise = newState.trainingData.firstWhere((element) => element.ex == ex);
+    SetsOfAnExercise setsOfAnExercise =
+        newState.trainingData.firstWhere((element) => element.ex == ex);
     bool removed = false;
     for (var i = 0; i < setsOfAnExercise.sets.length; i++) {
       if (setsOfAnExercise.sets[i].id == setId) {
@@ -264,16 +215,6 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
     emit(TrainingSession(trainingData: [], date: DateTime.now()));
   }
 
-  @override
-  TrainingSession? fromJson(Map<String, dynamic> json) {
-    return TrainingSession.fromJson(json);
-  }
-
-  @override
-  Map<String, dynamic>? toJson(TrainingSession state) {
-    return state.toJson();
-  }
-
   void updateDuration() {
     TrainingSession newState = TrainingSession.copy(state);
     newState.duration = DateTime.now().difference(state.date);
@@ -284,5 +225,15 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
     TrainingSession newState = TrainingSession.copy(state);
     newState.notes = value;
     emit(newState);
+  }
+
+  @override
+  TrainingSession? fromJson(Map<String, dynamic> json) {
+    return TrainingSession.fromJson(json);
+  }
+
+  @override
+  Map<String, dynamic>? toJson(TrainingSession state) {
+    return state.toJson();
   }
 }

@@ -12,36 +12,29 @@ TrainingSession _$TrainingSessionFromJson(Map<String, dynamic> json) =>
       duration: json['duration'] == null
           ? null
           : Duration(microseconds: (json['duration'] as num).toInt()),
-      date: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['date'], const DateTimeTimestampConverter().fromJson),
+      date: TrainingSession._dateTimefromJson((json['date'] as num).toInt()),
       isOngoing: json['isOngoing'] as bool?,
       name: json['name'] as String?,
       notes: json['notes'] as String?,
       trainingData: (json['trainingData'] as List<dynamic>?)
           ?.map((e) => SetsOfAnExercise.fromJson(e as Map<String, dynamic>))
           .toList(),
-      dateOfLastEdit: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['dateOfLastEdit'], const DateTimeTimestampConverter().fromJson),
+      dateOfLastEdit: TrainingSession._dateTimefromJson(
+          (json['dateOfLastEdit'] as num).toInt()),
     );
 
 Map<String, dynamic> _$TrainingSessionToJson(TrainingSession instance) =>
     <String, dynamic>{
       'id': instance.id,
       'dateOfLastEdit':
-          const DateTimeTimestampConverter().toJson(instance.dateOfLastEdit),
-      'date': const DateTimeTimestampConverter().toJson(instance.date),
+          TrainingSession._dateTimetoJson(instance.dateOfLastEdit),
+      'date': TrainingSession._dateTimetoJson(instance.date),
       'isOngoing': instance.isOngoing,
       'name': instance.name,
       'duration': instance.duration.inMicroseconds,
       'notes': instance.notes,
       'trainingData': instance.trainingData.map((e) => e.toJson()).toList(),
     };
-
-Value? _$JsonConverterFromJson<Json, Value>(
-  Object? json,
-  Value? Function(Json json) fromJson,
-) =>
-    json == null ? null : fromJson(json as Json);
 
 SetsOfAnExercise _$SetsOfAnExerciseFromJson(Map<String, dynamic> json) =>
     SetsOfAnExercise(

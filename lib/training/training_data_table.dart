@@ -42,11 +42,13 @@ class MakeVisualTableWithSpacing extends StatelessWidget {
 
     List<Widget> pageContent = [];
     pageContent.add(createHeaderRowWithSpacing(header, columnWidths, context));
-    pageContent.addAll(createTableRowsWithSpacing(exerciseTableData, columnWidths, context));
+    pageContent
+        .addAll(createTableRowsWithSpacing(exerciseTableData, columnWidths, context));
     return Column(children: pageContent);
   }
 
-  Row createHeaderRowWithSpacing(List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
+  Row createHeaderRowWithSpacing(
+      List<Widget> header, Map<int, double> columnWidths, BuildContext context) {
     List<Widget> headerRow = [];
     for (int i = 0; i < header.length; i++) {
       headerRow.add(Container(
@@ -58,8 +60,8 @@ class MakeVisualTableWithSpacing extends StatelessWidget {
     return Row(mainAxisAlignment: MainAxisAlignment.start, children: headerRow);
   }
 
-  List<Widget> createTableRowsWithSpacing(
-      ExerciseTableData exerciseTableData, Map<int, double> columnWidths, BuildContext context) {
+  List<Widget> createTableRowsWithSpacing(ExerciseTableData exerciseTableData,
+      Map<int, double> columnWidths, BuildContext context) {
     List<Widget> tableRows = [];
     for (int i = 0; i < exerciseTableData.tableData.length; i++) {
       List<Widget> row = [];
@@ -100,8 +102,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pageContent = []; //
-    for (SetsOfAnExercise setsOfAnEx in context.read<TrainingSessionCubit>().state.trainingData) {
-      // for (SetsOfAnExercise setsOfAnEx in context.watch<TrainingSessionCubit>().state.trainingData) {
+    for (SetsOfAnExercise setsOfAnEx
+        in context.read<TrainingSessionCubit>().state.trainingData) {
       List<Widget> header = [];
       List<SetTableRowData> tableContent = [];
       addTableHeaderForEx(pageContent, header, setsOfAnEx, context);
@@ -134,7 +136,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
         onPressed: () async {
           await Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (BuildContext context) => const ExerciseSearchPage(useForAddingToTraining: true),
+              builder: (BuildContext context) =>
+                  const ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
           setState(() {}); //todo this is weird
@@ -177,18 +180,22 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
         SetTableRowData(set, [
           Text((setNum + 1).toString(),
               style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-          Text("-", style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+          Text("-",
+              style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           //add textfields for each setMetric
           if (es.prevSet.weight != null)
-            SetDataTextField(set, setNum, es, set.weight, (set, value) => set.weight = value),
+            SetDataTextField(
+                set, setNum, es, set.weight, (set, value) => set.weight = value),
           if (es.prevSet.reps != null)
             SetDataTextField(set, setNum, es, set.reps, (set, value) => set.reps = value),
           if (es.prevSet.time != null)
             SetDataTextField(set, setNum, es, set.time, (set, value) => set.time = value),
           if (es.prevSet.distance != null)
-            SetDataTextField(set, setNum, es, set.distance, (set, value) => set.distance = value),
+            SetDataTextField(
+                set, setNum, es, set.distance, (set, value) => set.distance = value),
           if (es.prevSet.speed != null)
-            SetDataTextField(set, setNum, es, set.speed, (set, value) => set.speed = value),
+            SetDataTextField(
+                set, setNum, es, set.speed, (set, value) => set.speed = value),
           TextButton(
             onPressed: () {
               set.completed = !set.completed;
@@ -223,7 +230,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
                 icon: Icon(FontAwesomeIcons.ellipsis,
                     size: 15.0, color: Theme.of(context).colorScheme.onSecondary),
                 onPressed: () async {
-                  await showDialog(context: context, builder: (context) => ExManagementDialog(es));
+                  await showDialog(
+                      context: context, builder: (context) => ExManagementDialog(es));
                   setState(() {});
                 },
                 color: Theme.of(context).colorScheme.secondary,
@@ -237,7 +245,8 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
 
     //utility function
     Widget headerText(String text, BuildContext context) {
-      return Text(text, style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
+      return Text(text,
+          style: Theme.of(context).textTheme.labelMedium, textAlign: TextAlign.center);
     }
 
     header.addAll(
@@ -262,7 +271,8 @@ class SetDataTextField extends StatefulWidget {
   // ignore: prefer_typing_uninitialized_variables
   final ogValue;
   final Function setSetValue; //this makes sense.
-  const SetDataTextField(this.set, this.setIndex, this.es, this.ogValue, this.setSetValue, {super.key});
+  const SetDataTextField(this.set, this.setIndex, this.es, this.ogValue, this.setSetValue,
+      {super.key});
   @override
   // ignore: library_private_types_in_public_api
   _SetDataTextFieldState createState() => _SetDataTextFieldState();
@@ -284,7 +294,8 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.bodyMedium,
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
+        contentPadding:
+            const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14.0),
             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
@@ -300,12 +311,14 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
         } else {
           Set modifiedSet = widget.set;
           widget.setSetValue(modifiedSet, parsedVal);
-          context.read<TrainingSessionCubit>().updateSet(widget.es.ex, modifiedSet, widget.setIndex);
+          context
+              .read<TrainingSessionCubit>()
+              .updateSet(widget.es.ex, modifiedSet, widget.setIndex);
         }
       },
       inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.deny(
-            RegExp(r'[^0-9.]')), // This allows digits, a decimal point, and backspace/delete
+        FilteringTextInputFormatter.deny(RegExp(
+            r'[^0-9.]')), // This allows digits, a decimal point, and backspace/delete
         TextInputFormatter.withFunction((oldValue, newValue) {
           // This allows only one decimal point
           int count = 0;

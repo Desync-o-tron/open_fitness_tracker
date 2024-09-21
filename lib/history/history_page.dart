@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
@@ -166,9 +164,9 @@ class _HistoryPageState extends State<HistoryPage> {
             value: 'delete history',
             child: ElevatedButton(
               onPressed: () {
-                context.read<TrainingHistoryCubit>().deleteHistory();
+                myStorage.deleteTrainingHistory();
               },
-              child: const Text("dont click me"),
+              child: const Text("del history..dont click me"),
             )),
       ],
     );

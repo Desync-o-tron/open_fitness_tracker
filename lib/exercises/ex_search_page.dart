@@ -5,7 +5,8 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
-import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart' show ExSearchCubit, ExSearchState;
+import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart'
+    show ExSearchCubit, ExSearchState;
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -59,13 +60,16 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                       return ExerciseTile(
                           exercise: state.filteredExercises[index],
                           isSelectable: widget.useForAddingToTraining,
-                          isSelected: selectedExercises.contains(state.filteredExercises[index]) ||
-                              newlySelectedExercises.contains(state.filteredExercises[index]),
+                          isSelected: selectedExercises
+                                  .contains(state.filteredExercises[index]) ||
+                              newlySelectedExercises
+                                  .contains(state.filteredExercises[index]),
                           onSelectionChanged: (bool isSelected) {
                             if (isSelected) {
                               newlySelectedExercises.add(state.filteredExercises[index]);
                             } else {
-                              newlySelectedExercises.remove(state.filteredExercises[index]);
+                              newlySelectedExercises
+                                  .remove(state.filteredExercises[index]);
                             }
                             setState(() {});
                           });
@@ -82,6 +86,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                 onPressed: () {
                   var trainingCubit = context.read<TrainingSessionCubit>();
                   for (var ex in newlySelectedExercises) {
+                    // print(trainingCubit.state.toJson());
+                    // var ii = 1;
                     trainingCubit.addExercise(ex);
                   }
                   Navigator.pop(context);
@@ -97,7 +103,9 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                   child: MyGenericButton(
                     label: state.musclesFilter.isEmpty
                         ? 'Any Muscle'
-                        : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                        : state.musclesFilter
+                            .map((e) => e.capTheFirstLetter())
+                            .join(", "),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -113,12 +121,15 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                   child: MyGenericButton(
                     label: state.categoriesFilter.isEmpty
                         ? 'Any Category'
-                        : state.categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                        : state.categoriesFilter
+                            .map((e) => e.capTheFirstLetter())
+                            .join(", "),
                     onPressed: () {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return const SearchMultiSelectModal(isForMuscleSelection: false);
+                          return const SearchMultiSelectModal(
+                              isForMuscleSelection: false);
                         },
                       );
                     },

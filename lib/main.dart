@@ -50,9 +50,6 @@ class MyApp extends StatelessWidget {
           create: (_) => TrainingSessionCubit(),
         ),
         BlocProvider(
-          create: (_) => TrainingHistoryCubit(),
-        ),
-        BlocProvider(
           create: (_) => CreateNewExCubit(),
         ),
       ],
@@ -60,7 +57,7 @@ class MyApp extends StatelessWidget {
         trainingDurationTimer = Timer.periodic(
           const Duration(seconds: 1),
           (timer) {
-            // context.read<TrainingSessionCubit>().updateDuration();
+            context.read<TrainingSessionCubit>().updateDuration();
           },
         );
         return MaterialApp.router(

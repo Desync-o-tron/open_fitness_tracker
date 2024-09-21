@@ -76,6 +76,8 @@ class SignInScreenWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return SignInScreen(
       providers: providers,
+      //I double check auth in routes.dart now, but...synergy.
+      // I'm too dumb to get it to work only there. that's fine I think
       actions: [
         AuthStateChangeAction((context, state) {
           final user = switch (state) {
@@ -109,7 +111,7 @@ class EmailVerificationScreenWrapper extends StatelessWidget {
           context.go(routeNames.Profile.text);
         }),
         AuthCancelledAction((context) {
-          context.pop();
+          context.go(routeNames.Profile.text);
         }),
       ],
     );

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +32,15 @@ Future<void> main() async {
   );
   HydratedBloc.storage = hydratedStorage;
 
+  //https://stackoverflow.com/a/77448906/3894291
+  FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    routerConfig.refresh();
+  });
+
   runApp(const MyApp());
 }
+
+//TODO replace the banner on the bottom when not signed in to make the place more welcoming!
 
 Timer? trainingDurationTimer;
 

@@ -1,8 +1,8 @@
 // ignore_for_file: constant_identifier_names, camel_case_types
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
-// import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-// import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
@@ -94,4 +94,22 @@ final GoRouter routerConfig = GoRouter(
       ],
     ),
   ],
+  //todo is this slow?
+  // redirect to the login page if the user is not logged in
+  redirect: (BuildContext context, GoRouterState state) async {
+    final bool loggedIn = FirebaseAuth.instance.currentUser != null;
+    if (!loggedIn) {
+      return routeNames.SignIn.text;
+    } else if (!FirebaseAuth.instance.currentUser!.emailVerified) {
+      if (state.matchedLocation == routeNames.SignIn.text ||
+          state.matchedLocation == routeNames.Profile.text ||
+          state.matchedLocation == routeNames.VerifyEmail.text) {
+        return null;
+      } else {
+        return routeNames.Profile.text;
+      }
+    }
+    // otherwise no need to redirect at all
+    return null;
+  },
 );

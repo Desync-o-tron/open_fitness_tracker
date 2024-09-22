@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/history/import_training_dialog.dart';
+import 'package:open_fitness_tracker/importing/import_training_dialog.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -164,7 +164,7 @@ class _HistoryPageState extends State<HistoryPage> {
             value: 'delete history',
             child: ElevatedButton(
               onPressed: () {
-                myStorage.deleteTrainingHistory();
+                myStorage.deleteEntireTrainingHistory();
               },
               child: const Text("del history..dont click me"),
             )),
@@ -239,7 +239,7 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     delSesh() async {
       myStorage
-          .removeHistoryData(sesh)
+          .removeTrainingSessionFromHistory(sesh)
           .onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
                 content: Text('Failed to delete training session'),
                 duration: Duration(seconds: 2),

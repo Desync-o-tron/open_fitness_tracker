@@ -3,46 +3,44 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //todo
-//turn on auth persistance! firesbase auth
+//turn on auth persistance! firesbase auth?a
 
 MyStorage myStorage = MyStorage();
 
 class MyStorage {
   MyStorage() {
-    firestore.settings = const Settings(
+    _firestore.settings = const Settings(
         persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
     if (kIsWeb) {
       //haven't tested w/o this. doc is not up to date. idc.
-      firestore
+      _firestore
           // ignore: deprecated_member_use
           .enablePersistence(const PersistenceSettings(synchronizeTabs: true));
     }
+    _userDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+    // getBasicUserInfo();
   }
 
-  static const _historyKey = 'TrainingHistory';
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
+  late final DocumentReference _userDoc;
+  static const _historyKey = 'TrainingHistory';
+  static const _basicUserInfoKey = 'BasicUserInfo';
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
-    CollectionReference users = firestore.collection('users');
-    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    userDoc.collection(_historyKey).add(session.toJson());
+    _userDoc.collection(_historyKey).add(session.toJson());
   }
 
   Stream<List<TrainingSession>> getUserTrainingHistoryStream({
     required int limit,
     DateTime? startAfterTimestamp,
   }) {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return Stream.error("Please sign in");
-    }
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      return Stream.error("Please verify email");
-    }
-
     final String userUid = FirebaseAuth.instance.currentUser!.uid;
     final String collectionPath = 'users/$userUid/$_historyKey';
 
@@ -70,25 +68,16 @@ class MyStorage {
 
   Future<List<TrainingSession>> getEntireUserTrainingHistory(
       {required bool useCache}) async {
-    if (FirebaseAuth.instance.currentUser == null) return [];
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) return [];
-
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference users = firestore.collection('users');
-    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-
     QuerySnapshot<Object?> cloudTrainingHistory;
     if (useCache) {
-      cloudTrainingHistory = await userDoc
+      cloudTrainingHistory = await _userDoc
           .collection(_historyKey)
           .get(const GetOptions(source: Source.cache));
-      print('cache had ${cloudTrainingHistory.docs.length} items');
     } else {
-      cloudTrainingHistory = await userDoc
+      cloudTrainingHistory = await _userDoc
           .collection(_historyKey)
           .get(const GetOptions(source: Source.server));
-      // cloudTrainingHistory = await userDoc.collection(_historyKey).get();
-      print('server had ${cloudTrainingHistory.docs.length} items');
+
       _historyCacheClock.resetClock();
     }
 
@@ -100,36 +89,17 @@ class MyStorage {
     return sessions;
   }
 
-  // this smells. why do I have two rm calls (look at the caller) also, do I need to rm from the local oldhistory?
-
   /// will remove the history data corresponding to the id of the training session
-  Future<void> removeHistoryData(final TrainingSession sesh) async {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return Future.error("please sign in");
-    }
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      return Future.error("please verify email");
-    }
-
+  Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
     if (sesh.id == '') {
       return Future.error("no session id!");
     }
-
-    CollectionReference users = firestore.collection('users');
-    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    return userDoc.collection(_historyKey).doc(sesh.id).delete();
+    return _userDoc.collection(_historyKey).doc(sesh.id).delete();
   }
 
-  Future<void> deleteTrainingHistory() async {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return Future.error("Please sign in");
-    }
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      return Future.error("Please verify your email");
-    }
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-    DocumentReference userDoc = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    CollectionReference historyCollection = userDoc.collection(_historyKey);
+  //should we back this up?..maybe!
+  Future<void> deleteEntireTrainingHistory() async {
+    CollectionReference historyCollection = _userDoc.collection(_historyKey);
     QuerySnapshot snapshot = await historyCollection.get();
     WriteBatch batch = FirebaseFirestore.instance.batch();
     // Add delete operations for each document to the batch
@@ -138,6 +108,34 @@ class MyStorage {
     }
     await batch.commit();
   }
+
+  Future<BasicUserInfo> getBasicUserInfo() async {
+    // QuerySnapshot<Map<String, dynamic>> userInfo = await _userDoc
+    //     .collection(_historyKey)
+    //     .get(const GetOptions(source: Source.server));
+    // return BasicUserInfo.fromJson(userInfo.docs.first.data());
+    return Future.error("error");
+  }
+
+  Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
+    _userDoc.update({_basicUserInfoKey: userInfo.toJson()});
+  }
+
+  // void addFieldToDocument(String docId, String collectionName) async {
+  //   // Get a reference to the Firestore document
+  //   DocumentReference documentReference =
+  //       FirebaseFirestore.instance.collection(collectionName).doc(docId);
+
+  //   // Add a new field to the document (or update it if it already exists)
+  //   try {
+  //     await documentReference.update({
+  //       'newFieldName': 'newValue', // Field name and value you want to add
+  //     });
+  //     print('Field added successfully');
+  //   } catch (e) {
+  //     print('Error updating document: $e');
+  //   }
+  // }
 }
 
 //todo I should be selective about how I call this...gets esp. to server can fail!
@@ -192,80 +190,3 @@ extension FirestoreQueryExtension on Query {
     }
   }
 }
-/*
-class FirestoreCollectionRepository {
-  final CollectionReference _collectionRef;
-  final List<DocumentSnapshot> _documents = [];
-  final StreamController<List<DocumentSnapshot>> _controller =
-      StreamController.broadcast();
-  late StreamSubscription _subscription;
-
-  final bool keepInMemory;
-
-  // Getter for the stream of documents
-  Stream<List<DocumentSnapshot>> get stream => _controller.stream;
-
-  // Constructor
-  FirestoreCollectionRepository(String collectionPath, {this.keepInMemory = true})
-      : _collectionRef = FirebaseFirestore.instance.collection(collectionPath) {
-    if (FirebaseAuth.instance.currentUser == null) throw Exception("please sign in");
-    if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      throw Exception("please verify email");
-    }
-    _initialize();
-  }
-
-  void _initialize() async {
-    try {
-      // Initial data load
-      QuerySnapshot snapshot = await _collectionRef.getSavy();
-
-      if (keepInMemory) {
-        _documents.addAll(snapshot.docs);
-        // Emit the initial list
-        _controller.add(List<DocumentSnapshot>.from(_documents));
-      } else {
-        // Emit the initial list directly without storing
-        _controller.add(List<DocumentSnapshot>.from(snapshot.docs));
-      }
-
-      // Set up the real-time listener
-      _subscription = _collectionRef.snapshots().listen(_onData);
-    } catch (error) {
-      _controller.addError(error);
-    }
-  }
-
-  void _onData(QuerySnapshot snapshot) {
-    if (keepInMemory) {
-      // Handle real-time updates and update the local list
-      for (var change in snapshot.docChanges) {
-        switch (change.type) {
-          case DocumentChangeType.added:
-            _documents.add(change.doc);
-            break;
-          case DocumentChangeType.modified:
-            int index = _documents.indexWhere((doc) => doc.id == change.doc.id);
-            if (index != -1) {
-              _documents[index] = change.doc;
-            }
-            break;
-          case DocumentChangeType.removed:
-            _documents.removeWhere((doc) => doc.id == change.doc.id);
-            break;
-        }
-      }
-      // Emit the updated list
-      _controller.add(List<DocumentSnapshot>.from(_documents));
-    } else {
-      // Emit the current snapshot's documents directly
-      _controller.add(List<DocumentSnapshot>.from(snapshot.docs));
-    }
-  }
-
-  void dispose() {
-    _subscription.cancel();
-    _controller.close();
-  }
-}
-*/

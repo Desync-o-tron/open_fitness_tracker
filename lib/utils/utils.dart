@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -159,4 +160,26 @@ String enumToReadableString(Object o) {
         onNonMatch: (n) => n,
       )
       .toLowerCase();
+}
+
+Future<String?> getFileWithSnackbarErrors(
+    BuildContext context, List<String> allowedExtensions) async {
+  var scaffoldMessenger = ScaffoldMessenger.of(context);
+  FilePickerResult? result = await FilePicker.platform
+      .pickFiles(type: FileType.custom, allowedExtensions: allowedExtensions);
+
+  if (result == null) {
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(content: Text('No file selected')),
+    );
+    return null;
+  }
+  String? filePath = result.files.single.path;
+  if (filePath == null) {
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(content: Text('No file selected. Is the path accessable?')),
+    );
+    return null;
+  }
+  return filePath;
 }

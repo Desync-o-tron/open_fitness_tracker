@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
+import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
+import 'package:open_fitness_tracker/importing/import_training_dialog.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
 
-List<TrainingSession> importStrongCsv(String filePath) {
+List<TrainingSession> importStrongCsv(String filePath, Units units) {
   final List<String> rows = File(filePath).readAsLinesSync();
-  rows.removeAt(0); //todo we should save teh header & compare it to see if it ever changes and bricks shit
+  rows.removeAt(
+      0); //todo we should save teh header & compare it to see if it ever changes and bricks shit
   //todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!
   List<TrainingSession> sessions = [];
   Exercise exercise = Exercise(
@@ -25,7 +28,8 @@ List<TrainingSession> importStrongCsv(String filePath) {
 
   for (int i = 0; i < rows.length; i++) {
     var row = rows[i];
-    final rowList = const CsvToListConverter().convert(row, shouldParseNumbers: false); // as List<String>;
+    final rowList = const CsvToListConverter()
+        .convert(row, shouldParseNumbers: false); // as List<String>;
     final date = DateFormat("yyyy-MM-dd HH:mm:ss").parse(rowList[0][0]);
     final workoutName = rowList[0][1];
     final duration = parseStrongWorkoutDuration(rowList[0][2]);
@@ -91,7 +95,7 @@ List<TrainingSession> importStrongCsv(String filePath) {
       setsOfExercise = SetsOfAnExercise(exercise);
     }
 
-    //every time is a new set!
+    //every loop is a new set!
     final set = Set(exercise)
       ..reps = reps
       ..weight = weight
@@ -129,3 +133,8 @@ Duration parseStrongWorkoutDuration(String s) {
   return Duration(hours: hours, minutes: minutes, seconds: seconds);
 }
 //todo break this and make sure it fails well..
+
+class Units {
+  MassUnits preferredMassUnit = MassUnits.lb;
+  DistanceUnits preferredDistanceUnit = DistanceUnits.miles;
+}

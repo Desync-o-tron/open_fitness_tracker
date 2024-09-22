@@ -108,10 +108,10 @@ class EmailVerificationScreenWrapper extends StatelessWidget {
     return EmailVerificationScreen(
       actions: [
         EmailVerifiedAction(() {
-          context.go(routeNames.Profile.text);
+          context.pushReplacement(routeNames.Profile.text);
         }),
         AuthCancelledAction((context) {
-          context.go(routeNames.Profile.text);
+          context.pushReplacement(routeNames.Profile.text);
         }),
       ],
     );

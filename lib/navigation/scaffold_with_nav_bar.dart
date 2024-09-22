@@ -1,46 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'nav_bar_controller.dart';
 
-/// Builds the "shell" for the app by building a Scaffold with a
-/// BottomNavigationBar, where [child] is placed in the body of the Scaffold.
 class ScaffoldWithNavBar extends StatelessWidget {
-  /// Constructs an [ScaffoldWithNavBar].
   const ScaffoldWithNavBar({
     required this.child,
     super.key,
   });
 
-  /// The widget to display in the body of the Scaffold.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+    bool isLoggedIn = user != null;
+
     return Scaffold(
       body: SafeArea(
         child: child,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.group),
             label: 'Community',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
+            icon: Icon(
+              Icons.history,
+              color: isLoggedIn ? null : Colors.grey,
+            ),
             label: 'History',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_box),
+            icon: Icon(
+              Icons.add_box,
+              color: isLoggedIn ? null : Colors.grey,
+            ),
             label: 'Training',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
+            icon: Icon(
+              Icons.fitness_center,
+              color: isLoggedIn ? null : Colors.grey,
+            ),
             label: 'Exercises',
           ),
         ],
         currentIndex: NavBarController.getCurrentPageIndex(context),
-        // currentIndex: 2,
-        onTap: (int index) => NavBarController.onItemTapped(index, context),
+        onTap: (int index) {
+          if (isLoggedIn || index < 1) {
+            NavBarController.onItemTapped(index, context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please sign in first')),
+            );
+          }
+        },
         selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
         backgroundColor: Theme.of(context).colorScheme.primary,
         type: BottomNavigationBarType.fixed,

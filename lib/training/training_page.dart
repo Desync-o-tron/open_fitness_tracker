@@ -58,7 +58,6 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
           child: MyGenericButton(
               label: "Finish",
               onPressed: () {
-                //TODO force user to sign in & email verify..at app level?
                 //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
                 sesh.isOngoing = false;

@@ -17,12 +17,9 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ExDB.init(); //todo migrate to firestore
+  ExDB.init(); //todo migrate to firestore
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   myStorage.refreshTrainingHistoryCacheIfItsBeenXHours(12);
 
   HydratedStorage hydratedStorage = await HydratedStorage.build(
@@ -33,14 +30,13 @@ Future<void> main() async {
   HydratedBloc.storage = hydratedStorage;
 
   //https://stackoverflow.com/a/77448906/3894291
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
-    routerConfig.refresh();
-  });
 
+  FirebaseAuth.instance.userChanges().listen((User? user) {
+    routerConfig.refresh();
+    myStorage = MyStorage(); //update storage!
+  });
   runApp(const MyApp());
 }
-
-//TODO replace the banner on the bottom when not signed in to make the place more welcoming!
 
 Timer? trainingDurationTimer;
 

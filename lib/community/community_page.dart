@@ -50,9 +50,17 @@ class _SignInOrProfileWidgetState extends State<SignInOrProfileWidget> {
         ],
       );
     } else {
-      return MyGenericButton(
-        onPressed: () => context.push(routeNames.Profile.text),
-        label: "Profile",
+      return Column(
+        children: [
+          MyGenericButton(
+            onPressed: () => context.push(routeNames.Profile.text),
+            label: "Profile",
+          ),
+          MyGenericButton(
+            onPressed: () => context.push(routeNames.UserSettings.text),
+            label: "Settings",
+          ),
+        ],
       );
     }
   }

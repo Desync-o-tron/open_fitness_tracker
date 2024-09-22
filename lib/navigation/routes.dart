@@ -1,12 +1,11 @@
 // ignore_for_file: constant_identifier_names, camel_case_types
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
 import 'package:open_fitness_tracker/community/profile_page.dart';
+import 'package:open_fitness_tracker/community/settings_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/history/history_page.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
@@ -26,6 +25,7 @@ enum routeNames {
   Exercises("/Exercises"),
   SignIn("/SignIn"),
   Profile("/Profile"),
+  UserSettings("/UserSettings"),
   VerifyEmail("/VerifyEmail"),
   None("/None"),
   Temp("/Temp"),
@@ -81,6 +81,10 @@ final GoRouter routerConfig = GoRouter(
           path: routeNames.Profile.text,
           builder: (BuildContext context, GoRouterState state) =>
               const ProfileScreenWrapper(),
+        ),
+        GoRoute(
+          path: routeNames.UserSettings.text,
+          builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
         ),
         GoRoute(
           path: routeNames.VerifyEmail.text,

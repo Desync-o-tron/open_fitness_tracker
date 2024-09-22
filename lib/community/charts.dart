@@ -11,12 +11,6 @@ class CoolChart extends StatefulWidget {
   State<CoolChart> createState() => _CoolChartState();
 }
 
-class DateAndWeight {
-  DateAndWeight(this.date, this.weight);
-  DateTime date;
-  double weight;
-}
-
 class _CoolChartState extends State<CoolChart> {
   List<DateAndWeight> bestWeightsOnDates = [];
   List<double> xValues = []; //
@@ -314,4 +308,10 @@ class _CoolChartState extends State<CoolChart> {
       child: Text(day.toString(), style: style),
     );
   }
+}
+
+class DateAndWeight {
+  DateAndWeight(this.date, this.weight);
+  DateTime date;
+  double weight;
 }

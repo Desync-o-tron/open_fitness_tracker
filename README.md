@@ -9,6 +9,8 @@ If you're interested in collaborating, please reach out.
 - [x] Create a basic UI for searching exercises, and adding them to a training session. 
 - [x] (in progress) Add history and permanant state 
 - [x] (in progress) Add the ability to ingest training data from other apps
+    - [ ] need to translate Strong App training metadata... units, ?
+    - [ ] need to infer training metadata... muscles, ?
 - [x] (in progress) Add charts for tracking progress
 - [ ] Reach out for help to prettify the UI
 - [ ] Add the ability to upload custom exercises so they can be added to the database for all users

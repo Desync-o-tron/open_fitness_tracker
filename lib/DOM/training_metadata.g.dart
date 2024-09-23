@@ -61,6 +61,9 @@ Set _$SetFromJson(Map<String, dynamic> json) => Set(
       ..weight = json['weight'] as num?
       ..distance = json['distance'] as num?
       ..speed = json['speed'] as num?
+      ..massUnits = $enumDecodeNullable(_$MassUnitsEnumMap, json['massUnits'])
+      ..distanceUnits =
+          $enumDecodeNullable(_$DistanceUnitsEnumMap, json['distanceUnits'])
       ..completed = json['completed'] as bool;
 
 Map<String, dynamic> _$SetToJson(Set instance) => <String, dynamic>{
@@ -71,5 +74,18 @@ Map<String, dynamic> _$SetToJson(Set instance) => <String, dynamic>{
       'weight': instance.weight,
       'distance': instance.distance,
       'speed': instance.speed,
+      'massUnits': _$MassUnitsEnumMap[instance.massUnits],
+      'distanceUnits': _$DistanceUnitsEnumMap[instance.distanceUnits],
       'completed': instance.completed,
     };
+
+const _$MassUnitsEnumMap = {
+  MassUnits.kg: 'kg',
+  MassUnits.lb: 'lb',
+};
+
+const _$DistanceUnitsEnumMap = {
+  DistanceUnits.miles: 'miles',
+  DistanceUnits.feet: 'feet',
+  DistanceUnits.kilometers: 'kilometers',
+};

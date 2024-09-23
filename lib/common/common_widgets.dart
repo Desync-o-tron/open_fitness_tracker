@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
-
-//show Set, Exercise;
+import 'package:open_fitness_tracker/styles.dart';
 
 class MyGenericButton extends StatelessWidget {
   final String label;
@@ -29,7 +28,6 @@ class MyGenericButton extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2.0),
       width: shouldFillWidth ? double.infinity : null,
-      // padding: const EdgeInsets.all(20),
       height: 50,
       child: TextButton(
         onPressed: isEnabled ? onPressed : null,
@@ -46,20 +44,65 @@ class MyGenericButton extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: isEnabled ? textColor : Colors.black45, // Adjust the text color as needed
+                  color: isEnabled
+                      ? textColor
+                      : Colors.black45, // Adjust the text color as needed
                 ),
                 overflow: TextOverflow.fade,
                 softWrap: false,
               ),
               if (icon != null)
                 Padding(
-                  padding: label.isNotEmpty ? const EdgeInsets.only(left: 10.0) : const EdgeInsets.all(0),
+                  padding: label.isNotEmpty
+                      ? const EdgeInsets.only(left: 10.0)
+                      : const EdgeInsets.all(0),
                   child: icon,
                 ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class BottomCancelOrCompleteButtons extends StatelessWidget {
+  const BottomCancelOrCompleteButtons({
+    super.key,
+    required this.completeLabel,
+    required this.cancelLabel,
+    required this.onCancel,
+    required this.onComplete,
+  });
+  final String completeLabel;
+  final String cancelLabel;
+  final VoidCallback onCancel;
+  final VoidCallback onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: Container(),
+        ),
+        Expanded(
+          flex: 3,
+          child:
+              MyGenericButton(label: cancelLabel, onPressed: onComplete, color: darkTan),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 3,
+          child: MyGenericButton(
+              label: completeLabel, onPressed: onComplete, color: mediumGreen),
+        ),
+        Expanded(
+          flex: 1,
+          child: Container(),
+        ),
+      ],
     );
   }
 }

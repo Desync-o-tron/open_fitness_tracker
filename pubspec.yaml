@@ -54,6 +54,7 @@ dependencies:
   csv: ^6.0.0
   file_picker: ^8.0.7
   fl_chart: ^0.69.0
+  ollama: ^1.0.4
   
 dev_dependencies:
   flutter_test:
@@ -75,6 +76,7 @@ flutter:
 
   assets:
     - assets/data/exercises.json
+    - assets/data/exercises_no_stretches.json
     - assets/media/bar_loading.gif
   #   - images/a_dot_ham.jpeg
 

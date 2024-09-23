@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
@@ -56,6 +57,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) => CreateNewExCubit(),
         ),
+        BlocProvider(
+          create: (_) => BasicUserInfoCubit(),
+        ),
       ],
       child: Builder(builder: (context) {
         trainingDurationTimer = Timer.periodic(
@@ -64,6 +68,8 @@ class MyApp extends StatelessWidget {
             context.read<TrainingSessionCubit>().updateDuration();
           },
         );
+        context.read<BasicUserInfoCubit>().get();
+        //todo ^this stuff maybe should go somewhere else..
         return MaterialApp.router(
           theme: myTheme,
           routerConfig: routerConfig,

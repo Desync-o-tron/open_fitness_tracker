@@ -8,10 +8,10 @@ import 'package:open_fitness_tracker/community/profile_page.dart';
 import 'package:open_fitness_tracker/community/settings_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/history/history_page.dart';
+import 'package:open_fitness_tracker/importing/import_training_ui.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
 import 'package:open_fitness_tracker/navigation/scaffold_with_nav_bar.dart';
 import 'package:open_fitness_tracker/training/start_training_page.dart';
-import 'package:open_fitness_tracker/training/training_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -27,6 +27,7 @@ enum routeNames {
   Profile("/Profile"),
   UserSettings("/UserSettings"),
   VerifyEmail("/VerifyEmail"),
+
   None("/None"),
   Temp("/Temp"),
   Home("/");
@@ -38,10 +39,10 @@ enum routeNames {
 final GoRouter routerConfig = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  // initialLocation: routeNames.Temp.text,
+  initialLocation: routeNames.Temp.text,
   // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
-  initialLocation: routeNames.History.text, //////////<--- This is the initial route
+  // initialLocation: routeNames.History.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Community.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(
@@ -93,7 +94,8 @@ final GoRouter routerConfig = GoRouter(
         ),
         GoRoute(
           path: routeNames.Temp.text,
-          builder: (BuildContext context, GoRouterState state) => const TrainingPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const ImportTrainingDataPage(OtherTrainingApps.strong),
         ),
       ],
     ),

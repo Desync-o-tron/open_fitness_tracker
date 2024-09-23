@@ -66,19 +66,6 @@ class TrainingSession {
     );
   }
 
-  // @override
-  // bool operator ==(Object other) {
-  //   if (identical(this, other)) return true;
-  //   return other is TrainingSession &&
-  //       other.id == id &&
-  //       other.dateOfLastEdit == dateOfLastEdit &&
-
-  //       ;
-  // }
-
-  // @override
-  // int get hashCode => id.hashCode ^ dateOfLastEdit.hashCode;
-
   factory TrainingSession.fromJson(Map<String, dynamic> json) =>
       _$TrainingSessionFromJson(json);
   Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
@@ -105,7 +92,6 @@ class SetsOfAnExercise {
 
 @JsonSerializable(explicitToJson: true)
 class Set {
-  // @JsonKey(includeToJson: false)
   Exercise ex;
   late String id; //just the datetime for now
   num? reps;
@@ -113,7 +99,10 @@ class Set {
   num? weight;
   num? distance;
   num? speed;
+  MassUnits? massUnits;
+  DistanceUnits? distanceUnits;
   bool completed = false;
+
   //todo add units.  weight, distance, speed, time etc..
 
   Set(this.ex) {
@@ -133,26 +122,17 @@ class Set {
 
 class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   TrainingSessionCubit() : super(TrainingSession()) {
-    // var bench = Exercise(
-    //   name: "Bench Press",
-    //   equipment: "Barbell",
-    //   primaryMuscles: ["Chest", "Triceps"],
-    //   setMetrics: ["reps", "weight"],
-    // );
     // var squat = Exercise(
     //   name: "Squat",
     //   equipment: "Barbell",
     //   primaryMuscles: ["Quadriceps", "Glutes"],
     //   setMetrics: ["reps", "weight"],
     // );
-    // state.trainingData.addIfDNE(SetsOfAnExercise(bench));
     // state.trainingData.addIfDNE(SetsOfAnExercise(squat));
     // //lets add some example sets
     // Set benchSet = state.trainingData[0].sets[0];
     // benchSet.reps = 10;
     // benchSet.weight = 135;
-
-    // state.isOngoing = true;
   }
 
   void addExercise(Exercise ex) {
@@ -235,4 +215,21 @@ class TrainingSessionCubit extends HydratedCubit<TrainingSession> {
   Map<String, dynamic>? toJson(TrainingSession state) {
     return state.toJson();
   }
+}
+
+enum MassUnits {
+  kg('kg'),
+  lb('lb');
+
+  const MassUnits(this.text);
+  final String text;
+}
+
+enum DistanceUnits {
+  miles('mi'),
+  feet('ft'),
+  kilometers('km');
+
+  const DistanceUnits(this.text);
+  final String text;
 }

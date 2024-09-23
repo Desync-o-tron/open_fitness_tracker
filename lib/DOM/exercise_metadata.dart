@@ -11,16 +11,19 @@ dart run build_runner watch --delete-conflicting-outputs
 class Exercise {
   String? id;
   String name;
+  List<String>? alternateNames = [];
   Force? force;
   Level? level;
   Mechanic? mechanic;
   String? equipment;
   String? notes; //maybe make a note history
-  List<String>? setMetrics; //todo not in the json schema. (time, weight, distance, speed, reps)
+  // List<String> noteHistory; //todo
+  List<String>? setMetrics;
+  //todo^ not in the json schema. (time, weight, distance, speed, reps)
   List<String> primaryMuscles;
   List<String>? secondaryMuscles;
   List<String>? instructions;
-  // powerlifting, strength, stretching, cardio, olympicWeightlifting, strongman, plyometrics,
+  // powerlifting, strength, cardio, olympicWeightlifting, strongman, plyometrics,
   String? category;
   List<String>? images;
 
@@ -115,12 +118,26 @@ enum Mechanic { isolation, compound }
 //   shoulders,
 //   traps,
 //   triceps
+//TODO
+// upperTraps
+// lowerTraps
+// rhomboids
+// romboids
+// neckExtensors
+// neckFlexors
+// rotatorCuffMuscles,
+// hipFlexors,
+// iliopsoas,
+// tibialis,
+// gastrocnemius,
+// soleus
+// serratus,
+// obliques
 // }
 
 // enum Category {
 //   powerlifting,
 //   strength,
-//   stretching,
 //   cardio,
 //   olympicWeightlifting,
 //   strongman,

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/importing/import_training_dialog.dart';
+import 'package:open_fitness_tracker/importing/import_training_ui.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -144,7 +144,7 @@ class _HistoryPageState extends State<HistoryPage> {
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return const ExternalAppTrainingImportDialog();
+                return const ExternalAppImportSelectionDialog();
               });
         }
         if (result == 'refresh training history') {

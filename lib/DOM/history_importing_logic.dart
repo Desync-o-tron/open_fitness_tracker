@@ -1,15 +1,13 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
-import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
-import 'package:open_fitness_tracker/importing/import_training_dialog.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
 
 List<TrainingSession> importStrongCsv(String filePath, Units units) {
   final List<String> rows = File(filePath).readAsLinesSync();
-  rows.removeAt(
-      0); //todo we should save teh header & compare it to see if it ever changes and bricks shit
+  rows.removeAt(0);
+  //todo we should save teh header & compare it to see if it ever changes and bricks shit
   //todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!
   List<TrainingSession> sessions = [];
   Exercise exercise = Exercise(
@@ -101,7 +99,10 @@ List<TrainingSession> importStrongCsv(String filePath, Units units) {
       ..weight = weight
       ..distance = distance
       ..time = seconds.toDouble()
+      ..massUnits = units.preferredMassUnit
+      ..distanceUnits = units.preferredDistanceUnit
       ..completed = true;
+
     setsOfExercise.sets.add(set);
 
     firstRun = false;

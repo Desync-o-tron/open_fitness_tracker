@@ -110,11 +110,20 @@ class MyStorage {
   }
 
   Future<BasicUserInfo> getBasicUserInfo() async {
-    // QuerySnapshot<Map<String, dynamic>> userInfo = await _userDoc
-    //     .collection(_historyKey)
-    //     .get(const GetOptions(source: Source.server));
-    // return BasicUserInfo.fromJson(userInfo.docs.first.data());
-    return Future.error("error");
+    try {
+      final docSnapshot = await _userDoc.get(const GetOptions(source: Source.server));
+      final data = docSnapshot.data() as Map<String, dynamic>?;
+
+      if (data != null && data.containsKey(_basicUserInfoKey)) {
+        final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
+        return BasicUserInfo.fromJson(basicUserInfoJson);
+      } else {
+        //DNE
+        return BasicUserInfo();
+      }
+    } catch (e) {
+      throw Exception('Failed to get basic user info: $e');
+    }
   }
 
   Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {

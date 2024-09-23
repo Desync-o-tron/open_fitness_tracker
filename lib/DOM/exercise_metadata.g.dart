@@ -29,11 +29,14 @@ Exercise _$ExerciseFromJson(Map<String, dynamic> json) => Exercise(
       category: json['category'] as String?,
       images:
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    );
+    )..alternateNames = (json['alternateNames'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList();
 
 Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'alternateNames': instance.alternateNames,
       'force': _$ForceEnumMap[instance.force],
       'level': _$LevelEnumMap[instance.level],
       'mechanic': _$MechanicEnumMap[instance.mechanic],

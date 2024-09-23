@@ -23,41 +23,23 @@ class _TrainingPageState extends State<TrainingPage> {
       padding: const EdgeInsets.all(10.0),
       // color: Theme.of(context).colorScheme.secondary,
       color: darkTan,
-      child: const SingleChildScrollView(
+      child: SingleChildScrollView(
         clipBehavior: Clip.none,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TrainingTitle(),
-            DisplayDurationTimer(),
-            NotesWidget(),
-            DisplayTrainingData(),
-            SizedBox(height: 70),
-            BottomCancelOrFinishButtons()
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class BottomCancelOrFinishButtons extends StatelessWidget {
-  const BottomCancelOrFinishButtons({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Container()),
-        Expanded(
-            child: MyGenericButton(label: "Cancel", onPressed: () {}, color: darkTan)),
-        const SizedBox(width: 20),
-        Expanded(
-          child: MyGenericButton(
-              label: "Finish",
-              onPressed: () {
+            const TrainingTitle(),
+            const DisplayDurationTimer(),
+            const NotesWidget(),
+            const DisplayTrainingData(),
+            const SizedBox(height: 70),
+            BottomCancelOrCompleteButtons(
+              completeLabel: 'Finish',
+              cancelLabel: 'Cancel',
+              onCancel: () {
+                //todo
+              },
+              onComplete: () {
                 //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
                 sesh.isOngoing = false;
@@ -67,10 +49,10 @@ class BottomCancelOrFinishButtons extends StatelessWidget {
                 context.read<TrainingSessionCubit>().reset();
                 context.go(routeNames.History.text);
               },
-              color: mediumGreen),
+            )
+          ],
         ),
-        Expanded(child: Container()),
-      ],
+      ),
     );
   }
 }

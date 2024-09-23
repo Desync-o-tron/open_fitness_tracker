@@ -174,6 +174,7 @@ Future<String?> getFileWithSnackbarErrors(
     );
     return null;
   }
+
   String? filePath = result.files.single.path;
   if (filePath == null) {
     scaffoldMessenger.showSnackBar(

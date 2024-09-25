@@ -4,8 +4,8 @@ import 'package:fuzzywuzzy/model/extracted_result.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ImportInspectionPage extends StatefulWidget {
   const ImportInspectionPage({super.key, required this.newTrainingSessions});
@@ -16,8 +16,7 @@ class ImportInspectionPage extends StatefulWidget {
 }
 
 class _ImportInspectionPageState extends State<ImportInspectionPage> {
-  List<Exercise> idealMatchExs = [];
-  List<Exercise> similarMatchExs = [];
+  List<ExerciseMatch> similarMatchExs = [];
 
   @override
   void initState() {
@@ -35,31 +34,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       }
     }
 
-    idealMatchExs = _exerciseMatcher(newExs, 100);
-    List<Exercise> newExsSansMatches =
-        newExs.where((ex) => !idealMatchExs.contains(ex)).toList();
-    similarMatchExs = _exerciseMatcher(newExsSansMatches, 90);
+    similarMatchExs = _exerciseMatcher(newExs, 90);
   }
 
   @override
   Widget build(BuildContext context) {
-    /*first iteration ideas:
-    show the number of training sessions & then a list of
-    all the new exercises you're about to import.
-
-    impl:
-    for exercises,
-      if the name matches exactly.. then no problem, just add the history in.
-      else
-        get the muscles and the name
-        do fuzzy search to find similar names
-        if there is any decent overlap in muscles and name similarity w/ other ex,
-          map this ex to the existing one & assign this name in the new ex's alternateNames.
-        OR
-          ask ML to do the whole search
-        else, it's a new ex.. no problem.
-
-    */
     return Scaffold(
       appBar: AppBar(
         title: Text("Imported ${widget.newTrainingSessions.length} sessions."),
@@ -71,8 +50,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PerfectMatchExercises(exercises: idealMatchExs),
-                MatchExercises(exercises: similarMatchExs),
+                MatchExercises(exerciseMatches: similarMatchExs),
               ],
             ),
           ),
@@ -81,9 +59,9 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     );
   }
 
-  List<Exercise> _exerciseMatcher(List<Exercise> foreignExercises, int similarityCutoff) {
-    List<Exercise> similarExercises = [];
-    List<String> nameMatches = [];
+  List<ExerciseMatch> _exerciseMatcher(
+      List<Exercise> foreignExercises, int similarityCutoff) {
+    List<ExerciseMatch> exerciseMatches = [];
 
     for (var ex in foreignExercises) {
       List<String> exNames = ExDB.names;
@@ -91,96 +69,138 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           query: ex.name, choices: exNames, cutoff: similarityCutoff, limit: 1);
 
       if (res.isNotEmpty) {
-        nameMatches.addIfDNE(res.first.choice);
-      }
-    }
-
-    for (var exName in nameMatches) {
-      for (var ex in ExDB.exercises) {
-        if (exName == ex.name) {
-          similarExercises.add(ex);
+        String matchedExName = res.first.choice;
+        Exercise? matchedEx;
+        for (var existingEx in ExDB.exercises) {
+          if (existingEx.name == matchedExName) {
+            matchedEx = existingEx;
+            break;
+          }
+        }
+        if (matchedEx != null) {
+          bool defaultAdd = false;
+          if (res.first.score == 100) defaultAdd = true;
+          exerciseMatches.add(ExerciseMatch(
+            foreignExercise: ex,
+            matchedExercise: matchedEx,
+            isConfirmed: defaultAdd,
+          ));
         }
       }
     }
 
-    return similarExercises;
+    return exerciseMatches;
   }
 }
 
-class MatchExercises extends StatelessWidget {
-  final List<Exercise> exercises;
+// Class to hold foreign and matched exercises along with confirmation status
+class ExerciseMatch {
+  final Exercise foreignExercise;
+  final Exercise matchedExercise;
+  bool isConfirmed;
 
-  const MatchExercises({super.key, required this.exercises});
+  ExerciseMatch({
+    required this.foreignExercise,
+    required this.matchedExercise,
+    this.isConfirmed = false,
+  });
+}
+
+class MatchExercises extends StatefulWidget {
+  final List<ExerciseMatch> exerciseMatches;
+
+  const MatchExercises({super.key, required this.exerciseMatches});
 
   @override
+  // ignore: library_private_types_in_public_api
+  _MatchExercisesState createState() => _MatchExercisesState();
+}
+
+class _MatchExercisesState extends State<MatchExercises> {
+  @override
   Widget build(BuildContext context) {
-    if (exercises.isEmpty) return Container();
+    if (widget.exerciseMatches.isEmpty) return Container();
+
     return Column(
       children: [
         const Text(
           textAlign: TextAlign.center,
-          "confirm these matches:",
+          "First, confirm these similar exercise matches with our database:",
           style: TextStyle(
-            fontSize: 20, // Adjust this value for your desired "medium" size
-            fontWeight: FontWeight.w600, // Makes the text semi-bold
-            color: Colors.black87, // Optional: adjust the color as needed
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return Container(
-              decoration: BoxDecoration(border: Border.all()),
-              height: 400,
-              child: ListView.builder(
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  return ExerciseTile(exercise: exercises[index]);
-                },
-              ),
-            );
-          },
+        Container(
+          decoration: BoxDecoration(border: Border.all()),
+          height: 400,
+          child: ListView.builder(
+            itemCount: widget.exerciseMatches.length,
+            itemBuilder: (context, index) {
+              return _buildExerciseMatchBox(index);
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        MyGenericButton(
+          onPressed: _confirmSelections,
+          label: "Confirm Selections",
         ),
       ],
     );
   }
-}
 
-class PerfectMatchExercises extends StatelessWidget {
-  final List<Exercise> exercises;
+  Widget _buildExerciseMatchBox(int index) {
+    ExerciseMatch exerciseMatch = widget.exerciseMatches[index];
 
-  const PerfectMatchExercises({super.key, required this.exercises});
-
-  @override
-  Widget build(BuildContext context) {
-    if (exercises.isEmpty) return Container();
-    return Column(
-      children: [
-        const Text(
-          textAlign: TextAlign.center,
-          "perfect match exercises:",
-          style: TextStyle(
-            fontSize: 20, // Adjust this value for your desired "medium" size
-            fontWeight: FontWeight.w600, // Makes the text semi-bold
-            color: Colors.black87, // Optional: adjust the color as needed
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                ExerciseTile(exercise: exerciseMatch.foreignExercise),
+                const SizedBox(height: 8.0),
+                ExerciseTile(exercise: exerciseMatch.matchedExercise),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return Container(
-              decoration: BoxDecoration(border: Border.all()),
-              height: 200,
-              child: ListView.builder(
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  return ExerciseTile(exercise: exercises[index]);
-                },
-              ),
-            );
-          },
-        ),
-      ],
+          SizedBox(
+            width: 80,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Accept?'),
+                Switch(
+                  value: exerciseMatch.isConfirmed,
+                  activeColor: Colors.red,
+                  onChanged: (bool value) {
+                    setState(() {
+                      exerciseMatch.isConfirmed = value;
+                    });
+                  },
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _confirmSelections() {
+    // Process the confirmed selections
+    List<ExerciseMatch> confirmedMatches =
+        widget.exerciseMatches.where((match) => match.isConfirmed).toList();
+    // Implement your logic here
+    print('Confirmed matches: ${confirmedMatches.length}');
   }
 }

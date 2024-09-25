@@ -4,6 +4,7 @@ import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/DOM/history_importing_logic.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/importing/import_inspection_page.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -37,38 +38,6 @@ class ExternalAppImportSelectionDialog extends StatelessWidget {
       ),
     );
   }
-/*
-  void _importTrainingDataDialog(
-      String filepath, OtherTrainingApps originApp, BuildContext context) async {
-    var scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    //todo for web
-    // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ
-
-    Units units = Units(); // Or fetch existing units
-    final unitsResult = await showDialog<Units>(
-      context: context,
-      builder: (BuildContext context) {
-        return UnitsDialog(units: units);
-      },
-    );
-
-    List<TrainingSession> sessions = [];
-    if (originApp == OtherTrainingApps.strong) {
-      sessions = importStrongCsv(filepath, units);
-    }
-
-    for (var session in sessions) {
-      myStorage.addTrainingSessionToHistory(session);
-    }
-
-    //todo (low-priority) tell the user if they are importing duplicates..we already discard them. maybe it doesn't matter.
-
-    scaffoldMessenger.showSnackBar(
-      SnackBar(content: Text("imported ${sessions.length} sessions.")),
-    );
-  }
-  */
 }
 
 class ImportTrainingDataPage extends StatefulWidget {
@@ -180,11 +149,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
                     return;
                   }
 
-                  List sessions = importStrongCsv(filepath!, units);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("imported ${sessions.length} sessions.")),
-                  );
+                  List<TrainingSession> sessions = importStrongCsv(filepath!, units);
 
                   if (setAsStandard) {
                     var userInfoCubit = context.read<BasicUserInfoCubit>();
@@ -193,7 +158,9 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
                     userInfo.preferredMassUnit = units.preferredMassUnit;
                     userInfoCubit.set(userInfo);
                   }
-                  // Navigator.of(context).pop(units);
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (BuildContext context) =>
+                          ImportInspectionPage(newTrainingSessions: sessions)));
                 },
               ),
             ],
@@ -207,10 +174,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
     for (var session in sessions) {
       myStorage.addTrainingSessionToHistory(session);
     }
-
-    //todo (low-priority) tell the user if they are importing duplicates..we already discard them. maybe it doesn't matter.
-
-
+    
     */
   }
 }

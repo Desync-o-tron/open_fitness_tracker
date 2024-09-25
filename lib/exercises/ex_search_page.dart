@@ -41,118 +41,123 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Exercises',
-            style: Theme.of(context).textTheme.displayLarge,
-          ),
-          //todo scrolling on web is not perfect.using slider is a bit janky.
-          Expanded(
-            child: ScrollConfiguration(
-              behavior: GenericScrollBehavior(),
-              child: Scrollbar(
-                controller: scrollController,
-                thumbVisibility: true,
-                child: ListView.builder(
-                    controller: scrollController,
-                    key: ValueKey(state.filteredExercises.length),
-                    itemCount: state.filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      return ExerciseTile(
-                          exercise: state.filteredExercises[index],
-                          isSelectable: widget.useForAddingToTraining,
-                          isSelected: selectedExercises
-                                  .contains(state.filteredExercises[index]) ||
-                              newlySelectedExercises
-                                  .contains(state.filteredExercises[index]),
-                          onSelectionChanged: (bool isSelected) {
-                            if (isSelected) {
-                              newlySelectedExercises.add(state.filteredExercises[index]);
-                            } else {
-                              newlySelectedExercises
-                                  .remove(state.filteredExercises[index]);
-                            }
-                            setState(() {});
-                          });
-                    }),
-              ),
-            ),
-          ),
-          if (widget.useForAddingToTraining)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-              child: MyGenericButton(
-                label: "Add Selected - ${newlySelectedExercises.length}",
-                color: Theme.of(context).colorScheme.primary,
-                onPressed: () {
-                  var trainingCubit = context.read<TrainingSessionCubit>();
-                  for (var ex in newlySelectedExercises) {
-                    // print(trainingCubit.state.toJson());
-                    // var ii = 1;
-                    trainingCubit.addExercise(ex);
-                  }
-                  Navigator.pop(context);
-                },
-              ),
-            ),
+          Text('Exercises', style: Theme.of(context).textTheme.displayLarge),
+          _exercisesListView(scrollController, state),
+          if (widget.useForAddingToTraining) _addSelectedButton(context),
           const SearchBar(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
-            child: Row(
-              children: [
-                Expanded(
-                  child: MyGenericButton(
-                    label: state.musclesFilter.isEmpty
-                        ? 'Any Muscle'
-                        : state.musclesFilter
-                            .map((e) => e.capTheFirstLetter())
-                            .join(", "),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const SearchMultiSelectModal(isForMuscleSelection: true);
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: MyGenericButton(
-                    label: state.categoriesFilter.isEmpty
-                        ? 'Any Category'
-                        : state.categoriesFilter
-                            .map((e) => e.capTheFirstLetter())
-                            .join(", "),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const SearchMultiSelectModal(
-                              isForMuscleSelection: false);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(5, 0, 5, 6),
+          _muscleAndCategoryFilterButtons(state, context),
+          _createNewExButton(context),
+        ],
+      ),
+    );
+  }
+
+  Padding _createNewExButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 0, 5, 6),
+      child: MyGenericButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return const CreateNewExerciseModal();
+            },
+          );
+        },
+        label: 'Create New Exercise',
+      ),
+    );
+  }
+
+  Expanded _exercisesListView(ScrollController scrollController, ExSearchState state) {
+    //todo scrolling on web is not perfect.using slider is a bit janky.
+    return Expanded(
+      child: ScrollConfiguration(
+        behavior: GenericScrollBehavior(),
+        child: Scrollbar(
+          controller: scrollController,
+          thumbVisibility: true,
+          child: ListView.builder(
+              controller: scrollController,
+              key: ValueKey(state.filteredExercises.length),
+              itemCount: state.filteredExercises.length,
+              itemBuilder: (context, index) {
+                return ExerciseTile(
+                    exercise: state.filteredExercises[index],
+                    isSelectable: widget.useForAddingToTraining,
+                    isSelected: selectedExercises
+                            .contains(state.filteredExercises[index]) ||
+                        newlySelectedExercises.contains(state.filteredExercises[index]),
+                    onSelectionChanged: (bool isSelected) {
+                      if (isSelected) {
+                        newlySelectedExercises.add(state.filteredExercises[index]);
+                      } else {
+                        newlySelectedExercises.remove(state.filteredExercises[index]);
+                      }
+                      setState(() {});
+                    });
+              }),
+        ),
+      ),
+    );
+  }
+
+  Padding _muscleAndCategoryFilterButtons(ExSearchState state, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
+      child: Row(
+        children: [
+          Expanded(
             child: MyGenericButton(
+              label: state.musclesFilter.isEmpty
+                  ? 'Any Muscle'
+                  : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return const CreateNewExerciseModal();
+                    return const SearchMultiSelectModal(isForMuscleSelection: true);
                   },
                 );
               },
-              label: 'Create New Exercise',
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: MyGenericButton(
+              label: state.categoriesFilter.isEmpty
+                  ? 'Any Category'
+                  : state.categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const SearchMultiSelectModal(isForMuscleSelection: false);
+                  },
+                );
+              },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Padding _addSelectedButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      child: MyGenericButton(
+        label: "Add Selected - ${newlySelectedExercises.length}",
+        color: Theme.of(context).colorScheme.primary,
+        onPressed: () {
+          var trainingCubit = context.read<TrainingSessionCubit>();
+          for (var ex in newlySelectedExercises) {
+            // print(trainingCubit.state.toJson());
+            // var ii = 1;
+            trainingCubit.addExercise(ex);
+          }
+          Navigator.pop(context);
+        },
       ),
     );
   }

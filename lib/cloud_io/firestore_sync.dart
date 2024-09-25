@@ -6,25 +6,23 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-//todo
-//turn on auth persistance! firesbase auth?a
-
 MyStorage myStorage = MyStorage();
 
 class MyStorage {
   MyStorage() {
     _firestore.settings = const Settings(
-        persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
     if (kIsWeb) {
-      //haven't tested w/o this. doc is not up to date. idc.
-      _firestore
-          // ignore: deprecated_member_use
-          .enablePersistence(const PersistenceSettings(synchronizeTabs: true));
+      // ignore: deprecated_member_use
+      _firestore.enablePersistence(
+        const PersistenceSettings(synchronizeTabs: true),
+      );
     }
     _userDoc = FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid);
-    // getBasicUserInfo();
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -33,8 +31,50 @@ class MyStorage {
   static const _historyKey = 'TrainingHistory';
   static const _basicUserInfoKey = 'BasicUserInfo';
 
+  // Helper method for retries with exponential backoff
+  Future<T> _retryWithExponentialBackoff<T>(
+    Future<T> Function() operation, {
+    int maxRetries = 5,
+    int delayMilliseconds = 500,
+  }) async {
+    int retryCount = 0;
+    int delay = delayMilliseconds;
+
+    while (true) {
+      try {
+        return await operation();
+      } catch (e) {
+        if (retryCount >= maxRetries) {
+          try {
+            // Firestore operation
+          } on FirebaseException catch (e) {
+            if (e.code == 'permission-denied') {
+              // Handle permission error
+              rethrow;
+            } else if (e.code == 'unavailable') {
+              var user = FirebaseAuth.instance.currentUser;
+              int qq;
+              // Handle network unavailable error
+            } else {
+              // Handle other Firebase exceptions
+              rethrow;
+            }
+          } catch (e) {
+            // Handle other exceptions
+            rethrow;
+          }
+        }
+        await Future.delayed(Duration(milliseconds: delay));
+        delay *= 2; // Exponential backoff
+        retryCount++;
+      }
+    }
+  }
+
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
-    _userDoc.collection(_historyKey).add(session.toJson());
+    await _retryWithExponentialBackoff(() async {
+      await _userDoc.collection(_historyKey).add(session.toJson());
+    });
   }
 
   Stream<List<TrainingSession>> getUserTrainingHistoryStream({
@@ -62,55 +102,60 @@ class MyStorage {
 
   Future<void> refreshTrainingHistoryCacheIfItsBeenXHours(int hours) async {
     if (await _historyCacheClock.timeSinceCacheWasUpdated() > Duration(hours: hours)) {
-      getEntireUserTrainingHistory(useCache: false);
+      await getEntireUserTrainingHistory(useCache: false);
     }
   }
 
-  Future<List<TrainingSession>> getEntireUserTrainingHistory(
-      {required bool useCache}) async {
-    QuerySnapshot<Object?> cloudTrainingHistory;
-    if (useCache) {
-      cloudTrainingHistory = await _userDoc
-          .collection(_historyKey)
-          .get(const GetOptions(source: Source.cache));
-    } else {
-      cloudTrainingHistory = await _userDoc
-          .collection(_historyKey)
-          .get(const GetOptions(source: Source.server));
+  Future<List<TrainingSession>> getEntireUserTrainingHistory({
+    required bool useCache,
+  }) async {
+    return await _retryWithExponentialBackoff(() async {
+      QuerySnapshot<Object?> cloudTrainingHistory;
+      if (useCache) {
+        cloudTrainingHistory = await _userDoc
+            .collection(_historyKey)
+            .get(const GetOptions(source: Source.cache));
+      } else {
+        cloudTrainingHistory = await _userDoc
+            .collection(_historyKey)
+            .get(const GetOptions(source: Source.server));
+        _historyCacheClock.resetClock();
+      }
 
-      _historyCacheClock.resetClock();
-    }
+      List<TrainingSession> sessions = [];
+      for (var doc in cloudTrainingHistory.docs) {
+        sessions.add(
+          TrainingSession.fromJson(doc.data() as Map<String, dynamic>),
+        );
+      }
 
-    List<TrainingSession> sessions = [];
-    for (var doc in cloudTrainingHistory.docs) {
-      sessions.add(TrainingSession.fromJson(doc.data() as Map<String, dynamic>));
-    }
-
-    return sessions;
+      return sessions;
+    });
   }
 
-  /// will remove the history data corresponding to the id of the training session
   Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
     if (sesh.id == '') {
-      return Future.error("no session id!");
+      throw Exception("No session ID!");
     }
-    return _userDoc.collection(_historyKey).doc(sesh.id).delete();
+    await _retryWithExponentialBackoff(() async {
+      await _userDoc.collection(_historyKey).doc(sesh.id).delete();
+    });
   }
 
-  //should we back this up?..maybe!
   Future<void> deleteEntireTrainingHistory() async {
-    CollectionReference historyCollection = _userDoc.collection(_historyKey);
-    QuerySnapshot snapshot = await historyCollection.get();
-    WriteBatch batch = FirebaseFirestore.instance.batch();
-    // Add delete operations for each document to the batch
-    for (DocumentSnapshot doc in snapshot.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
+    await _retryWithExponentialBackoff(() async {
+      CollectionReference historyCollection = _userDoc.collection(_historyKey);
+      QuerySnapshot snapshot = await historyCollection.get();
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      for (DocumentSnapshot doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    });
   }
 
   Future<BasicUserInfo> getBasicUserInfo() async {
-    try {
+    return await _retryWithExponentialBackoff(() async {
       final docSnapshot = await _userDoc.get(const GetOptions(source: Source.server));
       final data = docSnapshot.data() as Map<String, dynamic>?;
 
@@ -118,39 +163,22 @@ class MyStorage {
         final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
         return BasicUserInfo.fromJson(basicUserInfoJson);
       } else {
-        //DNE
         return BasicUserInfo();
       }
-    } catch (e) {
-      throw Exception('Failed to get basic user info: $e');
-    }
+    });
   }
 
   Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
-    _userDoc.update({_basicUserInfoKey: userInfo.toJson()});
+    await _retryWithExponentialBackoff(() async {
+      await _userDoc.update({_basicUserInfoKey: userInfo.toJson()});
+    });
   }
-
-  // void addFieldToDocument(String docId, String collectionName) async {
-  //   // Get a reference to the Firestore document
-  //   DocumentReference documentReference =
-  //       FirebaseFirestore.instance.collection(collectionName).doc(docId);
-
-  //   // Add a new field to the document (or update it if it already exists)
-  //   try {
-  //     await documentReference.update({
-  //       'newFieldName': 'newValue', // Field name and value you want to add
-  //     });
-  //     print('Field added successfully');
-  //   } catch (e) {
-  //     print('Error updating document: $e');
-  //   }
-  // }
 }
 
-//todo I should be selective about how I call this...gets esp. to server can fail!
 class CollectionCacheUpdateClock {
   final String _sharedPrefsLabel;
   late final Future<SharedPreferences> _prefs;
+
   CollectionCacheUpdateClock(String collectionName)
       : _sharedPrefsLabel = 'last_set_$collectionName' {
     _prefs = SharedPreferences.getInstance();
@@ -158,8 +186,10 @@ class CollectionCacheUpdateClock {
 
   Future<bool> resetClock() async {
     var prefs = await _prefs;
-    return prefs.setInt(_sharedPrefsLabel, DateTime.now().millisecondsSinceEpoch);
-    //todo err handling
+    return prefs.setInt(
+      _sharedPrefsLabel,
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
   Future<Duration> timeSinceCacheWasUpdated() async {
@@ -174,7 +204,6 @@ class CollectionCacheUpdateClock {
   }
 }
 
-// https://github.com/furkansarihan/firestore_collection/blob/master/lib/firestore_document.dart
 extension FirestoreDocumentExtension on DocumentReference {
   Future<DocumentSnapshot> getSavy() async {
     try {
@@ -187,7 +216,6 @@ extension FirestoreDocumentExtension on DocumentReference {
   }
 }
 
-// https://github.com/furkansarihan/firestore_collection/blob/master/lib/firestore_query.dart
 extension FirestoreQueryExtension on Query {
   Future<QuerySnapshot> getSavy() async {
     try {

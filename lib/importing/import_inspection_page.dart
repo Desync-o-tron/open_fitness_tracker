@@ -45,16 +45,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       ),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 5),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                MatchExercises(exerciseMatches: similarMatchExs),
-              ],
-            ),
-          ),
-        ),
+        child: MatchExercises(exerciseMatches: similarMatchExs),
       ),
     );
   }
@@ -98,11 +89,13 @@ class ExerciseMatch {
   final Exercise foreignExercise;
   final Exercise matchedExercise;
   bool isConfirmed;
+  bool preferForeignExerciseName;
 
   ExerciseMatch({
     required this.foreignExercise,
     required this.matchedExercise,
     this.isConfirmed = false,
+    this.preferForeignExerciseName = false,
   });
 }
 
@@ -112,7 +105,6 @@ class MatchExercises extends StatefulWidget {
   const MatchExercises({super.key, required this.exerciseMatches});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MatchExercisesState createState() => _MatchExercisesState();
 }
 
@@ -122,25 +114,27 @@ class _MatchExercisesState extends State<MatchExercises> {
     if (widget.exerciseMatches.isEmpty) return Container();
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
+          "First, confirm these similar exercise matches with our database.\n(Top is yours, bottom is ours):",
           textAlign: TextAlign.center,
-          "First, confirm these similar exercise matches with our database:",
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 20),
-        Container(
-          decoration: BoxDecoration(border: Border.all()),
-          height: 400,
-          child: ListView.builder(
-            itemCount: widget.exerciseMatches.length,
-            itemBuilder: (context, index) {
-              return _buildExerciseMatchBox(index);
-            },
+        const SizedBox(height: 10),
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(border: Border.all()),
+            child: ListView.builder(
+              itemCount: widget.exerciseMatches.length,
+              itemBuilder: (context, index) {
+                return _buildExerciseMatchBox(index);
+              },
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -155,43 +149,66 @@ class _MatchExercisesState extends State<MatchExercises> {
   Widget _buildExerciseMatchBox(int index) {
     ExerciseMatch exerciseMatch = widget.exerciseMatches[index];
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                ExerciseTile(exercise: exerciseMatch.foreignExercise),
-                const SizedBox(height: 8.0),
-                ExerciseTile(exercise: exerciseMatch.matchedExercise),
-              ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              offset: Offset(0, 2),
+              blurRadius: 4.0,
             ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Accept?'),
-                Switch(
-                  value: exerciseMatch.isConfirmed,
-                  activeColor: Colors.red,
-                  onChanged: (bool value) {
-                    setState(() {
-                      exerciseMatch.isConfirmed = value;
-                    });
-                  },
-                )
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  ExerciseTile(exercise: exerciseMatch.foreignExercise),
+                  const SizedBox(height: 8.0),
+                  ExerciseTile(exercise: exerciseMatch.matchedExercise),
+                ],
+              ),
             ),
-          ),
-        ],
+            SizedBox(
+              width: 80,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Accept?'),
+                  Switch(
+                    value: exerciseMatch.isConfirmed,
+                    onChanged: (bool value) {
+                      setState(() {
+                        exerciseMatch.isConfirmed = value;
+                      });
+                    },
+                  ),
+                  const Center(
+                      child: Text(
+                    'Use my name?',
+                    textAlign: TextAlign.center,
+                  )),
+                  Switch(
+                    value: exerciseMatch.preferForeignExerciseName,
+                    // activeColor: lightGreen,
+                    onChanged: (bool value) {
+                      setState(() {
+                        exerciseMatch.preferForeignExerciseName = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

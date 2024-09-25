@@ -1,0 +1,631 @@
+upper abs
+
+core
+
+err: 
+{todo: Advanced Kettlebell Windmill}
+
+core
+
+core
+
+core muscles
+
+deltoids
+
+stabilizing muscles of the core
+
+deltoids
+
+core
+
+core
+
+core
+
+core
+
+ankles
+
+feet
+
+core
+
+err: 
+{todo: Band Assisted Pull-Up}
+
+deltoids
+
+back extensors
+
+anconeous
+
+anterior deltoids
+
+deltoids
+
+core muscles
+
+calf
+
+deltoids
+
+deltoids
+
+core
+
+core stabilizers
+
+anterior deltoids
+
+rear deltoids
+
+lat
+
+latissimus dorsi
+
+trapezius
+
+core muscles (obliques, transverse abdominis)
+
+shoulders (deltoids)
+
+core
+
+ankles
+
+erector spinae
+
+anterior deltoids
+
+erector spinae
+
+deltoids
+
+deltoids
+
+calf
+
+calf
+
+calf
+
+core
+
+core
+
+err: 
+{todo: Chest Push (multiple response)}
+
+back extensors
+
+core muscles
+
+deltoids
+
+core
+
+err: 
+{todo: Cross Over - With Bands}
+
+front deltoids
+
+stabilizer muscles for spine and core
+
+core stabilizers
+
+anterior deltoids
+
+pectoralis major
+
+trapezius
+
+err: 
+{todo: Decline Close-Grip Bench To Skull Crusher}
+
+pectoralis major
+
+anconeus
+
+front deltoids
+
+anterior deltoids
+
+stabilizing muscles of the shoulders and back
+
+anterior deltoids
+
+calf
+
+back
+
+core
+
+deltoids
+
+quadrapus (quadriceps, hamstrings)
+
+quadiceps
+
+core
+
+core
+
+core
+
+ankles
+
+core
+
+core
+
+deltoids
+
+deltoids
+
+deltoids
+
+deltoids
+
+calf
+
+deltoids
+
+core
+
+err: 
+{todo: Elliptical Trainer}
+
+legs
+
+heart
+
+abs
+
+core
+
+err: 
+{todo: Forward Drag with Press}
+
+err: 
+{todo: Frankenstein Squat}
+
+core
+
+core muscles
+
+ankles
+
+front deltoids
+
+deltoids
+
+deltoids
+
+pectorals
+
+core
+
+core
+
+deltoids
+
+pectoralis major
+
+coracobrachialis
+
+core muscles
+
+anterior deltoids
+
+core muscles
+
+err: 
+{todo: Good Morning off Pins}
+
+antebrachials flexors
+
+core muscles
+
+calf
+
+core
+
+calf
+
+erector spinae
+
+erector spinae
+
+err: 
+{todo: Incline Barbell Triceps Extension}
+
+deltoids
+
+core
+
+deltoids
+
+err: 
+{todo: Internal Rotation with Band}
+
+teres major
+
+supraspinatus
+
+infraspinatus
+
+latissimus dorsi
+
+teres minor
+
+err: 
+{todo: Jerk Balance}
+
+core
+
+err: 
+{todo: Jerk Dip Squat}
+
+core
+
+core
+
+core
+
+core
+
+core
+
+core
+
+ankle stabilizers
+
+core
+
+hips flexors
+
+calf
+
+core
+
+core
+
+abs
+
+anconeus
+
+core
+
+lat
+
+calf
+
+err: 
+{todo: Lateral Box Jump}
+
+core muscles
+
+antero-lateral deltoids
+
+latissimus dorsi
+
+latissimus dorsi
+
+upper back
+
+deltoids
+
+err: 
+{todo: London Bridges}
+
+err: 
+{todo: Low Cable Crossover}
+
+core
+
+core
+
+latissimus dorsi
+
+core
+
+deltoids
+
+deltoids
+
+core
+
+core
+
+err: 
+{todo: Narrow Stance Leg Press}
+
+erector spinae
+
+deltoids
+
+core
+
+abs
+
+core
+
+core
+
+core
+
+core
+
+deltoids
+
+core
+
+core
+
+err: 
+{todo: One-Arm Side Laterals}
+
+core
+
+anterior deltoids
+
+core muscles
+
+core
+
+abs
+
+core
+
+core
+
+core muscles
+
+deltoids
+
+core muscles
+
+core
+
+core
+
+front deltoids
+
+deltoids
+
+core
+
+core
+
+antagonist muscles of arms
+
+err: 
+{todo: Rack Delivery}
+
+legs
+
+core
+
+erector spinae
+
+err: 
+{todo: Reverse Plate Curls}
+
+deltoids
+
+core
+
+anterolateral deltoids
+
+core
+
+err: 
+{todo: Rocking Standing Calf Raise}
+
+calf
+
+erector spinae
+
+core
+
+core
+
+core
+
+err: 
+{todo: Sandbag Load}
+
+core
+
+core muscles
+
+deltoids
+
+deltoids
+
+latissimus dorsi
+
+deltoids
+
+err: 
+{todo: Seated Calf Raise}
+
+calf
+
+calf
+
+erector spinae
+
+latissimus dorsi
+
+latissimus dorsi
+
+t traps
+
+side deltoids
+
+delts
+
+err: 
+{todo: Seated Triceps Press}
+
+anterior deltoids
+
+deltoids
+
+deltoids
+
+deltoids
+
+core
+
+ankles
+
+core muscles
+
+core
+
+err: 
+{todo: Single-Leg Lateral Hop}
+
+core
+
+ankle stabilizers
+
+core
+
+calf
+
+deltoids
+
+core muscles
+
+err: 
+{todo: Skating}
+
+calf
+
+erector spinae
+
+err: 
+{todo: Sled Reverse Flye}
+
+latissimus dorsi
+
+core
+
+anterolateral deltoids
+
+calf
+
+anterior deltoids
+
+sternocleidomastoid
+
+deltoids
+
+deltoids
+
+calf
+
+deltoids
+
+core
+
+core
+
+deltoids
+
+core
+
+deltoids
+
+err: 
+{todo: Spider Curl}
+
+err: 
+{todo: Split Clean}
+
+core
+
+err: 
+{todo: Split Jerk}
+
+core
+
+core muscles
+
+core
+
+core
+
+core
+
+deltoids
+
+calf
+
+deltoids
+
+calf
+
+calf
+
+deltoids
+
+deltoids
+
+deltoids
+
+deltoids
+
+core
+
+ankles
+
+erector spinae
+
+erector spinae
+
+core
+
+err: 
+{todo: Supine Chest Throw}
+
+delts
+
+core
+
+core muscles
+
+latissimus dorsi
+
+trapezius
+
+core
+
+calf
+
+back
+
+deltoids
+
+deltoids
+
+latissimus dorsi
+
+latissimus dorsi
+
+trapezius
+
+deltoids
+
+calf
+
+core
+
+latissimus dorsi
+
+core muscles
+

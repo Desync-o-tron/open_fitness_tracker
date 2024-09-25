@@ -1,0 +1,271 @@
+core
+
+rear deltoids
+
+err: 
+{todo: Band Good Morning}
+
+err: 
+{todo: Band Pull Apart}
+
+anterior deltoids
+
+brachialis
+
+calf
+
+core
+
+calf
+
+core
+
+err: 
+{todo: Bench Dips}
+
+calf
+
+anterior deltoids
+
+calf
+
+rear deltoids
+
+rear deltoids
+
+core
+
+calf
+
+core
+
+core
+
+rear deltoids
+
+brachioradialis
+
+rear deltoids
+
+calf
+
+calf
+
+grip
+
+shoulder
+
+legs
+
+core
+
+core
+
+brachioradialis
+
+anterior deltoids
+
+core
+
+err: 
+{todo: Dumbbell Lying Supination}
+
+brachialis
+
+core
+
+calf
+
+erector spinae
+
+err: 
+{todo: EZ-Bar Skullcrusher}
+
+rear deltoids
+
+calf
+
+anterior deltoids
+
+core
+
+anterior deltoids
+
+lateral deltoids
+
+core
+
+err: 
+{todo: Hang Clean}
+
+anterior deltoids
+
+anterior deltoids
+
+rear deltoids
+
+calf
+
+core
+
+core
+
+core
+
+core
+
+err: 
+{todo: Low Cable Crossover}
+
+core
+
+brachialis
+
+brachialis
+
+brachialis
+
+brachioradialis
+
+calf
+
+rear deltoids
+
+brachialis
+
+core
+
+core
+
+anterior deltoid
+
+lateral deltoid
+
+core
+
+core
+
+legs
+
+err: 
+{todo: One-Arm Kettlebell Para Press}
+
+core
+
+core
+
+rear deltoids
+
+brachioradialis
+
+err: 
+{todo: Overhead Cable Curl}
+
+core
+
+grip
+
+back
+
+core
+
+core
+
+brachialis
+
+brachioradialis
+
+grip muscles
+
+core
+
+rear deltoids
+
+calf
+
+rear deltoids
+
+rear deltoids
+
+calf
+
+core
+
+lateral deltoids
+
+calf
+
+core
+
+err: 
+{todo: Single-Cone Sprint Drill}
+
+calf
+
+lateral deltoid
+
+core
+
+rear deltoids
+
+core
+
+core
+
+core
+
+err: 
+{todo: Split Clean}
+
+core
+
+err: 
+{todo: Squat Jerk}
+
+core
+
+core
+
+calf
+
+calf
+
+core
+
+lateral deltoids
+
+anterior deltoids
+
+core
+
+brachialis
+
+brachioradialis
+
+shoulder
+
+core
+
+core
+
+anterior deltoids
+
+tibalis
+
+core
+
+err: 
+{todo: Two-Arm Dumbbell Preacher Curl}
+
+core
+
+calf
+
+core
+
+brachialis
+
+brachioradialis
+
+grip muscles
+

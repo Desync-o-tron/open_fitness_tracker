@@ -70,8 +70,7 @@ final GoRouter routerConfig = GoRouter(
         ),
         GoRoute(
           path: routeNames.Exercises.text,
-          builder: (BuildContext context, GoRouterState state) =>
-              const ExerciseSearchPage(),
+          builder: (BuildContext context, GoRouterState state) => ExerciseSearchPage(),
         ),
         GoRoute(
           path: routeNames.SignIn.text,
@@ -117,5 +116,6 @@ final GoRouter routerConfig = GoRouter(
     }
     // otherwise no need to redirect at all
     return null;
+    //todo I should probably check my codebase for using navigator.of ... b/c it probably won't trigger my redirect.
   },
 );

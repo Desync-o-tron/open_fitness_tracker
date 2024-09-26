@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
@@ -12,7 +13,22 @@ import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ExerciseSearchPage extends StatefulWidget {
   final bool useForAddingToTraining;
-  const ExerciseSearchPage({super.key, this.useForAddingToTraining = false});
+  final bool useForMappingForeignExercise;
+  final Function? setForeignExerciseCallback;
+  final Exercise? foreignEx;
+
+  ExerciseSearchPage({
+    super.key,
+    this.useForAddingToTraining = false,
+    this.useForMappingForeignExercise = false,
+    this.setForeignExerciseCallback,
+    this.foreignEx,
+  }) {
+    if (useForMappingForeignExercise) {
+      assert(setForeignExerciseCallback != null);
+      assert(foreignEx != null);
+    }
+  }
 
   @override
   State<ExerciseSearchPage> createState() => _ExerciseSearchPageState();
@@ -35,20 +51,40 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   Widget build(BuildContext context) {
     final scrollController = ScrollController(initialScrollOffset: 0);
     final state = context.watch<ExSearchCubit>().state;
-    // ignore: avoid_unnecessary_containers
-    return Container(
-      // color: Theme.of(context).colorScheme.secondary,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Exercises', style: Theme.of(context).textTheme.displayLarge),
-          _exercisesListView(scrollController, state),
-          if (widget.useForAddingToTraining) _addSelectedButton(context),
-          const SearchBar(),
-          _muscleAndCategoryFilterButtons(state, context),
-          _createNewExButton(context),
-        ],
-      ),
+
+    List<Widget> pageChildren = [];
+    if (!widget.useForMappingForeignExercise) {
+      pageChildren
+          .add(Text('Exercises', style: Theme.of(context).textTheme.displayLarge));
+    } else {
+      pageChildren
+          .add(Text('Exercise Match', style: Theme.of(context).textTheme.displayMedium));
+      pageChildren.add(ExerciseTile(
+        exercise: widget.foreignEx!,
+        isSelectable: false,
+        colorDecoration: true,
+      ));
+      pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodySmall));
+    }
+    pageChildren.addAll([
+      _exercisesListView(scrollController, state),
+      const SearchBar(),
+      _muscleAndCategoryFilterButtons(state, context),
+    ]);
+
+    if (widget.useForAddingToTraining) pageChildren.add(_addSelectedButton(context));
+    if (widget.useForMappingForeignExercise) {
+      pageChildren.addAll([
+        _thisIsMyExButton(widget.setForeignExerciseCallback!),
+        _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+      ]);
+    } else {
+      pageChildren.add(_createNewExButton(context));
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: pageChildren,
     );
   }
 
@@ -70,7 +106,6 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   }
 
   Expanded _exercisesListView(ScrollController scrollController, ExSearchState state) {
-    //todo scrolling on web is not perfect.using slider is a bit janky.
     return Expanded(
       child: ScrollConfiguration(
         behavior: GenericScrollBehavior(),
@@ -78,25 +113,30 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
           controller: scrollController,
           thumbVisibility: true,
           child: ListView.builder(
-              controller: scrollController,
-              key: ValueKey(state.filteredExercises.length),
-              itemCount: state.filteredExercises.length,
-              itemBuilder: (context, index) {
-                return ExerciseTile(
-                    exercise: state.filteredExercises[index],
-                    isSelectable: widget.useForAddingToTraining,
-                    isSelected: selectedExercises
-                            .contains(state.filteredExercises[index]) ||
-                        newlySelectedExercises.contains(state.filteredExercises[index]),
-                    onSelectionChanged: (bool isSelected) {
-                      if (isSelected) {
-                        newlySelectedExercises.add(state.filteredExercises[index]);
-                      } else {
-                        newlySelectedExercises.remove(state.filteredExercises[index]);
-                      }
-                      setState(() {});
-                    });
-              }),
+            controller: scrollController,
+            key: ValueKey(state.filteredExercises.length),
+            itemCount: state.filteredExercises.length,
+            itemBuilder: (context, index) {
+              return ExerciseTile(
+                exercise: state.filteredExercises[index],
+                isSelectable:
+                    widget.useForAddingToTraining || widget.useForMappingForeignExercise,
+                isSelected: selectedExercises.contains(state.filteredExercises[index]) ||
+                    newlySelectedExercises.contains(state.filteredExercises[index]),
+                onSelectionChanged: (bool isSelected) {
+                  if (isSelected) {
+                    if (widget.useForMappingForeignExercise) {
+                      newlySelectedExercises.clear();
+                    }
+                    newlySelectedExercises.add(state.filteredExercises[index]);
+                  } else {
+                    newlySelectedExercises.remove(state.filteredExercises[index]);
+                  }
+                  setState(() {});
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -157,6 +197,35 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
             trainingCubit.addExercise(ex);
           }
           Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  Widget _thisIsMyExButton(Function setForeignExerciseCallback) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      child: MyGenericButton(
+        label: "This Is My Exercise",
+        color: Theme.of(context).colorScheme.primary,
+        onPressed: () {
+          if (newlySelectedExercises.isEmpty) return;
+          setForeignExerciseCallback(newlySelectedExercises.first);
+          context.pop();
+        },
+      ),
+    );
+  }
+
+  Widget _noExerciseMatchButton(Function setForeignExerciseCallback) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      child: MyGenericButton(
+        label: "None of these exercises match mine",
+        color: Theme.of(context).colorScheme.primary,
+        onPressed: () {
+          setForeignExerciseCallback(null); // Passing null to indicate no match
+          context.pop();
         },
       ),
     );

@@ -8,6 +8,8 @@ class ExerciseTile extends StatelessWidget {
   final bool isSelectable;
   final bool isSelected;
   final Function? onSelectionChanged;
+  final bool colorDecoration;
+  final Color? borderColor;
 
   const ExerciseTile({
     super.key,
@@ -15,36 +17,31 @@ class ExerciseTile extends StatelessWidget {
     this.isSelectable = false,
     this.isSelected = false,
     this.onSelectionChanged,
+    this.colorDecoration = false,
+    this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    String musclesUsed = exercise.primaryMuscles.map((muscle) => muscle.capTheFirstLetter()).join(', ');
+    String musclesUsed =
+        exercise.primaryMuscles.map((muscle) => muscle.capTheFirstLetter()).join(', ');
     if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) {
       musclesUsed +=
           " + ${exercise.secondaryMuscles!.map((muscle) => muscle.capTheFirstLetter()).join(', ')}";
     }
 
-    BoxDecoration tileDecoration = const BoxDecoration();
-    if (isSelectable) {
-      tileDecoration = BoxDecoration(
-        border: Border.all(
-          color: isSelected ? Colors.blue : Colors.black,
-          width: 1,
-        ),
-      );
-    } else {
-      tileDecoration = BoxDecoration(
-        border: Border.all(
-          color: Colors.black,
-          width: 1,
-        ),
-      );
-    }
+    BoxDecoration tileDecoration = BoxDecoration(
+      border: Border.all(
+        color: (borderColor != null)
+            ? borderColor!
+            : (isSelectable ? (isSelected ? Colors.blue : Colors.black) : Colors.black),
+        width: (borderColor == null) ? 1 : 2,
+      ),
+      color: colorDecoration ? Colors.grey[200] : null,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
-      // decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
       decoration: tileDecoration,
       child: ListTile(
         title: Text(exercise.name, style: Theme.of(context).textTheme.titleLarge),
@@ -60,6 +57,7 @@ class ExerciseTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //todo..replace w/ history!
             Text("2 uses ", style: Theme.of(context).textTheme.bodyLarge),
             Text("60lb (x12) ", style: Theme.of(context).textTheme.bodyLarge),
           ],
@@ -71,8 +69,8 @@ class ExerciseTile extends StatelessWidget {
               builder: (context) => ExerciseDialog(exercise: exercise),
               useSafeArea: true,
             );
-          } else if (isSelectable) {
-            onSelectionChanged!(!isSelected);
+          } else {
+            onSelectionChanged?.call(!isSelected);
           }
         },
         onLongPress: () {

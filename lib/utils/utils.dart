@@ -3,6 +3,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+
+typedef Exercises = List<Exercise>;
+
 class GenericScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {

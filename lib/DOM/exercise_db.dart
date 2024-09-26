@@ -5,11 +5,11 @@ import 'package:open_fitness_tracker/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ExDB {
-  static get exercises => _exercises;
-  static get categories => _categories;
-  static get muscles => _muscles;
-  static get names => _names;
-  static get equipment => _equipment;
+  static Exercises get exercises => _exercises;
+  static List<String> get categories => _categories;
+  static List<String> get muscles => _muscles;
+  static List<String> get names => _names;
+  static List<String> get equipment => _equipment;
 
   static final List<String> _names = [];
   static final List<String> _categories = [];

@@ -137,7 +137,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
           await Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (BuildContext context) =>
-                  const ExerciseSearchPage(useForAddingToTraining: true),
+                  ExerciseSearchPage(useForAddingToTraining: true),
             ),
           );
           setState(() {}); //todo this is weird

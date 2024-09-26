@@ -17,8 +17,8 @@ class ExDB {
   static final List<String> _equipment = [];
   static final List<Exercise> _exercises = [];
 
-  //todo can we make this async?
   static addExercises(List<Exercise> exercises) {
+    //todo this should kick off a lambda function so we can improve our DB.
     for (var exercise in exercises) {
       _exercises.addIfDNE(exercise);
       _names.addIfDNE(exercise.name);

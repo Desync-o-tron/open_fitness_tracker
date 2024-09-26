@@ -9,12 +9,14 @@ class ExerciseMatch {
   Exercise? matchedExercise;
   bool isConfirmed;
   bool preferForeignExerciseName;
+  bool bDiscard;
 
   ExerciseMatch({
     required this.foreignExercise,
     this.matchedExercise,
     this.isConfirmed = false,
     this.preferForeignExerciseName = false,
+    this.bDiscard = false,
   });
 }
 
@@ -58,7 +60,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
             child: ListView.builder(
               itemCount: widget.exerciseMatches.length,
               itemBuilder: (context, index) {
-                return _buildExerciseMatchBox(index);
+                return _buildExerciseMatchTile(index);
               },
             ),
           ),
@@ -72,10 +74,9 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
     );
   }
 
-  Widget _buildExerciseMatchBox(int index) {
+  Widget _buildExerciseMatchTile(int index) {
     ExerciseMatch exerciseMatch = widget.exerciseMatches[index];
 
-    // Determine background color based on the state
     Color matchedExerciseBackgroundColor;
     if (exerciseMatch.matchedExercise == null) {
       matchedExerciseBackgroundColor = Colors.red.shade300;
@@ -87,95 +88,92 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade200,
-                  offset: const Offset(0, 2),
-                  blurRadius: 4.0,
-                ),
-              ],
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              offset: const Offset(0, 2),
+              blurRadius: 4.0,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      ExerciseTile(exercise: exerciseMatch.foreignExercise),
-                      const SizedBox(height: 8.0),
-                      _selectableExTile(
-                          index, exerciseMatch, matchedExerciseBackgroundColor),
-                    ],
-                  ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Opacity(
+                opacity: exerciseMatch.bDiscard ? .33 : 1,
+                child: Column(
+                  children: [
+                    ExerciseTile(exercise: exerciseMatch.foreignExercise),
+                    const SizedBox(height: 8.0),
+                    _selectableExTile(
+                        index, exerciseMatch, matchedExerciseBackgroundColor),
+                  ],
                 ),
-                SizedBox(
-                  width: 80,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Accept?'),
-                      Switch(
-                        value: exerciseMatch.isConfirmed,
-                        onChanged: (bool value) {
-                          setState(() {
-                            exerciseMatch.isConfirmed = value;
-                          });
-                        },
-                      ),
-                      const Center(
-                        child: Text(
-                          'Use my name?',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Switch(
-                        value: exerciseMatch.preferForeignExerciseName,
-                        onChanged: (bool value) {
-                          setState(() {
-                            exerciseMatch.preferForeignExerciseName = value;
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            widget.exerciseMatches.removeAt(index);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            SizedBox(
+              width: 80,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Accept?'),
+                  Switch(
+                    value: (exerciseMatch.bDiscard) ? false : exerciseMatch.isConfirmed,
+                    onChanged: (bool value) {
+                      if (exerciseMatch.bDiscard) return;
+                      setState(() {
+                        exerciseMatch.isConfirmed = value;
+                      });
+                    },
+                  ),
+                  const Center(
+                    child: Text(
+                      'Use my name?',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Switch(
+                    value: (exerciseMatch.bDiscard)
+                        ? false
+                        : exerciseMatch.preferForeignExerciseName,
+                    onChanged: (bool value) {
+                      if (exerciseMatch.bDiscard) return;
+                      setState(() {
+                        exerciseMatch.preferForeignExerciseName = value;
+                      });
+                    },
+                  ),
+                  const Center(
+                    child: Text(
+                      'Discard?',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Switch(
+                    value: exerciseMatch.bDiscard,
+                    onChanged: (bool value) {
+                      setState(() {
+                        exerciseMatch.bDiscard = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _selectableExTile(
       int index, ExerciseMatch exerciseMatch, Color matchedExerciseBackgroundColor) {
-    // return GestureDetector(
-    //   onTap: () {
-    //     _addNewExercise(index, exerciseMatch.foreignExercise, (Exercise? userMatchedEx) {
-    //       if (userMatchedEx != null) {
-    //         setState(() {
-    //           exerciseMatch.matchedExercise = userMatchedEx;
-    //           exerciseMatch.isConfirmed = true;
-    //         });
-    //       }
-    //     });
-    //   },
-    // child:
     return Stack(
       children: [
         (exerciseMatch.matchedExercise != null)
@@ -217,7 +215,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           ),
         ),
       ],
-      // ),
     );
   }
 

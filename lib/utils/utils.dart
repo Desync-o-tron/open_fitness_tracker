@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 
 typedef Exercises = List<Exercise>;
+typedef Strings = List<String>;
 
 class GenericScrollBehavior extends MaterialScrollBehavior {
   @override

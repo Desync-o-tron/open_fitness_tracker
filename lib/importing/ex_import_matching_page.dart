@@ -9,8 +9,6 @@ import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-//TODO make a delete button on the exercisematch
-
 class ImportInspectionPage extends StatefulWidget {
   const ImportInspectionPage({super.key, required this.newTrainingSessions});
   final List<TrainingSession> newTrainingSessions;
@@ -47,13 +45,10 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         title: Text(
             "Imported ${widget.newTrainingSessions.length} sessions &\n ${newExs.length} different exercises"),
       ),
-      body: SafeArea(
-        minimum: const EdgeInsets.symmetric(horizontal: 5),
-        child: MatchExercisesScrollView(
-            exerciseMatches: matchPairs,
-            allImportedExercises: newExs,
-            confirmSelections: _confirmSelections),
-      ),
+      body: MatchExercisesScrollView(
+          exerciseMatches: matchPairs,
+          allImportedExercises: newExs,
+          confirmSelections: _confirmSelections),
     );
   }
 
@@ -106,44 +101,87 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     return exerciseMatches;
   }
 
-  void _confirmSelections() {
-    List<ExerciseMatch> confirmedMatches =
-        matchPairs.where((match) => match.isConfirmed).toList();
+  void _confirmSelections() async {
+    Strings exNamestoRm = [];
 
-    for (var match in confirmedMatches) {
-      var matchedEx = match.matchedExercise;
-      if (matchedEx != null) {
-        Exercise exToUpdate = ExDB.exercises
-            .firstWhere((e) => e.name == matchedEx.name, orElse: () => matchedEx);
-
-        exToUpdate.alternateNames ??= [];
-
-        if (match.preferForeignExerciseName) {
-          exToUpdate.alternateNames!.addIfDNE(exToUpdate.name);
-          exToUpdate.name = match.foreignExercise.name;
-        } else {
-          exToUpdate.alternateNames!.addIfDNE(match.foreignExercise.name);
-        }
-
-        ExDB.addExercises([exToUpdate]);
+    bool firstTimeNoMatch = true;
+    for (var match in matchPairs) {
+      if (match.bDiscard) {
+        exNamestoRm.add(match.foreignExercise.name);
+        continue;
       }
+      if (match.matchedExercise == null) {
+        if (firstTimeNoMatch) {
+          firstTimeNoMatch = false;
+          bool? result = await confirmCreatingNewExercisesDialog(context);
+          if (result == null || !result) {
+            return;
+          }
+        }
+        //otherwise lets put em in the DB!
+        ExDB.addExercises([match.foreignExercise]);
+        continue;
+      }
+      //otherwise we're mapping the foreign ex to our ex.
+      Exercise exToUpdate = ExDB.exercises.firstWhere(
+          (e) => e.name == match.matchedExercise!.name,
+          orElse: () => match.matchedExercise!);
+
+      // ignore: prefer_conditional_assignment
+      if (exToUpdate.alternateNames == null) {
+        exToUpdate.alternateNames = [];
+      }
+
+      if (match.preferForeignExerciseName) {
+        exToUpdate.alternateNames!.addIfDNE(exToUpdate.name);
+        exToUpdate.name = match.foreignExercise.name;
+      } else {
+        exToUpdate.alternateNames!.addIfDNE(match.foreignExercise.name);
+      }
+
+      ExDB.addExercises([exToUpdate]);
+      //TODO now we gotta update the flipping training data with these mapped exercises and drop the exercises the user wanted to rm
     }
 
-    List<Exercise> unmatchedExercises = [];
-
-    for (var importedEx in newExs) {
-      bool found = false;
-      for (var match in confirmedMatches) {
-        if (match.foreignExercise.name == importedEx.name) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        unmatchedExercises.add(importedEx);
-      }
+    if (mounted) {
+      //i think this should be fine, what's a dialog going to do?
+      context.push(routeNames.History.text);
+    } else {
+      //todo error handling?
+      throw Exception("todo help me");
     }
+  }
 
-    context.push(routeNames.History.text);
+  Future<bool?> confirmCreatingNewExercisesDialog(
+    BuildContext context,
+  ) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("beep boop"),
+          content: const Text(
+            "Create new exercises from any unnassigned exercises?",
+            textAlign: TextAlign.center,
+            textScaler: TextScaler.linear(1.25),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

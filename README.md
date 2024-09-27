@@ -2,6 +2,14 @@
 
 Check out the [Live Demo](https://openfitnesstracker.app/#/Exercises)
 
+## What is this? There's already 100 fitness trackers.
+This tracks your sets & reps. Real basic for now. More stuff coming soon.
+It's true - there's a bunch of other apps like this! 
+But this one is open source. It's free. There's no subscription. There's no other open app like this.
+
+I'm just doing this because I want it to exist.
+I want those kids, those high schoolers with such great potential to have the chance to channel and hone their youth without paying some monthly subscription fee with money they don't have.
+
 ## Merge Requests and Suggestions Welcome. 
 If you're interested in collaborating, please reach out. 
 
@@ -9,8 +17,8 @@ If you're interested in collaborating, please reach out.
 - [x] Create a basic UI for searching exercises, and adding them to a training session. 
 - [x] (in progress) Add history and permanant state 
 - [x] (in progress) Add the ability to ingest training data from other apps
-    - [ ] need to translate Strong App training metadata... units, ?
-    - [ ] need to infer training metadata... muscles, ?
+    - [x] translate Strong App training metadata
+    - [ ] guess exercise metadata... muscles, equipment
 - [x] (in progress) Add charts for tracking progress
 - [ ] Reach out for help to prettify the UI
 - [ ] Add the ability to upload custom exercises so they can be added to the database for all users
@@ -21,8 +29,9 @@ If you're interested in collaborating, please reach out.
     - Look into video analysis for muscle activation. see [this paper](https://musclesinaction.cs.columbia.edu/) and things like it
 - [ ] Add the ability to view other user's workouts so trainers and users can share workouts
 - [ ] (Optional?) Add a recommendation engine for exercises that you want prioritized
-- [ ] Create a basic backend for saving anonimized training so we can get stats for models later
-- [ ] Add import/export for openfitnesstracker training history
+- [ ] Create a service saving anonimized training data so we can get stats for models later
+- [ ] Add import/export for openfitnesstracker training history (so you can have your data!)
+- [ ] Add self hosting ability
 
 
 ## Attributions

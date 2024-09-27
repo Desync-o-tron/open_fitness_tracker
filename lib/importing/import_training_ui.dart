@@ -4,7 +4,7 @@ import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/DOM/history_importing_logic.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/importing/ex_import_matching_page.dart';
+import 'package:open_fitness_tracker/importing/import_matching_page.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 

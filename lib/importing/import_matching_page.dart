@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
@@ -113,7 +114,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       if (match.matchedExercise == null) {
         if (firstTimeNoMatch) {
           firstTimeNoMatch = false;
-          bool? result = await confirmCreatingNewExercisesDialog(context);
+          bool? result = await _confirmCreatingNewExercisesDialog(context);
           if (result == null || !result) {
             return;
           }
@@ -140,7 +141,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       }
 
       ExDB.addExercises([exToUpdate]);
-      //TODO now we gotta update the flipping training data with these mapped exercises and drop the exercises the user wanted to rm
+    }
+    var cleanedTrainingSessions =
+        _removeUnwantedExercisesFromIncomingTrainingData(exNamestoRm);
+    for (var session in cleanedTrainingSessions) {
+      myStorage.addTrainingSessionToHistory(session);
     }
 
     if (mounted) {
@@ -148,11 +153,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       context.push(routeNames.History.text);
     } else {
       //todo error handling?
-      throw Exception("todo help me");
+      throw Exception("todo help me..import still worked, just go back");
     }
   }
 
-  Future<bool?> confirmCreatingNewExercisesDialog(
+  Future<bool?> _confirmCreatingNewExercisesDialog(
     BuildContext context,
   ) async {
     return showDialog<bool>(
@@ -183,5 +188,29 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         );
       },
     );
+  }
+
+  List<TrainingSession> _removeUnwantedExercisesFromIncomingTrainingData(
+      Strings unwantedExercisesNames) {
+    List<TrainingSession> cleanedTrainingSessions = [];
+    for (var sesh in widget.newTrainingSessions) {
+      List<SetsOfAnExercise> cleanedSetsOfEx = [];
+      for (var setsOfAnEx in sesh.trainingData) {
+        bool shouldAdd = true;
+        for (var exName in unwantedExercisesNames) {
+          if (setsOfAnEx.ex.name == exName) {
+            shouldAdd = false;
+          }
+        }
+        if (shouldAdd) {
+          cleanedSetsOfEx.add(setsOfAnEx);
+        }
+      }
+      if (cleanedSetsOfEx.isEmpty) continue;
+      // if we rm all the crap in a training session, lets just rm the session too.
+      cleanedTrainingSessions
+          .add(TrainingSession.copy(sesh)..trainingData = cleanedSetsOfEx);
+    }
+    return cleanedTrainingSessions;
   }
 }

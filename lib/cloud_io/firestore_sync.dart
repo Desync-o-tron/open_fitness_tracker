@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
@@ -12,20 +11,30 @@ TODO is there a smoke test I can run on web/devices deploy?
 just want to see if the damn pages load & waht load times are like..
 */
 
-CloudStorage cloudStorage = CloudStorage();
+late CloudStorage cloudStorage; // = CloudStorage();
 
 class CloudStorage {
-  CloudStorage() {
-    _firestore.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-    // ignore: deprecated_member_use
-    // _firestore.enablePersistence(
-    //   const PersistenceSettings(synchronizeTabs: true),
-    // );
+  CloudStorage([FirebaseFirestore? fakeFirestore, FirebaseAuth? fakeFirebaseAuth]) {
+    if (fakeFirebaseAuth != null) {
+      firebaseAuth = fakeFirebaseAuth;
+    } else {
+      firebaseAuth = FirebaseAuth.instance;
+    }
+    if (fakeFirestore != null) {
+      firestore = fakeFirestore;
+    } else {
+      firestore = FirebaseFirestore.instance;
+      firestore.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+      // ignore: deprecated_member_use
+      // firestore.enablePersistence(
+      //   const PersistenceSettings(synchronizeTabs: true),
+      // );
+    }
 
-    FirebaseAuth.instance.userChanges().listen((User? user) {
+    firebaseAuth.userChanges().listen((User? user) {
       routerConfig.refresh(); //https://stackoverflow.com/a/77448906/3894291
       if (user != null) {
         cloudStorage.refreshTrainingHistoryCacheIfItsBeenXHours(12);
@@ -36,7 +45,8 @@ class CloudStorage {
     refreshTrainingHistoryCacheIfItsBeenXHours(12);
   }
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore firestore; // = FirebaseFirestore.instance;
+  late final FirebaseAuth firebaseAuth; // = FirebaseFirestore.instance;
   final _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
 
   static const _historyKey = 'TrainingHistory';
@@ -58,12 +68,13 @@ class CloudStorage {
         if (retryCount >= maxRetries) {
           try {
             // Firestore operation
+            return await operation();
           } on FirebaseException catch (e) {
             if (e.code == 'permission-denied') {
               // Handle permission error
               rethrow;
             } else if (e.code == 'unavailable') {
-              var user = FirebaseAuth.instance.currentUser;
+              var user = firebaseAuth.currentUser;
               int qq;
               // Handle network unavailable error
             } else {
@@ -76,15 +87,14 @@ class CloudStorage {
           }
         }
         await Future.delayed(Duration(milliseconds: delay));
-        delay *= 2; // Exponential backoff
+        delay *= 2;
         retryCount++;
       }
     }
   }
 
   bool isUserEmailVerified() {
-    return (FirebaseAuth.instance.currentUser != null &&
-        FirebaseAuth.instance.currentUser!.emailVerified);
+    return (firebaseAuth.currentUser != null && firebaseAuth.currentUser!.emailVerified);
   }
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
@@ -93,9 +103,9 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     await _retryWithExponentialBackoff(() async {
-      await _firestore
+      await firestore
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(firebaseAuth.currentUser!.uid)
           .collection(_historyKey)
           .add(session.toJson());
     });
@@ -110,10 +120,10 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
 
-    final String userUid = FirebaseAuth.instance.currentUser!.uid;
+    final String userUid = firebaseAuth.currentUser!.uid;
     final String collectionPath = 'users/$userUid/$_historyKey';
 
-    Query query = _firestore
+    Query query = firestore
         .collection(collectionPath)
         .orderBy('date', descending: true)
         .limit(limit);
@@ -149,15 +159,15 @@ class CloudStorage {
     return await _retryWithExponentialBackoff(() async {
       QuerySnapshot<Object?> cloudTrainingHistory;
       if (useCache) {
-        cloudTrainingHistory = await _firestore
+        cloudTrainingHistory = await firestore
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .doc(firebaseAuth.currentUser!.uid)
             .collection(_historyKey)
             .get(const GetOptions(source: Source.cache));
       } else {
-        cloudTrainingHistory = await _firestore
+        cloudTrainingHistory = await firestore
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .doc(firebaseAuth.currentUser!.uid)
             .collection(_historyKey)
             .get(const GetOptions(source: Source.server));
         _historyCacheClock.resetClock();
@@ -183,9 +193,9 @@ class CloudStorage {
       throw Exception("No training session ID! does this training session exist?");
     }
     await _retryWithExponentialBackoff(() async {
-      await _firestore
+      await firestore
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(firebaseAuth.currentUser!.uid)
           .collection(_historyKey)
           .doc(sesh.id)
           .delete();
@@ -198,12 +208,12 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     await _retryWithExponentialBackoff(() async {
-      CollectionReference historyCollection = _firestore
+      CollectionReference historyCollection = firestore
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(firebaseAuth.currentUser!.uid)
           .collection(_historyKey);
       QuerySnapshot snapshot = await historyCollection.get();
-      WriteBatch batch = _firestore.batch();
+      WriteBatch batch = firestore.batch();
       for (DocumentSnapshot doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
@@ -217,9 +227,9 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     return await _retryWithExponentialBackoff(() async {
-      final docSnapshot = await _firestore
+      final docSnapshot = await firestore
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(firebaseAuth.currentUser!.uid)
           .get(const GetOptions(source: Source.server));
       final data = docSnapshot.data() as Map<String, dynamic>?;
 
@@ -238,9 +248,9 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     await _retryWithExponentialBackoff(() async {
-      await _firestore
+      await firestore
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(firebaseAuth.currentUser!.uid)
           .update({_basicUserInfoKey: userInfo.toJson()});
     });
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'nav_bar_controller.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
@@ -12,7 +13,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user = cloudStorage.firebaseAuth.currentUser;
     bool isLoggedIn = user != null;
 
     return Scaffold(

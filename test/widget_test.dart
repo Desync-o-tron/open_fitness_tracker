@@ -1,30 +1,50 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:open_fitness_tracker/main.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+
+class MockStorage extends Mock implements Storage {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final firestore = FakeFirebaseFirestore();
+  final firebaseAuth = MockFirebaseAuth();
+  late Storage storage;
+
+  setUpAll(() async {
+    setFirebaseUiIsTestMode(true);
+
+    // Mock the HydratedBloc storage
+    storage = MockStorage();
+    when(() => storage.write(any(), any<dynamic>())).thenAnswer((_) async {});
+    when(() => storage.read(any())).thenReturn(null);
+    when(() => storage.delete(any())).thenAnswer((_) async {});
+    when(() => storage.clear()).thenAnswer((_) async {});
+
+    // Set the mocked storage for HydratedBloc
+    HydratedBloc.storage = storage;
+  });
+
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    // Build your app and trigger a frame.
+    Key testKey = const Key("testKey");
+    await tester.pumpWidget(MyApp(
+      key: testKey,
+      fakeFirestore: firestore,
+      fakeFirebaseAuth: firebaseAuth,
+    ));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
+    // expect(find.text('Register'), findsOneWidget);
+    // expect(find.byType(SignInScreenWrapper), findsOneWidget);
+    // expect(find.byType(Scaffold), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(find.byKey(testKey), findsAny);
     expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpAndSettle();
   });
 }

@@ -1,8 +1,8 @@
 // ignore_for_file: constant_identifier_names, camel_case_types
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/community/community_page.dart';
 import 'package:open_fitness_tracker/community/profile_page.dart';
 import 'package:open_fitness_tracker/community/settings_page.dart';
@@ -102,10 +102,10 @@ final GoRouter routerConfig = GoRouter(
   //todo is this slow?
   // redirect to the login page if the user is not logged in
   redirect: (BuildContext context, GoRouterState state) async {
-    final bool loggedIn = FirebaseAuth.instance.currentUser != null;
+    final bool loggedIn = cloudStorage.firebaseAuth.currentUser != null;
     if (!loggedIn) {
       return routeNames.SignIn.text;
-    } else if (!FirebaseAuth.instance.currentUser!.emailVerified) {
+    } else if (!cloudStorage.firebaseAuth.currentUser!.emailVerified) {
       if (state.matchedLocation == routeNames.SignIn.text ||
           state.matchedLocation == routeNames.Profile.text ||
           state.matchedLocation == routeNames.VerifyEmail.text) {

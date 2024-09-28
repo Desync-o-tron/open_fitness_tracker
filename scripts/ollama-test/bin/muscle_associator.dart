@@ -3,8 +3,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:ollama_dart/ollama_dart.dart';
-
-//TODO run again with qwen..see if the shit is as good as ya had it the first time
+//!!!
+//todo run again with qwen..see if the shit is as good as ya had it the first time
 
 void main(List<String> args) async {
   final file = File(

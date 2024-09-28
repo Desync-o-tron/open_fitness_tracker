@@ -6,6 +6,7 @@ import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 import 'package:go_router/go_router.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
@@ -57,7 +58,7 @@ class ProfileScreenWrapper extends StatelessWidget {
             : Container(),
       ),
       children: [
-        if (!FirebaseAuth.instance.currentUser!.emailVerified)
+        if (!cloudStorage.firebaseAuth.currentUser!.emailVerified)
           MyGenericButton(
             onPressed: () {
               context.push(routeNames.VerifyEmail.text);
@@ -77,6 +78,7 @@ class SignInScreenWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SignInScreen(
+      auth: cloudStorage.firebaseAuth,
       providers: providers,
       //I double check auth in routes.dart now, but...synergy.
       // I'm too dumb to get it to work only there. that's fine I think

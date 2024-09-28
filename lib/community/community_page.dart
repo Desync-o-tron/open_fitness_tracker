@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/community/charts.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
@@ -31,10 +32,10 @@ class SignInOrProfileWidget extends StatefulWidget {
 class _SignInOrProfileWidgetState extends State<SignInOrProfileWidget> {
   @override
   Widget build(BuildContext context) {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    cloudStorage.firebaseAuth.authStateChanges().listen((User? user) {
       if (mounted) setState(() {});
     });
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (cloudStorage.firebaseAuth.currentUser == null) {
       return Column(
         children: [
           const Text(

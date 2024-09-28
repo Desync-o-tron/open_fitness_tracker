@@ -4,30 +4,41 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
+import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-MyStorage myStorage = MyStorage();
+/*
+TODO is there a smoke test I can run on web/devices deploy?
+just want to see if the damn pages load & waht load times are like..
+*/
 
-class MyStorage {
-  MyStorage() {
+CloudStorage cloudStorage = CloudStorage();
+
+class CloudStorage {
+  CloudStorage() {
     _firestore.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
-    if (kIsWeb) {
-      // ignore: deprecated_member_use
-      _firestore.enablePersistence(
-        const PersistenceSettings(synchronizeTabs: true),
-      );
-    }
-    _userDoc = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid);
+    // ignore: deprecated_member_use
+    // _firestore.enablePersistence(
+    //   const PersistenceSettings(synchronizeTabs: true),
+    // );
+
+    FirebaseAuth.instance.userChanges().listen((User? user) {
+      routerConfig.refresh(); //https://stackoverflow.com/a/77448906/3894291
+      if (user != null) {
+        cloudStorage.refreshTrainingHistoryCacheIfItsBeenXHours(12);
+      }
+    });
+
+    if (!isUserEmailVerified()) return;
+    refreshTrainingHistoryCacheIfItsBeenXHours(12);
   }
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
-  late final DocumentReference _userDoc;
+
   static const _historyKey = 'TrainingHistory';
   static const _basicUserInfoKey = 'BasicUserInfo';
 
@@ -71,9 +82,22 @@ class MyStorage {
     }
   }
 
+  bool isUserEmailVerified() {
+    return (FirebaseAuth.instance.currentUser != null &&
+        FirebaseAuth.instance.currentUser!.emailVerified);
+  }
+
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     await _retryWithExponentialBackoff(() async {
-      await _userDoc.collection(_historyKey).add(session.toJson());
+      await _firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection(_historyKey)
+          .add(session.toJson());
     });
   }
 
@@ -81,10 +105,15 @@ class MyStorage {
     required int limit,
     DateTime? startAfterTimestamp,
   }) {
+    if (!isUserEmailVerified()) {
+      return Stream.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
+
     final String userUid = FirebaseAuth.instance.currentUser!.uid;
     final String collectionPath = 'users/$userUid/$_historyKey';
 
-    Query query = FirebaseFirestore.instance
+    Query query = _firestore
         .collection(collectionPath)
         .orderBy('date', descending: true)
         .limit(limit);
@@ -101,6 +130,10 @@ class MyStorage {
   }
 
   Future<void> refreshTrainingHistoryCacheIfItsBeenXHours(int hours) async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     if (await _historyCacheClock.timeSinceCacheWasUpdated() > Duration(hours: hours)) {
       await getEntireUserTrainingHistory(useCache: false);
     }
@@ -109,14 +142,22 @@ class MyStorage {
   Future<List<TrainingSession>> getEntireUserTrainingHistory({
     required bool useCache,
   }) async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     return await _retryWithExponentialBackoff(() async {
       QuerySnapshot<Object?> cloudTrainingHistory;
       if (useCache) {
-        cloudTrainingHistory = await _userDoc
+        cloudTrainingHistory = await _firestore
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .collection(_historyKey)
             .get(const GetOptions(source: Source.cache));
       } else {
-        cloudTrainingHistory = await _userDoc
+        cloudTrainingHistory = await _firestore
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
             .collection(_historyKey)
             .get(const GetOptions(source: Source.server));
         _historyCacheClock.resetClock();
@@ -134,19 +175,35 @@ class MyStorage {
   }
 
   Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     if (sesh.id == '') {
-      throw Exception("No session ID!");
+      throw Exception("No training session ID! does this training session exist?");
     }
     await _retryWithExponentialBackoff(() async {
-      await _userDoc.collection(_historyKey).doc(sesh.id).delete();
+      await _firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection(_historyKey)
+          .doc(sesh.id)
+          .delete();
     });
   }
 
   Future<void> deleteEntireTrainingHistory() async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     await _retryWithExponentialBackoff(() async {
-      CollectionReference historyCollection = _userDoc.collection(_historyKey);
+      CollectionReference historyCollection = _firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection(_historyKey);
       QuerySnapshot snapshot = await historyCollection.get();
-      WriteBatch batch = FirebaseFirestore.instance.batch();
+      WriteBatch batch = _firestore.batch();
       for (DocumentSnapshot doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
@@ -155,8 +212,15 @@ class MyStorage {
   }
 
   Future<BasicUserInfo> getBasicUserInfo() async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     return await _retryWithExponentialBackoff(() async {
-      final docSnapshot = await _userDoc.get(const GetOptions(source: Source.server));
+      final docSnapshot = await _firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get(const GetOptions(source: Source.server));
       final data = docSnapshot.data() as Map<String, dynamic>?;
 
       if (data != null && data.containsKey(_basicUserInfoKey)) {
@@ -169,8 +233,15 @@ class MyStorage {
   }
 
   Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
+    if (!isUserEmailVerified()) {
+      return Future.error(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+    }
     await _retryWithExponentialBackoff(() async {
-      await _userDoc.update({_basicUserInfoKey: userInfo.toJson()});
+      await _firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({_basicUserInfoKey: userInfo.toJson()});
     });
   }
 }

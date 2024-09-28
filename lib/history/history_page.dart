@@ -53,7 +53,7 @@ class _HistoryPageState extends State<HistoryPage> {
       _isLoading = true;
     });
 
-    final stream = myStorage.getUserTrainingHistoryStream(
+    final stream = cloudStorage.getUserTrainingHistoryStream(
       limit: _pageSize,
       startAfterTimestamp: _lastTimestamp,
     );
@@ -83,7 +83,8 @@ class _HistoryPageState extends State<HistoryPage> {
         //todo error handling?
       }
     });
-    numSessions = (await myStorage.getEntireUserTrainingHistory(useCache: true)).length;
+    numSessions =
+        (await cloudStorage.getEntireUserTrainingHistory(useCache: true)).length;
     setState(() {
       //numSessions
     });
@@ -148,7 +149,7 @@ class _HistoryPageState extends State<HistoryPage> {
               });
         }
         if (result == 'refresh training history') {
-          myStorage.getEntireUserTrainingHistory(useCache: false);
+          cloudStorage.getEntireUserTrainingHistory(useCache: false);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -164,7 +165,7 @@ class _HistoryPageState extends State<HistoryPage> {
             value: 'delete history',
             child: ElevatedButton(
               onPressed: () {
-                myStorage.deleteEntireTrainingHistory();
+                cloudStorage.deleteEntireTrainingHistory();
               },
               child: const Text("del history..dont click me"),
             )),
@@ -238,7 +239,7 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     delSesh() async {
-      myStorage
+      cloudStorage
           .removeTrainingSessionFromHistory(sesh)
           .onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
                 content: Text('Failed to delete training session'),

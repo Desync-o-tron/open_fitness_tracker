@@ -145,7 +145,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     var cleanedTrainingSessions =
         _removeUnwantedExercisesFromIncomingTrainingData(exNamestoRm);
     for (var session in cleanedTrainingSessions) {
-      myStorage.addTrainingSessionToHistory(session);
+      cloudStorage.addTrainingSessionToHistory(session);
     }
 
     if (mounted) {

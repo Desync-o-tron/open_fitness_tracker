@@ -18,10 +18,9 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ExDB.init(); //todo migrate to firestore
+  ExDB.init(); //TODO migrate to firestore & update rules.
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  myStorage.refreshTrainingHistoryCacheIfItsBeenXHours(12);
 
   HydratedStorage hydratedStorage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -30,12 +29,6 @@ Future<void> main() async {
   );
   HydratedBloc.storage = hydratedStorage;
 
-  //https://stackoverflow.com/a/77448906/3894291
-
-  FirebaseAuth.instance.userChanges().listen((User? user) {
-    routerConfig.refresh();
-    myStorage = MyStorage(); //update storage!
-  });
   runApp(const MyApp());
 }
 
@@ -68,8 +61,7 @@ class MyApp extends StatelessWidget {
             context.read<TrainingSessionCubit>().updateDuration();
           },
         );
-        context.read<BasicUserInfoCubit>().get();
-        //todo ^this stuff maybe should go somewhere else..
+
         return MaterialApp.router(
           theme: myTheme,
           routerConfig: routerConfig,

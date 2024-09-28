@@ -4,15 +4,6 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-// //does this make sense here?
-// class SelectedExercises extends Cubit<List<Exercise>> {
-//   SelectedExercises() : super([]);
-
-//   void updateSelectedExercises(List<Exercise> exercises) {
-//     emit(exercises);
-//   }
-// }
-
 class ExSearchState {
   List<Exercise> filteredExercises = ExDB.exercises;
   List<String> categoriesFilter = [];
@@ -30,7 +21,9 @@ class ExSearchState {
 
   /// Every time we're going to update we re-apply every filter. not the most efficient but it's fine for now
   ExSearchState copyWithNewFilters(
-      {List<String>? categoriesFilter, List<String>? musclesFilter, String? enteredKeyword}) {
+      {List<String>? categoriesFilter,
+      List<String>? musclesFilter,
+      String? enteredKeyword}) {
     ExSearchState newState = ExSearchState(this);
     newState.filteredExercises = ExDB.exercises;
     newState.categoriesFilter = categoriesFilter ?? newState.categoriesFilter;
@@ -52,15 +45,18 @@ class ExSearchState {
     }
 
     for (String category in newState.categoriesFilter) {
-      newState.filteredExercises = newState.filteredExercises.where((e) => e.category == category).toList();
+      newState.filteredExercises =
+          newState.filteredExercises.where((e) => e.category == category).toList();
     }
 
     // filter by keyword
     if (newState.enteredKeyword.isNotEmpty) {
-      var fuseForNames = Fuzzy(ExDB.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var fuseForNames =
+          Fuzzy(ExDB.names, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
       var resultsByName = fuseForNames.search(newState.enteredKeyword);
       var matchedNames = resultsByName.map((r) => r.item as String).toSet();
-      var fuseForMuscles = Fuzzy(ExDB.muscles, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+      var fuseForMuscles = Fuzzy(ExDB.muscles,
+          options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
       var resultsByMuscles = fuseForMuscles.search(newState.enteredKeyword);
       var matchedMuscles = resultsByMuscles.map((r) => r.item as String).toSet();
       tempExs = [];

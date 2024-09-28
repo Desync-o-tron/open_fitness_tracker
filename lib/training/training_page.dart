@@ -45,7 +45,7 @@ class _TrainingPageState extends State<TrainingPage> {
                 sesh.isOngoing = false;
                 sesh.duration = DateTime.now().difference(sesh.date);
                 sesh.dateOfLastEdit = DateTime.now();
-                myStorage.addTrainingSessionToHistory(sesh);
+                cloudStorage.addTrainingSessionToHistory(sesh);
                 context.read<TrainingSessionCubit>().reset();
                 context.go(routeNames.History.text);
               },

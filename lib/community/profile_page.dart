@@ -48,11 +48,13 @@ class ProfileScreenWrapper extends StatelessWidget {
         }),
       ],
       appBar: AppBar(
-        leading: BackButton(
-          onPressed: () {
-            context.pop();
-          },
-        ),
+        leading: Navigator.of(context).canPop()
+            ? BackButton(
+                onPressed: () {
+                  context.pop();
+                },
+              )
+            : Container(),
       ),
       children: [
         if (!FirebaseAuth.instance.currentUser!.emailVerified)

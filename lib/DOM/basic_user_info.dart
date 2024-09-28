@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
@@ -12,15 +13,21 @@ dart run build_runner watch --delete-conflicting-outputs
 */
 
 class BasicUserInfoCubit extends Cubit<BasicUserInfo> {
-  BasicUserInfoCubit() : super(BasicUserInfo());
+  BasicUserInfoCubit() : super(BasicUserInfo()) {
+    try {
+      get();
+    } catch (authEx) {
+      //
+    }
+  }
 
   void set(BasicUserInfo userInfo) {
-    myStorage.setBasicUserInfo(userInfo);
+    cloudStorage.setBasicUserInfo(userInfo);
     emit(userInfo);
   }
 
   void get() async {
-    var userInfo = await myStorage.getBasicUserInfo();
+    var userInfo = await cloudStorage.getBasicUserInfo();
     emit(userInfo);
   }
 }

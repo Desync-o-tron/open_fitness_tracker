@@ -39,6 +39,7 @@ class CloudStorage {
 
     if (!isUserEmailVerified()) return;
     ExDB.loadExercises(false);
+    TrainHistoryDB.loadUserTrainingHistory(useCache: false);
     // refreshCacheIfItsBeenXHours(12);
   }
 
@@ -124,15 +125,11 @@ class CloudStorage {
             if (e.code == 'permission-denied') {
               //todo if the user signs out, can we handle these async get / set options gracefully?
               //I think we will get permission denied here otherwise
-
               rethrow;
             } else if (e.code == 'unavailable') {
-              // ignore: unused_local_variable
-              var user = firebaseAuth.currentUser;
-              // ignore: unused_local_variable
-              int qq;
-              rethrow;
-              // Handle network unavailable error
+              //todo idk why this error is so pernicious..
+              await firebaseAuth.signOut();
+              // rethrow;
             } else {
               // Handle other Firebase exceptions
               rethrow;
@@ -151,6 +148,8 @@ class CloudStorage {
 }
 
 class TrainHistoryDB {
+  static Future<List<TrainingSession>>? trainingHistory;
+
   static Future<void> addTrainingSessionToHistory(TrainingSession session) async {
     if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
@@ -193,29 +192,21 @@ class TrainHistoryDB {
     });
   }
 
-  static Future<List<TrainingSession>> getEntireUserTrainingHistory({
+  static Future<void> loadUserTrainingHistory({
     required bool useCache,
   }) async {
     if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    return await CloudStorage._retryWithExponentialBackoff(() async {
-      QuerySnapshot<Object?> cloudTrainingHistory;
-      if (useCache) {
-        cloudTrainingHistory = await CloudStorage.firestore
-            .collection('users')
-            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-            .collection(CloudStorage._historyKey)
-            .get(const GetOptions(source: Source.cache));
-      } else {
-        cloudTrainingHistory = await CloudStorage.firestore
-            .collection('users')
-            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-            .collection(CloudStorage._historyKey)
-            .get(const GetOptions(source: Source.server));
-        // CloudStorage._historyCacheClock!.resetClock(); //todo
-      }
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
+          .collection('users')
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.server));
+
+      // CloudStorage._historyCacheClock!.resetClock(); //todo ?
 
       List<TrainingSession> sessions = [];
       for (var doc in cloudTrainingHistory.docs) {
@@ -223,8 +214,7 @@ class TrainHistoryDB {
           TrainingSession.fromJson(doc.data() as Map<String, dynamic>),
         );
       }
-
-      return sessions;
+      trainingHistory = Future.value(sessions);
     });
   }
 

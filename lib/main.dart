@@ -21,8 +21,6 @@ todo just want to see if the damn pages load & waht load times are like..
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // ExDB.init(); //TODO firestore & update rules.
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   CloudStorage.init();
 

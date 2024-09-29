@@ -12,129 +12,79 @@ class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _HistoryPageState createState() => _HistoryPageState();
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  final int _pageSize = 10; // Number of items per page
-  final List<TrainingSession> _sessions = [];
-  var numSessions = 0;
-  bool _isLoading = false;
-  bool _hasMore = true;
-  DateTime? _lastTimestamp;
-  final ScrollController _scrollController = ScrollController();
-  StreamSubscription<List<TrainingSession>>? _subscription;
+  Future<List<TrainingSession>>? _trainingHistoryFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadMoreData();
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-              _scrollController.position.maxScrollExtent - 400 &&
-          !_isLoading &&
-          _hasMore) {
-        _loadMoreData();
-      }
-    });
+    _loadTrainingHistory();
   }
 
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _loadMoreData() async {
+  void _loadTrainingHistory({bool useCache = true}) {
     setState(() {
-      _isLoading = true;
-    });
-
-    final stream = TrainHistoryDB.getUserTrainingHistoryStream(
-      limit: _pageSize,
-      startAfterTimestamp: _lastTimestamp,
-    );
-
-    _subscription = stream.listen((sessions) {
-      setState(() {
-        if (sessions.isNotEmpty) {
-          _lastTimestamp = sessions.last.date;
-          _sessions.addAll(sessions);
-          if (sessions.length < _pageSize) {
-            _hasMore = false;
-          }
-        } else {
-          _hasMore = false;
-        }
-        _isLoading = false;
-      });
-    }, onError: (error) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading data: $error')),
-        );
-      } else {
-        //todo error handling?
-      }
-    });
-    numSessions =
-        (await TrainHistoryDB.getEntireUserTrainingHistory(useCache: true)).length;
-    setState(() {
-      //numSessions
+      // Initialize the future; if useCache is false, reload data
+      // if (!useCache || TrainHistoryDB.trainingHistory == null) {
+      //   TrainHistoryDB.trainingHistory =
+      //       TrainHistoryDB.loadUserTrainingHistory(useCache: useCache);
+      // }
+      _trainingHistoryFuture = TrainHistoryDB.trainingHistory;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Builder(builder: (context) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('History ($numSessions)'),
-          actions: [
-            _hamburgerMenuActions(context),
-          ],
-        ),
-        body: _buildBody(),
-      );
-    });
-  }
-
-  Widget _buildBody() {
-    if (_sessions.isEmpty && _isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (_sessions.isEmpty && !_hasMore) {
-      return const Center(child: Text('No History'));
-    } else {
-      return ListView.builder(
-        controller: _scrollController,
-        itemCount: _sessions.length + 1,
-        itemBuilder: (context, index) {
-          if (index < _sessions.length) {
-            return TrainingSessionHistoryCard(session: _sessions[index]);
-          } else if (_hasMore) {
-            return const CircularProgressIndicator();
-          } else {
-            return Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.all(16.0),
-              child: const Text("that's everything!"),
-            );
-          }
-        },
-      );
-    }
+    return FutureBuilder<List<TrainingSession>>(
+      future: _trainingHistoryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Data is still loading
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('History'),
+              actions: [_hamburgerMenuActions(context)],
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          // An error occurred
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('History'),
+              actions: [_hamburgerMenuActions(context)],
+            ),
+            body: Center(child: Text('Error loading data: ${snapshot.error}')),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // No data available
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('History (0)'),
+              actions: [_hamburgerMenuActions(context)],
+            ),
+            body: const Center(child: Text('No History')),
+          );
+        } else {
+          // Data loaded successfully
+          final sessions = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('History (${sessions.length})'),
+              actions: [_hamburgerMenuActions(context)],
+            ),
+            body: ListView.builder(
+              itemCount: sessions.length,
+              itemBuilder: (context, index) {
+                return TrainingSessionHistoryCard(session: sessions[index]);
+              },
+            ),
+          );
+        }
+      },
+    );
   }
 
   Widget _hamburgerMenuActions(BuildContext context) {
@@ -143,13 +93,16 @@ class _HistoryPageState extends State<HistoryPage> {
       onSelected: (String result) {
         if (result == 'import') {
           showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return const ExternalAppImportSelectionDialog();
-              });
-        }
-        if (result == 'refresh training history') {
-          TrainHistoryDB.getEntireUserTrainingHistory(useCache: false);
+            context: context,
+            builder: (BuildContext context) {
+              return const ExternalAppImportSelectionDialog();
+            },
+          );
+        } else if (result == 'refresh training history') {
+          _loadTrainingHistory(useCache: false);
+        } else if (result == 'delete history') {
+          TrainHistoryDB.deleteEntireTrainingHistory();
+          _loadTrainingHistory(useCache: false);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -159,16 +112,12 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         const PopupMenuItem<String>(
           value: 'refresh training history',
-          child: Text('refresh training history cache'),
+          child: Text('Refresh training history cache'),
         ),
-        PopupMenuItem<String>(
-            value: 'delete history',
-            child: ElevatedButton(
-              onPressed: () {
-                TrainHistoryDB.deleteEntireTrainingHistory();
-              },
-              child: const Text("del history..dont click me"),
-            )),
+        const PopupMenuItem<String>(
+          value: 'delete history',
+          child: Text('Delete entire history'),
+        ),
       ],
     );
   }

@@ -55,7 +55,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
   final Units units = Units();
   late MassUnits selectedMassUnit;
   late DistanceUnits selectedDistanceUnit;
-  bool setAsStandard = false;
+  bool setAsStandard = true;
   String? filepath;
 
   @override

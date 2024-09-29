@@ -13,11 +13,11 @@ class CoolChart extends StatefulWidget {
 
 class _CoolChartState extends State<CoolChart> {
   List<DateAndWeight> bestWeightsOnDates = [];
-  List<double> xValues = []; //
-  late DateTime firstDate;
+  List<double> xValues = [];
+  DateTime? firstDate;
 
-  late double _slope;
-  late double _intercept;
+  double? _slope;
+  double? _intercept;
 
   @override
   void initState() {
@@ -26,9 +26,13 @@ class _CoolChartState extends State<CoolChart> {
   }
 
   void _loadData() async {
-    List<TrainingSession> trainHist =
-        await TrainHistoryDB.getEntireUserTrainingHistory(useCache: true);
-    if (trainHist.isEmpty) return;
+    // Await the future to get the list of training sessions
+    List<TrainingSession>? trainHist = await TrainHistoryDB.trainingHistory;
+
+    if (trainHist == null || trainHist.isEmpty) {
+      setState(() {}); // Trigger build to show empty state
+      return;
+    }
 
     for (var trainSesh in trainHist) {
       for (var setsOfAnExercise in trainSesh.trainingData) {
@@ -37,7 +41,9 @@ class _CoolChartState extends State<CoolChart> {
             !setsOfAnExercise.ex.name.toLowerCase().contains("straight")) {
           double bestWeight = 0;
           for (var mySet in setsOfAnExercise.sets) {
-            bestWeight = max(mySet.weight!, bestWeight).toDouble();
+            if (mySet.weight != null) {
+              bestWeight = max(mySet.weight!, bestWeight).toDouble();
+            }
           }
           if (bestWeight > 0) {
             bestWeightsOnDates.add(DateAndWeight(trainSesh.date, bestWeight));
@@ -45,21 +51,30 @@ class _CoolChartState extends State<CoolChart> {
         }
       }
     }
+
+    if (bestWeightsOnDates.isEmpty) {
+      setState(() {}); // Trigger build to show empty state
+      return;
+    }
+
     bestWeightsOnDates.sort((a, b) => a.date.compareTo(b.date));
 
     firstDate = bestWeightsOnDates.first.date;
     // Convert dates to numerical x-values (days since first date)
     xValues = bestWeightsOnDates
-        .map((e) => e.date.difference(firstDate).inDays.toDouble())
+        .map((e) => e.date.difference(firstDate!).inDays.toDouble())
         .toList();
 
-    setState(() {});
+    // Calculate the best fit line
+    _calculateBestFitLine();
+
+    setState(() {}); // Trigger build to display the chart
   }
 
   @override
   Widget build(BuildContext context) {
     if (bestWeightsOnDates.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: Text('No data available'));
     }
 
     return Column(
@@ -83,18 +98,19 @@ class _CoolChartState extends State<CoolChart> {
                 ),
               ),
               // Display the equation of the best fit line
-              Positioned(
-                bottom: 55,
-                right: 16,
-                child: Container(
-                  color: Colors.white.withOpacity(0.3),
-                  padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    'line of best fit: lbs(days) = ${_slope.toStringAsFixed(2)}*days + ${_intercept.toStringAsFixed(0)}lbs',
-                    style: const TextStyle(fontSize: 12),
+              if (_slope != null && _intercept != null)
+                Positioned(
+                  bottom: 55,
+                  right: 16,
+                  child: Container(
+                    color: Colors.white.withOpacity(0.3),
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      'Best fit line: weight(days) = ${_slope!.toStringAsFixed(2)} * days + ${_intercept!.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -104,16 +120,18 @@ class _CoolChartState extends State<CoolChart> {
 
   LineChartData _buildLineChart() {
     double maxY = bestWeightsOnDates.map((e) => e.weight).reduce(max) + 30;
+
     // Calculate dynamic intervals for X-axis labels
-    double minX = xValues.first;
-    double maxX = xValues.last;
+    double minX = 0;
+    double maxX = bestWeightsOnDates.length.toDouble() - 1;
 
-    int desiredLabelCount = 5; // Adjust this number based on your preference
-    double intervalX = (maxX - minX) / (desiredLabelCount - 1);
-    if (intervalX <= 0) intervalX = 1;
+    // Generate spots for the main data line
+    List<FlSpot> dataSpots = bestWeightsOnDates.asMap().entries.map((e) {
+      return FlSpot(e.key.toDouble(), e.value.weight);
+    }).toList();
 
-    // Calculate the best fit line
-    List<FlSpot> bestFitLineSpots = _calculateBestFitLine();
+    // Spots for the best fit line
+    List<FlSpot> bestFitLineSpots = _getBestFitLineSpots();
 
     return LineChartData(
       gridData: FlGridData(
@@ -129,32 +147,30 @@ class _CoolChartState extends State<CoolChart> {
           axisNameWidget: const Text('Weight (lb)', style: TextStyle(fontSize: 14)),
           axisNameSize: 18,
           sideTitles: SideTitles(
-              showTitles: true,
-              interval: 50,
-              getTitlesWidget: (value, meta) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text('${value.toInt()}', style: const TextStyle(fontSize: 12)),
-                );
-              },
-              reservedSize: 40),
-        ),
-        topTitles: AxisTitles(
-          axisNameWidget: const Text('Date', style: TextStyle(fontSize: 14)),
-          axisNameSize: 18,
-          sideTitles: SideTitles(
             showTitles: true,
-            interval: 8,
-            getTitlesWidget: _dateLabels,
+            interval: 50,
+            getTitlesWidget: (value, meta) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Text('${value.toInt()}', style: const TextStyle(fontSize: 12)),
+              );
+            },
+            reservedSize: 40,
           ),
         ),
         bottomTitles: AxisTitles(
-          axisNameWidget: const Text('Days', style: TextStyle(fontSize: 14)),
+          axisNameWidget: const Text('Sessions', style: TextStyle(fontSize: 14)),
           axisNameSize: 18,
-          sideTitles:
-              SideTitles(showTitles: true, interval: 5, getTitlesWidget: _daysLabels),
+          sideTitles: SideTitles(
+            showTitles: true,
+            interval: 5,
+            getTitlesWidget: _sessionLabels,
+          ),
         ),
         rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
       ),
@@ -162,15 +178,13 @@ class _CoolChartState extends State<CoolChart> {
         show: true,
         border: Border.all(color: Colors.grey.withOpacity(0.5)),
       ),
-      minX: 0,
-      maxX: bestWeightsOnDates.length.toDouble() - 1,
+      minX: minX,
+      maxX: maxX,
       minY: 0,
       maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: bestWeightsOnDates.asMap().entries.map((e) {
-            return FlSpot(e.key.toDouble(), e.value.weight);
-          }).toList(),
+          spots: dataSpots,
           isCurved: true,
           color: Colors.blueAccent,
           barWidth: 4,
@@ -206,37 +220,45 @@ class _CoolChartState extends State<CoolChart> {
           ),
         ),
         // Best Fit Line
-        LineChartBarData(
-          spots: bestFitLineSpots,
-          isCurved: false,
-          color: Colors.redAccent,
-          barWidth: 2,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-        ),
+        if (bestFitLineSpots.isNotEmpty)
+          LineChartBarData(
+            spots: bestFitLineSpots,
+            isCurved: false,
+            color: Colors.redAccent,
+            barWidth: 2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+          ),
       ],
       lineTouchData: LineTouchData(
         enabled: true,
         touchTooltipData: LineTouchTooltipData(
           getTooltipItems: (touchedSpots) {
-            return touchedSpots.map((LineBarSpot touchedSpot) {
-              // Retrieve the date corresponding to the touched spot
-              DateTime date = bestWeightsOnDates[touchedSpot.x.toInt()].date;
-              String formattedDate = "${date.year}/${date.month}/${date.day}";
-              return LineTooltipItem(
-                '${touchedSpot.y} lb\n $formattedDate',
-                const TextStyle(color: Colors.white, fontSize: 14),
-              );
-            }).toList();
+            return touchedSpots
+                .map((LineBarSpot touchedSpot) {
+                  // Retrieve the date corresponding to the touched spot
+                  int index = touchedSpot.x.toInt();
+                  if (index < 0 || index >= bestWeightsOnDates.length) {
+                    return null;
+                  }
+                  DateTime date = bestWeightsOnDates[index].date;
+                  String formattedDate = "${date.year}/${date.month}/${date.day}";
+                  return LineTooltipItem(
+                    '${touchedSpot.y.toStringAsFixed(1)} lb\n$formattedDate',
+                    const TextStyle(color: Colors.white, fontSize: 14),
+                  );
+                })
+                .whereType<LineTooltipItem>()
+                .toList();
           },
         ),
       ),
     );
   }
 
-  List<FlSpot> _calculateBestFitLine() {
+  void _calculateBestFitLine() {
     int n = xValues.length;
-    if (n == 0) return [];
+    if (n == 0) return;
 
     List<double> yValues = bestWeightsOnDates.map((e) => e.weight).toList();
 
@@ -253,59 +275,39 @@ class _CoolChartState extends State<CoolChart> {
 
     // Calculate slope (m) and intercept (b) for y = mx + b
     double denominator = (n * sumX2 - sumX * sumX);
-    if (denominator == 0) return []; // Prevent division by zero
+    if (denominator == 0) return; // Prevent division by zero
 
     _slope = (n * sumXY - sumX * sumY) / denominator;
-    _intercept = (sumY - _slope * sumX) / n;
+    _intercept = (sumY - _slope! * sumX) / n;
+  }
 
-    // Generate two points for the best fit line (start and end)
-    // double x0 = xValues.first;
-    double x0 = 0;
-    double y0 = _slope * xValues.first + _intercept;
-    double x1 = xValues.length.toDouble() - 1;
-    double y1 = _slope * xValues.last + _intercept;
+  List<FlSpot> _getBestFitLineSpots() {
+    if (_slope == null || _intercept == null) return [];
+
+    double xStart = xValues.first;
+    double xEnd = xValues.last;
+
+    double yStart = _slope! * xStart + _intercept!;
+    double yEnd = _slope! * xEnd + _intercept!;
 
     return [
-      FlSpot(x0, y0),
-      FlSpot(x1, y1),
+      FlSpot(0, yStart),
+      FlSpot(xValues.length.toDouble() - 1, yEnd),
     ];
   }
 
-  static int lastSeshYear = 0;
-  Widget _dateLabels(double value, TitleMeta meta) {
+  Widget _sessionLabels(double value, TitleMeta meta) {
     const style = TextStyle(fontSize: 12);
     int index = value.toInt();
     if (index < 0 || index >= bestWeightsOnDates.length) {
       return Container();
     }
     DateTime date = bestWeightsOnDates[index].date;
-    String formattedDate;
-
-    if (date.year != lastSeshYear) {
-      formattedDate = "${date.year.toString().substring(2)}/${date.month}/${date.day}";
-    } else {
-      formattedDate = "${date.month}/${date.day}";
-    }
-    lastSeshYear = date.year;
+    String formattedDate = "${date.month}/${date.day}";
     return SideTitleWidget(
       axisSide: meta.axisSide,
       space: 8.0,
       child: Text(formattedDate, style: style),
-    );
-  }
-
-  Widget _daysLabels(double value, TitleMeta meta) {
-    const style = TextStyle(fontSize: 12);
-    int index = value.toInt();
-    if (index < 0 || index >= bestWeightsOnDates.length) {
-      return Container();
-    }
-    DateTime currDate = bestWeightsOnDates[index].date;
-    int day = currDate.difference(firstDate).inDays;
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      space: 8.0,
-      child: Text(day.toString(), style: style),
     );
   }
 }

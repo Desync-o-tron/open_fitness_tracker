@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:fuzzy/fuzzy.dart';
-import 'package:open_fitness_tracker/DOM/exercise_db.dart';
+import 'package:open_fitness_tracker/cloud_io/exercise_db.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 class MusclesPicker extends StatefulWidget {
@@ -29,12 +30,13 @@ class _MusclesPickerState extends State<MusclesPicker> {
   @override
   Widget build(BuildContext context) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String muscle in ExDB.muscles) {
+    for (String muscle in cloudStorage.exDB.muscles) {
       dropdownMenuEntries.add(DropdownMenuEntry(
         label: muscle,
         value: muscle,
-        trailingIcon:
-            widget.musclesAdded.contains(muscle) ? const Icon(Icons.check, color: Colors.green) : null,
+        trailingIcon: widget.musclesAdded.contains(muscle)
+            ? const Icon(Icons.check, color: Colors.green)
+            : null,
       ));
     }
 
@@ -46,8 +48,9 @@ class _MusclesPickerState extends State<MusclesPicker> {
         ),
         const Padding(padding: EdgeInsets.symmetric(vertical: 6.0)),
         DropdownMenu<String>(
-          errorText:
-              widget.validate && widget.musclesAdded.isEmpty ? "At least one muscle must be selected" : null,
+          errorText: widget.validate && widget.musclesAdded.isEmpty
+              ? "At least one muscle must be selected"
+              : null,
           controller: _textController,
           onSelected: (String? muscle) {
             if (muscle == null) {
@@ -130,7 +133,8 @@ class SearchableMusclesSelectorComplex extends StatefulWidget {
   });
 
   @override
-  State<SearchableMusclesSelectorComplex> createState() => _SearchableMusclesSelectorState();
+  State<SearchableMusclesSelectorComplex> createState() =>
+      _SearchableMusclesSelectorState();
 }
 
 class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorComplex> {
@@ -138,7 +142,7 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
   final FocusNode _textFieldFocusNode = FocusNode();
   final FocusNode _dropDownFocusNode = FocusNode();
 
-  List<String> filteredMuscles = List.of(ExDB.muscles);
+  List<String> filteredMuscles = List.of(cloudStorage.exDB.muscles);
   bool foundExactMuscle = true;
 
   _addNewMuscleName(BuildContext context) {
@@ -199,7 +203,8 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
               focusNode: _dropDownFocusNode,
               child: ListTile(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), side: const BorderSide(color: Colors.black)),
+                    borderRadius: BorderRadius.circular(10.0),
+                    side: const BorderSide(color: Colors.black)),
                 title: Text(filteredMuscles[index]),
                 selected: widget.muscles.contains(filteredMuscles[index]),
                 trailing: widget.muscles.contains(filteredMuscles[index])
@@ -231,21 +236,26 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
         decoration: InputDecoration(
           labelText: widget.labelText,
           suffixIcon: !foundExactMuscle
-              ? IconButton(icon: const Icon(Icons.add), onPressed: () => _addNewMuscleName(context))
+              ? IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => _addNewMuscleName(context))
               : null,
           contentPadding: const EdgeInsets.all(0),
         ),
         onFieldSubmitted: (value) => _addNewMuscleName(context),
         onChanged: (String search) {
-          List<String> allMuscles = ExDB.muscles.toList();
-          allMuscles.addAllIfDNE(widget.muscles); // so we don't 5get to add new custom muscles
+          List<String> allMuscles = cloudStorage.exDB.muscles.toList();
+          allMuscles
+              .addAllIfDNE(widget.muscles); // so we don't 5get to add new custom muscles
 
-          var fuseForMuscles =
-              Fuzzy(allMuscles, options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
-          filteredMuscles = fuseForMuscles.search(search).map((r) => r.item as String).toList();
+          var fuseForMuscles = Fuzzy(allMuscles,
+              options: FuzzyOptions(findAllMatches: true, threshold: 0.25));
+          filteredMuscles =
+              fuseForMuscles.search(search).map((r) => r.item as String).toList();
           foundExactMuscle = filteredMuscles.contains(search);
 
-          if (filteredMuscles.isEmpty && search.isEmpty) filteredMuscles = ExDB.muscles;
+          if (filteredMuscles.isEmpty && search.isEmpty)
+            filteredMuscles = cloudStorage.exDB.muscles;
           setState(() {});
         },
       ),

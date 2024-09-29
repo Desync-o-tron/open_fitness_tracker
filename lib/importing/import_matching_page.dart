@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:fuzzywuzzy/model/extracted_result.dart';
 import 'package:go_router/go_router.dart';
-import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
@@ -57,14 +58,14 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     List<ExerciseMatch> exerciseMatches = [];
 
     for (var ex in foreignExercises) {
-      List<String> exNames = ExDB.names;
+      List<String> exNames = cloudStorage.exDB.names;
       List<ExtractedResult<String>> res = extractTop(
           query: ex.name, choices: exNames, cutoff: similarityCutoff, limit: 1);
 
       if (res.isNotEmpty) {
         String matchedExName = res.first.choice;
         Exercise? matchedEx;
-        for (var existingEx in ExDB.exercises) {
+        for (var existingEx in cloudStorage.exDB.exercises) {
           if (existingEx.name == matchedExName) {
             matchedEx = existingEx;
             break;
@@ -120,11 +121,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           }
         }
         //otherwise lets put em in the DB!
-        ExDB.addExercises([match.foreignExercise]);
+        cloudStorage.exDB.addExercises([match.foreignExercise]);
         continue;
       }
       //otherwise we're mapping the foreign ex to our ex.
-      Exercise exToUpdate = ExDB.exercises.firstWhere(
+      Exercise exToUpdate = cloudStorage.exDB.exercises.firstWhere(
           (e) => e.name == match.matchedExercise!.name,
           orElse: () => match.matchedExercise!);
 
@@ -140,12 +141,12 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         exToUpdate.alternateNames!.addIfDNE(match.foreignExercise.name);
       }
 
-      ExDB.addExercises([exToUpdate]);
+      cloudStorage.exDB.addExercises([exToUpdate]);
     }
     var cleanedTrainingSessions =
         _removeUnwantedExercisesFromIncomingTrainingData(exNamestoRm);
     for (var session in cleanedTrainingSessions) {
-      cloudStorage.addTrainingSessionToHistory(session);
+      cloudStorage.trainHistoryDB.addTrainingSessionToHistory(session);
     }
 
     if (mounted) {

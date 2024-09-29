@@ -13,16 +13,19 @@ import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/firebase_options.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
-import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
 
+/*
+todo just want to see if the damn pages load & waht load times are like..
+*/
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ExDB.init(); //TODO migrate to firestore & update rules.
+  // ExDB.init(); //TODO migrate to firestore & update rules.
 
-  // FirebaseApp firebase =
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  cloudStorage = CloudStorage();
+  cloudStorage.exDB.loadExercises(false);
 
   HydratedStorage hydratedStorage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -65,9 +68,10 @@ class MyApp extends StatelessWidget {
               context.read<TrainingSessionCubit>().updateDuration();
             },
           );
+        } else {
+          cloudStorage = CloudStorage(fakeFirestore, fakeFirebaseAuth);
         }
 
-        cloudStorage = CloudStorage(fakeFirestore, fakeFirebaseAuth);
         //and so we begin:
         return MaterialApp.router(
           theme: myTheme,

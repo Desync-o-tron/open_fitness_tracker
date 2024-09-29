@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
-import 'package:open_fitness_tracker/DOM/exercise_db.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/muscle_selector.dart';
 
 //todo add logic to make sure the ex name does not exist already
@@ -35,7 +35,8 @@ class CreateNewExerciseModal extends StatefulWidget {
   State<CreateNewExerciseModal> createState() => _CreateNewExerciseModalState();
 }
 
-class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with SingleTickerProviderStateMixin {
+class _CreateNewExerciseModalState extends State<CreateNewExerciseModal>
+    with SingleTickerProviderStateMixin {
   final _nameController = TextEditingController();
   late AnimationController _controller;
   late Animation _colorAnimation;
@@ -48,8 +49,10 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _colorAnimation = ColorTween(begin: Colors.white, end: Colors.red).animate(_controller);
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _colorAnimation =
+        ColorTween(begin: Colors.white, end: Colors.red).animate(_controller);
   }
 
   //todo make sure that when I type in a name in teh search page, it updates the name here
@@ -74,28 +77,31 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
                     TextField(
                       controller: _nameController,
                       onChanged: (String value) {
-                        context
-                            .read<CreateNewExCubit>()
-                            .updateExercise(Exercise.fromExercise(newExerciseState)..name = value);
+                        context.read<CreateNewExCubit>().updateExercise(
+                            Exercise.fromExercise(newExerciseState)..name = value);
                       },
                       maxLength: 500,
                       decoration: InputDecoration(
                         labelText: 'Name',
-                        errorText: _validate && (_nameController.text.length < minNameChars)
-                            ? 'Name must be at least $minNameChars characters long'
-                            : null,
+                        errorText:
+                            _validate && (_nameController.text.length < minNameChars)
+                                ? 'Name must be at least $minNameChars characters long'
+                                : null,
                       ),
                     ),
                     MusclesPicker(
                       validate: _validate,
-                      musclesAdded: context.watch<CreateNewExCubit>().state.primaryMuscles,
+                      musclesAdded:
+                          context.watch<CreateNewExCubit>().state.primaryMuscles,
                       onMuscleAdded: (String muscle) {
                         context.read<CreateNewExCubit>().updateExercise(
-                            Exercise.fromExercise(newExerciseState)..primaryMuscles.insert(0, muscle));
+                            Exercise.fromExercise(newExerciseState)
+                              ..primaryMuscles.insert(0, muscle));
                       },
                       onMuscleRemoved: (String muscle) {
                         context.read<CreateNewExCubit>().updateExercise(
-                            Exercise.fromExercise(newExerciseState)..primaryMuscles.remove(muscle));
+                            Exercise.fromExercise(newExerciseState)
+                              ..primaryMuscles.remove(muscle));
                       },
                       labelText: 'Primary Muscles',
                     ),
@@ -114,23 +120,23 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
 
   Widget equipmentDropdown(BuildContext context, Exercise newExerciseState) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String equipment in ExDB.equipment) {
+    for (String equipment in cloudStorage.exDB.equipment) {
       dropdownMenuEntries.add(DropdownMenuEntry(label: equipment, value: equipment));
     }
 
     return DropdownMenu(
         expandedInsets: EdgeInsets.zero,
         dropdownMenuEntries: dropdownMenuEntries,
-        errorText:
-            _validate && (newExerciseState.equipment?.isEmpty ?? false) ? 'Equipment must be selected' : null,
+        errorText: _validate && (newExerciseState.equipment?.isEmpty ?? false)
+            ? 'Equipment must be selected'
+            : null,
         label: const Text('Equipment'),
         onSelected: (String? equipment) {
           if (equipment == null) {
             return;
           }
-          context
-              .read<CreateNewExCubit>()
-              .updateExercise(Exercise.fromExercise(newExerciseState)..equipment = equipment);
+          context.read<CreateNewExCubit>().updateExercise(
+              Exercise.fromExercise(newExerciseState)..equipment = equipment);
         });
   }
 
@@ -168,7 +174,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal> with Si
                         _controller.forward();
                         return;
                       }
-                      ExDB.addExercises([newExerciseState]);
+                      cloudStorage.exDB.addExercises([newExerciseState]);
                       var cubit = context.read<ExSearchCubit>();
                       cubit.updateFilters(); //
                       Navigator.pop(context);

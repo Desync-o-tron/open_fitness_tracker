@@ -32,10 +32,10 @@ class SignInOrProfileWidget extends StatefulWidget {
 class _SignInOrProfileWidgetState extends State<SignInOrProfileWidget> {
   @override
   Widget build(BuildContext context) {
-    cloudStorage.firebaseAuth.authStateChanges().listen((User? user) {
+    CloudStorage.firebaseAuth.authStateChanges().listen((User? user) {
       if (mounted) setState(() {});
     });
-    if (cloudStorage.firebaseAuth.currentUser == null) {
+    if (CloudStorage.firebaseAuth.currentUser == null) {
       return Column(
         children: [
           const Text(

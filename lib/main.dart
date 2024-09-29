@@ -21,11 +21,16 @@ todo just want to see if the damn pages load & waht load times are like..
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // ExDB.init(); //TODO migrate to firestore & update rules.
+  // ExDB.init(); //TODO firestore & update rules.
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  cloudStorage = CloudStorage();
-  cloudStorage.exDB.loadExercises(false);
+  CloudStorage.init();
+
+  // var _prefs = await SharedPreferences.getInstance();
+  // String jsonString =
+  //     await rootBundle.loadString('assets/data/exercises_no_stretches.json');
+  // ExDB.addExercisesToGlobalList(
+  //     (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList());
 
   HydratedStorage hydratedStorage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -69,7 +74,7 @@ class MyApp extends StatelessWidget {
             },
           );
         } else {
-          cloudStorage = CloudStorage(fakeFirestore, fakeFirebaseAuth);
+          CloudStorage.init(fakeFirestore, fakeFirebaseAuth);
         }
 
         //and so we begin:

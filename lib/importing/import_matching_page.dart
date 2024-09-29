@@ -58,14 +58,14 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     List<ExerciseMatch> exerciseMatches = [];
 
     for (var ex in foreignExercises) {
-      List<String> exNames = cloudStorage.exDB.names;
+      List<String> exNames = ExDB.names;
       List<ExtractedResult<String>> res = extractTop(
           query: ex.name, choices: exNames, cutoff: similarityCutoff, limit: 1);
 
       if (res.isNotEmpty) {
         String matchedExName = res.first.choice;
         Exercise? matchedEx;
-        for (var existingEx in cloudStorage.exDB.exercises) {
+        for (var existingEx in ExDB.exercises) {
           if (existingEx.name == matchedExName) {
             matchedEx = existingEx;
             break;
@@ -121,11 +121,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           }
         }
         //otherwise lets put em in the DB!
-        cloudStorage.exDB.addExercises([match.foreignExercise]);
+        ExDB.addExercises([match.foreignExercise]);
         continue;
       }
       //otherwise we're mapping the foreign ex to our ex.
-      Exercise exToUpdate = cloudStorage.exDB.exercises.firstWhere(
+      Exercise exToUpdate = ExDB.exercises.firstWhere(
           (e) => e.name == match.matchedExercise!.name,
           orElse: () => match.matchedExercise!);
 
@@ -141,12 +141,12 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         exToUpdate.alternateNames!.addIfDNE(match.foreignExercise.name);
       }
 
-      cloudStorage.exDB.addExercises([exToUpdate]);
+      ExDB.addExercises([exToUpdate]);
     }
     var cleanedTrainingSessions =
         _removeUnwantedExercisesFromIncomingTrainingData(exNamestoRm);
     for (var session in cleanedTrainingSessions) {
-      cloudStorage.trainHistoryDB.addTrainingSessionToHistory(session);
+      TrainHistoryDB.addTrainingSessionToHistory(session);
     }
 
     if (mounted) {

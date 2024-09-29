@@ -58,7 +58,7 @@ class ProfileScreenWrapper extends StatelessWidget {
             : Container(),
       ),
       children: [
-        if (!cloudStorage.firebaseAuth.currentUser!.emailVerified)
+        if (!CloudStorage.firebaseAuth.currentUser!.emailVerified)
           MyGenericButton(
             onPressed: () {
               context.push(routeNames.VerifyEmail.text);
@@ -78,7 +78,7 @@ class SignInScreenWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SignInScreen(
-      auth: cloudStorage.firebaseAuth,
+      auth: CloudStorage.firebaseAuth,
       providers: providers,
       //I double check auth in routes.dart now, but...synergy.
       // I'm too dumb to get it to work only there. that's fine I think

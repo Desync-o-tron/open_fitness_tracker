@@ -13,7 +13,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User? user = cloudStorage.firebaseAuth.currentUser;
+    User? user = CloudStorage.firebaseAuth.currentUser;
     bool isLoggedIn = user != null;
 
     return Scaffold(

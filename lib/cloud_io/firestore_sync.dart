@@ -8,10 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-late CloudStorage cloudStorage;
-
 class CloudStorage {
-  CloudStorage([FirebaseFirestore? fakeFirestore, FirebaseAuth? fakeFirebaseAuth]) {
+  static void init([FirebaseFirestore? fakeFirestore, FirebaseAuth? fakeFirebaseAuth]) {
     if (fakeFirebaseAuth != null) {
       firebaseAuth = fakeFirebaseAuth;
     } else {
@@ -31,47 +29,49 @@ class CloudStorage {
       //   const PersistenceSettings(synchronizeTabs: true),
       // );
     }
-    _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
+    // _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
     firebaseAuth.userChanges().listen((User? user) {
       routerConfig.refresh(); //https://stackoverflow.com/a/77448906/3894291
       if (user != null) {
-        cloudStorage.refreshCacheIfItsBeenXHours(12); //todo this is weird, bad bad
+        // CloudStorage.refreshCacheIfItsBeenXHours(12); //todo this is lazy I think
       }
     });
 
     if (!isUserEmailVerified()) return;
-    refreshCacheIfItsBeenXHours(12);
+    ExDB.loadExercises(false);
+    // refreshCacheIfItsBeenXHours(12);
   }
 
-  late final FirebaseFirestore firestore;
-  late final FirebaseAuth firebaseAuth;
-  final _historyKey = 'TrainingHistory';
-  final _basicUserInfoKey = 'BasicUserInfo';
-  final _globalExercisesKey = 'GlobalExercises';
-  final _userAddedExercisesKey = 'UserAddedExercises';
-  final _userRemovedExercisesKey = 'UserRemovedExercises';
+  static FirebaseFirestore firestore = FirebaseFirestore.instance;
+  static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  static const _historyKey = 'TrainingHistory';
+  static const _basicUserInfoKey = 'BasicUserInfo';
+  static const _globalExercisesKey = 'GlobalExercises';
+  static const _userAddedExercisesKey = 'UserAddedExercises';
+  static const _userRemovedExercisesKey = 'UserRemovedExercises';
   //^so they won't see the global exercises they don't care about
-  late final CollectionCacheUpdateClock _historyCacheClock;
-  final trainHistoryDB = TrainHistoryDB();
-  final exDB = ExDB();
+  // static final CollectionCacheUpdateClock? _historyCacheClock;
 
-  bool isUserEmailVerified() {
+  static bool isUserEmailVerified() {
     return (firebaseAuth.currentUser != null && firebaseAuth.currentUser!.emailVerified);
   }
 
-  //TODO update for ex's
-  Future<void> refreshCacheIfItsBeenXHours(int hours) async {
-    if (!cloudStorage.isUserEmailVerified()) {
+  //todo update for ex's
+  //todo I don't like this..can I not listen??
+  /*
+  static Future<void> refreshCacheIfItsBeenXHours(int hours) async {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    if (await cloudStorage._historyCacheClock.timeSinceCacheWasUpdated() >
+    if (await CloudStorage._historyCacheClock!.timeSinceCacheWasUpdated() >
         Duration(hours: hours)) {
       await trainHistoryDB.getEntireUserTrainingHistory(useCache: false);
     }
   }
+  */
 
-  Future<BasicUserInfo> getBasicUserInfo() async {
+  static Future<BasicUserInfo> getBasicUserInfo() async {
     if (!isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
@@ -92,7 +92,7 @@ class CloudStorage {
     });
   }
 
-  Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
+  static Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
     if (!isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
@@ -105,7 +105,7 @@ class CloudStorage {
     });
   }
 
-  Future<T> _retryWithExponentialBackoff<T>(
+  static Future<T> _retryWithExponentialBackoff<T>(
     Future<T> Function() operation, {
     int maxRetries = 5,
     int delayMilliseconds = 500,
@@ -122,13 +122,16 @@ class CloudStorage {
             return await operation();
           } on FirebaseException catch (e) {
             if (e.code == 'permission-denied') {
-              // Handle permission error
+              //todo if the user signs out, can we handle these async get / set options gracefully?
+              //I think we will get permission denied here otherwise
+
               rethrow;
             } else if (e.code == 'unavailable') {
               // ignore: unused_local_variable
               var user = firebaseAuth.currentUser;
               // ignore: unused_local_variable
               int qq;
+              rethrow;
               // Handle network unavailable error
             } else {
               // Handle other Firebase exceptions
@@ -148,33 +151,33 @@ class CloudStorage {
 }
 
 class TrainHistoryDB {
-  Future<void> addTrainingSessionToHistory(TrainingSession session) async {
-    if (!cloudStorage.isUserEmailVerified()) {
+  static Future<void> addTrainingSessionToHistory(TrainingSession session) async {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    await cloudStorage._retryWithExponentialBackoff(() async {
-      await cloudStorage.firestore
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      await CloudStorage.firestore
           .collection('users')
-          .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(cloudStorage._historyKey)
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey)
           .add(session.toJson());
     });
   }
 
-  Stream<List<TrainingSession>> getUserTrainingHistoryStream({
+  static Stream<List<TrainingSession>> getUserTrainingHistoryStream({
     required int limit,
     DateTime? startAfterTimestamp,
   }) {
-    if (!cloudStorage.isUserEmailVerified()) {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Stream.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
 
-    final String userUid = cloudStorage.firebaseAuth.currentUser!.uid;
-    final String collectionPath = 'users/$userUid/$cloudStorage._historyKey';
+    final String userUid = CloudStorage.firebaseAuth.currentUser!.uid;
+    final String collectionPath = 'users/$userUid/$CloudStorage._historyKey';
 
-    Query query = cloudStorage.firestore
+    Query query = CloudStorage.firestore
         .collection(collectionPath)
         .orderBy('date', descending: true)
         .limit(limit);
@@ -190,28 +193,28 @@ class TrainHistoryDB {
     });
   }
 
-  Future<List<TrainingSession>> getEntireUserTrainingHistory({
+  static Future<List<TrainingSession>> getEntireUserTrainingHistory({
     required bool useCache,
   }) async {
-    if (!cloudStorage.isUserEmailVerified()) {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    return await cloudStorage._retryWithExponentialBackoff(() async {
+    return await CloudStorage._retryWithExponentialBackoff(() async {
       QuerySnapshot<Object?> cloudTrainingHistory;
       if (useCache) {
-        cloudTrainingHistory = await cloudStorage.firestore
+        cloudTrainingHistory = await CloudStorage.firestore
             .collection('users')
-            .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-            .collection(cloudStorage._historyKey)
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
             .get(const GetOptions(source: Source.cache));
       } else {
-        cloudTrainingHistory = await cloudStorage.firestore
+        cloudTrainingHistory = await CloudStorage.firestore
             .collection('users')
-            .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-            .collection(cloudStorage._historyKey)
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
             .get(const GetOptions(source: Source.server));
-        cloudStorage._historyCacheClock.resetClock();
+        // CloudStorage._historyCacheClock!.resetClock(); //todo
       }
 
       List<TrainingSession> sessions = [];
@@ -225,36 +228,36 @@ class TrainHistoryDB {
     });
   }
 
-  Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
-    if (!cloudStorage.isUserEmailVerified()) {
+  static Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     if (sesh.id == '') {
       throw Exception("No training session ID! does this training session exist?");
     }
-    await cloudStorage._retryWithExponentialBackoff(() async {
-      await cloudStorage.firestore
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      await CloudStorage.firestore
           .collection('users')
-          .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(cloudStorage._historyKey)
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey)
           .doc(sesh.id)
           .delete();
     });
   }
 
-  Future<void> deleteEntireTrainingHistory() async {
-    if (!cloudStorage.isUserEmailVerified()) {
+  static Future<void> deleteEntireTrainingHistory() async {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    await cloudStorage._retryWithExponentialBackoff(() async {
-      CollectionReference historyCollection = cloudStorage.firestore
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      CollectionReference historyCollection = CloudStorage.firestore
           .collection('users')
-          .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(cloudStorage._historyKey);
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey);
       QuerySnapshot snapshot = await historyCollection.get();
-      WriteBatch batch = cloudStorage.firestore.batch();
+      WriteBatch batch = CloudStorage.firestore.batch();
       for (DocumentSnapshot doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
@@ -264,29 +267,29 @@ class TrainHistoryDB {
 }
 
 class ExDB {
-  Exercises get exercises => _exercises;
-  List<String> get categories => _categories;
-  List<String> get muscles => _muscles;
-  List<String> get names => _names;
-  List<String> get equipment => _equipment;
+  static Exercises get exercises => _exercises;
+  static List<String> get categories => _categories;
+  static List<String> get muscles => _muscles;
+  static List<String> get names => _names;
+  static List<String> get equipment => _equipment;
 
-  final List<String> _names = [];
-  final List<String> _categories = [];
-  final List<String> _muscles = [];
-  final List<String> _equipment = [];
-  final List<Exercise> _exercises = [];
+  static final List<String> _names = [];
+  static final List<String> _categories = [];
+  static final List<String> _muscles = [];
+  static final List<String> _equipment = [];
+  static final List<Exercise> _exercises = [];
 
-  Future<void> loadExercises(bool useCache) async {
-    if (!cloudStorage.isUserEmailVerified()) {
+  static Future<void> loadExercises(bool useCache) async {
+    if (!CloudStorage.isUserEmailVerified()) {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    await cloudStorage._retryWithExponentialBackoff(() async {
+    await CloudStorage._retryWithExponentialBackoff(() async {
       QuerySnapshot<Object?> globalExsSnapshot;
       QuerySnapshot<Object?> usrRemovedExsSnapshot;
       QuerySnapshot<Object?> usrAddedExsSnapshot;
-      globalExsSnapshot = await cloudStorage.firestore
-          .collection(cloudStorage._globalExercisesKey)
+      globalExsSnapshot = await CloudStorage.firestore
+          .collection(CloudStorage._globalExercisesKey)
           .get(GetOptions(source: useCache ? Source.cache : Source.server));
       Exercises globalExs = [];
       Exercises usrRemovedExs = [];
@@ -308,31 +311,32 @@ class ExDB {
 
       //todo the rest..!
 
-      // usrAddedExsSnapshot = await cloudStorage.firestore
+      // usrAddedExsSnapshot = await CloudStorage.firestore!
       //     .collection('users')
-      //     .doc(cloudStorage.firebaseAuth.currentUser!.uid)
-      //     .collection(cloudStorage._historyKey)
+      //     .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+      //     .collection(CloudStorage._historyKey)
       // .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
     });
   }
 
-  Future<void> removeExercises(Exercises exericises) async {
+  static Future<void> removeExercises(Exercises exericises) async {
     throw Exception("todo");
   }
 
-  Future<void> addExercisesToGlobalList(Exercises exericises) async {
+  static Future<void> addExercisesToGlobalList(Exercises exericises) async {
     for (var ex in exericises) {
-      await cloudStorage.firestore
-          .collection(cloudStorage._globalExercisesKey)
+      await CloudStorage.firestore
+          .collection(CloudStorage._globalExercisesKey)
           .add(ex.toJson());
     }
   }
 
-  Future<void> addExercises(Exercises exericises) async {
+  static Future<void> addExercises(Exercises exericises) async {
     throw Exception("todo");
   }
 }
 
+//todo I want to rm
 class CollectionCacheUpdateClock {
   final String _sharedPrefsLabel;
   late final Future<SharedPreferences> _prefs;

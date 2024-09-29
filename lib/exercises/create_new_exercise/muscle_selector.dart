@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:fuzzy/fuzzy.dart';
-import 'package:open_fitness_tracker/cloud_io/exercise_db.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -30,7 +29,7 @@ class _MusclesPickerState extends State<MusclesPicker> {
   @override
   Widget build(BuildContext context) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String muscle in cloudStorage.exDB.muscles) {
+    for (String muscle in ExDB.muscles) {
       dropdownMenuEntries.add(DropdownMenuEntry(
         label: muscle,
         value: muscle,
@@ -142,7 +141,7 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
   final FocusNode _textFieldFocusNode = FocusNode();
   final FocusNode _dropDownFocusNode = FocusNode();
 
-  List<String> filteredMuscles = List.of(cloudStorage.exDB.muscles);
+  List<String> filteredMuscles = List.of(ExDB.muscles);
   bool foundExactMuscle = true;
 
   _addNewMuscleName(BuildContext context) {
@@ -244,7 +243,7 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
         ),
         onFieldSubmitted: (value) => _addNewMuscleName(context),
         onChanged: (String search) {
-          List<String> allMuscles = cloudStorage.exDB.muscles.toList();
+          List<String> allMuscles = ExDB.muscles.toList();
           allMuscles
               .addAllIfDNE(widget.muscles); // so we don't 5get to add new custom muscles
 
@@ -254,8 +253,7 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
               fuseForMuscles.search(search).map((r) => r.item as String).toList();
           foundExactMuscle = filteredMuscles.contains(search);
 
-          if (filteredMuscles.isEmpty && search.isEmpty)
-            filteredMuscles = cloudStorage.exDB.muscles;
+          if (filteredMuscles.isEmpty && search.isEmpty) filteredMuscles = ExDB.muscles;
           setState(() {});
         },
       ),

@@ -247,9 +247,9 @@ class SearchMultiSelectModal extends StatelessWidget {
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: cloudStorage.exDB.muscles.length,
+              itemCount: ExDB.muscles.length,
               itemBuilder: (context, index) {
-                final item = cloudStorage.exDB.muscles[index];
+                final item = ExDB.muscles[index];
                 return CheckboxListTile(
                   value: state.musclesFilter.contains(item),
                   title: Text(item),
@@ -277,9 +277,9 @@ class SearchMultiSelectModal extends StatelessWidget {
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: cloudStorage.exDB.categories.length,
+              itemCount: ExDB.categories.length,
               itemBuilder: (context, index) {
-                final item = cloudStorage.exDB.categories[index];
+                final item = ExDB.categories[index];
                 return CheckboxListTile(
                   value: state.categoriesFilter.contains(item),
                   title: Text(item),

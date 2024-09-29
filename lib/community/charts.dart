@@ -27,7 +27,7 @@ class _CoolChartState extends State<CoolChart> {
 
   void _loadData() async {
     List<TrainingSession> trainHist =
-        await cloudStorage.trainHistoryDB.getEntireUserTrainingHistory(useCache: true);
+        await TrainHistoryDB.getEntireUserTrainingHistory(useCache: true);
     if (trainHist.isEmpty) return;
 
     for (var trainSesh in trainHist) {

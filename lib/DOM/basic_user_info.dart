@@ -21,12 +21,12 @@ class BasicUserInfoCubit extends Cubit<BasicUserInfo> {
   }
 
   void set(BasicUserInfo userInfo) {
-    cloudStorage.setBasicUserInfo(userInfo);
+    CloudStorage.setBasicUserInfo(userInfo);
     emit(userInfo);
   }
 
   void get() async {
-    var userInfo = await cloudStorage.getBasicUserInfo();
+    var userInfo = await CloudStorage.getBasicUserInfo();
     emit(userInfo);
   }
 }

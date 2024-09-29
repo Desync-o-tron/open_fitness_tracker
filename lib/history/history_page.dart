@@ -53,7 +53,7 @@ class _HistoryPageState extends State<HistoryPage> {
       _isLoading = true;
     });
 
-    final stream = cloudStorage.trainHistoryDB.getUserTrainingHistoryStream(
+    final stream = TrainHistoryDB.getUserTrainingHistoryStream(
       limit: _pageSize,
       startAfterTimestamp: _lastTimestamp,
     );
@@ -84,8 +84,7 @@ class _HistoryPageState extends State<HistoryPage> {
       }
     });
     numSessions =
-        (await cloudStorage.trainHistoryDB.getEntireUserTrainingHistory(useCache: true))
-            .length;
+        (await TrainHistoryDB.getEntireUserTrainingHistory(useCache: true)).length;
     setState(() {
       //numSessions
     });
@@ -150,7 +149,7 @@ class _HistoryPageState extends State<HistoryPage> {
               });
         }
         if (result == 'refresh training history') {
-          cloudStorage.trainHistoryDB.getEntireUserTrainingHistory(useCache: false);
+          TrainHistoryDB.getEntireUserTrainingHistory(useCache: false);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -166,7 +165,7 @@ class _HistoryPageState extends State<HistoryPage> {
             value: 'delete history',
             child: ElevatedButton(
               onPressed: () {
-                cloudStorage.trainHistoryDB.deleteEntireTrainingHistory();
+                TrainHistoryDB.deleteEntireTrainingHistory();
               },
               child: const Text("del history..dont click me"),
             )),
@@ -240,8 +239,7 @@ class TrainingHistoryCardManagementDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     delSesh() async {
-      cloudStorage.trainHistoryDB
-          .removeTrainingSessionFromHistory(sesh)
+      TrainHistoryDB.removeTrainingSessionFromHistory(sesh)
           .onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
                 content: Text('Failed to delete training session'),
                 duration: Duration(seconds: 2),

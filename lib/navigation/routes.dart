@@ -39,9 +39,9 @@ enum routeNames {
 final GoRouter routerConfig = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  initialLocation: routeNames.Temp.text,
+  // initialLocation: routeNames.Temp.text,
   // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
-  // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
+  initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
   // initialLocation: routeNames.History.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Community.text, //////////<--- This is the initial route
   routes: [
@@ -102,10 +102,10 @@ final GoRouter routerConfig = GoRouter(
   //todo is this slow?
   // redirect to the login page if the user is not logged in
   redirect: (BuildContext context, GoRouterState state) async {
-    final bool loggedIn = cloudStorage.firebaseAuth.currentUser != null;
+    final bool loggedIn = CloudStorage.firebaseAuth.currentUser != null;
     if (!loggedIn) {
       return routeNames.SignIn.text;
-    } else if (!cloudStorage.firebaseAuth.currentUser!.emailVerified) {
+    } else if (!CloudStorage.firebaseAuth.currentUser!.emailVerified) {
       if (state.matchedLocation == routeNames.SignIn.text ||
           state.matchedLocation == routeNames.Profile.text ||
           state.matchedLocation == routeNames.VerifyEmail.text) {

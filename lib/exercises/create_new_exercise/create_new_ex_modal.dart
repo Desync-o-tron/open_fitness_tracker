@@ -120,7 +120,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal>
 
   Widget equipmentDropdown(BuildContext context, Exercise newExerciseState) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String equipment in cloudStorage.exDB.equipment) {
+    for (String equipment in ExDB.equipment) {
       dropdownMenuEntries.add(DropdownMenuEntry(label: equipment, value: equipment));
     }
 
@@ -174,7 +174,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal>
                         _controller.forward();
                         return;
                       }
-                      cloudStorage.exDB.addExercises([newExerciseState]);
+                      ExDB.addExercises([newExerciseState]);
                       var cubit = context.read<ExSearchCubit>();
                       cubit.updateFilters(); //
                       Navigator.pop(context);

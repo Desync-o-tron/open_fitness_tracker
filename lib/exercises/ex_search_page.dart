@@ -6,8 +6,6 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
-import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart'
-    show ExSearchCubit, ExSearchState;
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -38,53 +36,184 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   List<Exercise> selectedExercises = [];
   List<Exercise> newlySelectedExercises = [];
 
+  String keyword = '';
+  List<String> musclesFilter = [];
+  List<String> categoriesFilter = [];
+
   @override
   void initState() {
     super.initState();
     if (widget.useForAddingToTraining) {
-      var trainingsesh = context.read<TrainingSessionCubit>();
-      selectedExercises = trainingsesh.state.trainingData.map((e) => e.ex).toList();
+      var trainingCubit = context.read<TrainingSessionCubit>();
+      selectedExercises = trainingCubit.state.trainingData.map((e) => e.ex).toList();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final scrollController = ScrollController(initialScrollOffset: 0);
-    final state = context.watch<ExSearchCubit>().state;
+    return BlocBuilder<ExercisesCubit, ExercisesState>(
+      builder: (context, exercisesState) {
+        if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (exercisesState is ExercisesError) {
+          return Center(
+              child: Text('Error loading exercises: ${exercisesState.message}'));
+        } else if (exercisesState is ExercisesLoaded) {
+          // Apply filters to the exercises
+          List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
+            bool matchesKeyword = keyword.isEmpty ||
+                exercise.name.toLowerCase().contains(keyword.toLowerCase());
 
-    List<Widget> pageChildren = [];
-    if (!widget.useForMappingForeignExercise) {
-      pageChildren
-          .add(Text('Exercises', style: Theme.of(context).textTheme.displayLarge));
-    } else {
-      pageChildren
-          .add(Text('Exercise Match', style: Theme.of(context).textTheme.displayMedium));
-      pageChildren.add(ExerciseTile(
-        exercise: widget.foreignEx!,
-        isSelectable: false,
-        colorDecoration: true,
-      ));
-      pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodySmall));
-    }
-    pageChildren.addAll([
-      _exercisesListView(scrollController, state),
-      const SearchBar(),
-      _muscleAndCategoryFilterButtons(state, context),
-    ]);
+            bool matchesMuscles = musclesFilter.isEmpty ||
+                exercise.primaryMuscles.any((muscle) => musclesFilter.contains(muscle)) ||
+                (exercise.secondaryMuscles != null &&
+                    exercise.secondaryMuscles!
+                        .any((muscle) => musclesFilter.contains(muscle)));
 
-    if (widget.useForAddingToTraining) pageChildren.add(_addSelectedButton(context));
-    if (widget.useForMappingForeignExercise) {
-      pageChildren.addAll([
-        _thisIsMyExButton(widget.setForeignExerciseCallback!),
-        _noExerciseMatchButton(widget.setForeignExerciseCallback!),
-      ]);
-    } else {
-      pageChildren.add(_createNewExButton(context));
-    }
+            bool matchesCategories =
+                categoriesFilter.isEmpty || categoriesFilter.contains(exercise.category);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: pageChildren,
+            return matchesKeyword && matchesMuscles && matchesCategories;
+          }).toList();
+
+          final scrollController = ScrollController(initialScrollOffset: 0);
+
+          List<Widget> pageChildren = [];
+          if (!widget.useForMappingForeignExercise) {
+            pageChildren.add(
+                Text('Exercises', style: Theme.of(context).textTheme.headlineMedium));
+          } else {
+            pageChildren.add(
+                Text('Exercise Match', style: Theme.of(context).textTheme.headlineSmall));
+            pageChildren.add(ExerciseTile(
+              exercise: widget.foreignEx!,
+              isSelectable: false,
+              colorDecoration: true,
+            ));
+            pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
+          }
+          pageChildren.addAll([
+            Expanded(
+              child: ScrollConfiguration(
+                behavior: GenericScrollBehavior(),
+                child: Scrollbar(
+                  controller: scrollController,
+                  thumbVisibility: true,
+                  child: ListView.builder(
+                    controller: scrollController,
+                    key: ValueKey(filteredExercises.length),
+                    itemCount: filteredExercises.length,
+                    itemBuilder: (context, index) {
+                      return ExerciseTile(
+                        exercise: filteredExercises[index],
+                        isSelectable: widget.useForAddingToTraining ||
+                            widget.useForMappingForeignExercise,
+                        isSelected:
+                            selectedExercises.contains(filteredExercises[index]) ||
+                                newlySelectedExercises.contains(filteredExercises[index]),
+                        onSelectionChanged: (bool isSelected) {
+                          setState(() {
+                            if (isSelected) {
+                              if (widget.useForMappingForeignExercise) {
+                                newlySelectedExercises.clear();
+                              }
+                              newlySelectedExercises.add(filteredExercises[index]);
+                            } else {
+                              newlySelectedExercises.remove(filteredExercises[index]);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            SearchBar(
+              keyword: keyword,
+              onKeywordChanged: (value) {
+                setState(() {
+                  keyword = value;
+                });
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: MyGenericButton(
+                      label: musclesFilter.isEmpty
+                          ? 'Any Muscle'
+                          : musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SearchMultiSelectModal(
+                              isForMuscleSelection: true,
+                              allItems: exercisesState.muscles,
+                              selectedItems: musclesFilter,
+                              onSelectionChanged: (selectedMuscles) {
+                                setState(() {
+                                  musclesFilter = selectedMuscles;
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: MyGenericButton(
+                      label: categoriesFilter.isEmpty
+                          ? 'Any Category'
+                          : categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SearchMultiSelectModal(
+                              isForMuscleSelection: false,
+                              allItems: exercisesState.categories,
+                              selectedItems: categoriesFilter,
+                              onSelectionChanged: (selectedCategories) {
+                                setState(() {
+                                  categoriesFilter = selectedCategories;
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]);
+
+          if (widget.useForAddingToTraining)
+            pageChildren.add(_addSelectedButton(context));
+          if (widget.useForMappingForeignExercise) {
+            pageChildren.addAll([
+              _thisIsMyExButton(widget.setForeignExerciseCallback!),
+              _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+            ]);
+          } else {
+            pageChildren.add(_createNewExButton(context));
+          }
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: pageChildren,
+          );
+        } else {
+          return const Center(child: Text('Unknown state'));
+        }
+      },
     );
   }
 
@@ -105,84 +234,6 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
     );
   }
 
-  Expanded _exercisesListView(ScrollController scrollController, ExSearchState state) {
-    return Expanded(
-      child: ScrollConfiguration(
-        behavior: GenericScrollBehavior(),
-        child: Scrollbar(
-          controller: scrollController,
-          thumbVisibility: true,
-          child: ListView.builder(
-            controller: scrollController,
-            key: ValueKey(state.filteredExercises.length),
-            itemCount: state.filteredExercises.length,
-            itemBuilder: (context, index) {
-              return ExerciseTile(
-                exercise: state.filteredExercises[index],
-                isSelectable:
-                    widget.useForAddingToTraining || widget.useForMappingForeignExercise,
-                isSelected: selectedExercises.contains(state.filteredExercises[index]) ||
-                    newlySelectedExercises.contains(state.filteredExercises[index]),
-                onSelectionChanged: (bool isSelected) {
-                  if (isSelected) {
-                    if (widget.useForMappingForeignExercise) {
-                      newlySelectedExercises.clear();
-                    }
-                    newlySelectedExercises.add(state.filteredExercises[index]);
-                  } else {
-                    newlySelectedExercises.remove(state.filteredExercises[index]);
-                  }
-                  setState(() {});
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Padding _muscleAndCategoryFilterButtons(ExSearchState state, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
-      child: Row(
-        children: [
-          Expanded(
-            child: MyGenericButton(
-              label: state.musclesFilter.isEmpty
-                  ? 'Any Muscle'
-                  : state.musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return const SearchMultiSelectModal(isForMuscleSelection: true);
-                  },
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          Expanded(
-            child: MyGenericButton(
-              label: state.categoriesFilter.isEmpty
-                  ? 'Any Category'
-                  : state.categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return const SearchMultiSelectModal(isForMuscleSelection: false);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Padding _addSelectedButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
@@ -192,8 +243,6 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
         onPressed: () {
           var trainingCubit = context.read<TrainingSessionCubit>();
           for (var ex in newlySelectedExercises) {
-            // print(trainingCubit.state.toJson());
-            // var ii = 1;
             trainingCubit.addExercise(ex);
           }
           Navigator.pop(context);
@@ -232,117 +281,16 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   }
 }
 
-class SearchMultiSelectModal extends StatelessWidget {
-  final bool isForMuscleSelection;
-  const SearchMultiSelectModal({super.key, this.isForMuscleSelection = true});
+class SearchBar extends StatelessWidget {
+  final String keyword;
+  final ValueChanged<String> onKeywordChanged;
+
+  const SearchBar({super.key, required this.keyword, required this.onKeywordChanged});
 
   @override
   Widget build(BuildContext context) {
-    Widget content;
-    if (isForMuscleSelection) {
-      content = BlocBuilder<ExSearchCubit, ExSearchState>(
-        builder: (context, state) {
-          return SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: ExDB.muscles.length,
-              itemBuilder: (context, index) {
-                final item = ExDB.muscles[index];
-                return CheckboxListTile(
-                  value: state.musclesFilter.contains(item),
-                  title: Text(item),
-                  onChanged: (bool? value) {
-                    var cubit = context.read<ExSearchCubit>();
-                    var musclesFilter = cubit.state.musclesFilter.toList();
-                    if (value == true) {
-                      musclesFilter.addIfDNE(item);
-                    } else {
-                      musclesFilter.remove(item);
-                    }
-                    cubit.updateFilters(muscles: musclesFilter);
-                  },
-                );
-              },
-            ),
-          );
-        },
-      );
-    } else {
-      //for categories
-      content = BlocBuilder<ExSearchCubit, ExSearchState>(
-        builder: (context, state) {
-          return SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: ExDB.categories.length,
-              itemBuilder: (context, index) {
-                final item = ExDB.categories[index];
-                return CheckboxListTile(
-                  value: state.categoriesFilter.contains(item),
-                  title: Text(item),
-                  onChanged: (bool? value) {
-                    var cubit = context.read<ExSearchCubit>();
-                    var categoriesFilter = cubit.state.categoriesFilter.toList();
-                    if (value == true) {
-                      categoriesFilter.addIfDNE(item);
-                    } else {
-                      categoriesFilter.remove(item);
-                    }
-                    cubit.updateFilters(categories: categoriesFilter);
-                  },
-                );
-              },
-            ),
-          );
-        },
-      );
-    }
-    return AlertDialog(
-      title: const Text('Select Items'),
-      content: content,
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('OK'),
-        ),
-      ],
-    );
-  }
-}
+    final TextEditingController _controller = TextEditingController(text: keyword);
 
-class SearchBar extends StatefulWidget {
-  const SearchBar({super.key});
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _SearchBarState createState() => _SearchBarState();
-}
-
-//info I've been enountering bugs in the windows version of the app.
-// I sometimes cannot backspace (check the debug output)
-// also it sometimes only handles a keypress every .5 seconds or so.
-class _SearchBarState extends State<SearchBar> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final cubit = BlocProvider.of<ExSearchCubit>(context, listen: false);
-    _controller.text = cubit.state.enteredKeyword;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.all(10),
@@ -360,16 +308,88 @@ class _SearchBarState extends State<SearchBar> {
       ),
       child: TextField(
         controller: _controller,
-        onChanged: (String value) {
-          final cubit = BlocProvider.of<ExSearchCubit>(context);
-          cubit.updateFilters(keyword: value);
-        },
+        onChanged: onKeywordChanged,
         decoration: const InputDecoration(
           icon: Icon(Icons.search),
           hintText: 'Search',
           border: InputBorder.none,
         ),
       ),
+    );
+  }
+}
+
+class SearchMultiSelectModal extends StatefulWidget {
+  final bool isForMuscleSelection;
+  final List<String> allItems;
+  final List<String> selectedItems;
+  final ValueChanged<List<String>> onSelectionChanged;
+
+  const SearchMultiSelectModal({
+    super.key,
+    required this.isForMuscleSelection,
+    required this.allItems,
+    required this.selectedItems,
+    required this.onSelectionChanged,
+  });
+
+  @override
+  _SearchMultiSelectModalState createState() => _SearchMultiSelectModalState();
+}
+
+class _SearchMultiSelectModalState extends State<SearchMultiSelectModal> {
+  late List<String> tempSelectedItems;
+
+  @override
+  void initState() {
+    super.initState();
+    tempSelectedItems = List.from(widget.selectedItems);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Select ${widget.isForMuscleSelection ? 'Muscles' : 'Categories'}'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: widget.allItems.length,
+          itemBuilder: (context, index) {
+            final item = widget.allItems[index];
+            return CheckboxListTile(
+              value: tempSelectedItems.contains(item),
+              title: Text(item),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    if (!tempSelectedItems.contains(item)) {
+                      tempSelectedItems.add(item);
+                    }
+                  } else {
+                    tempSelectedItems.remove(item);
+                  }
+                });
+              },
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            widget.onSelectionChanged(tempSelectedItems);
+            Navigator.pop(context);
+          },
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 }

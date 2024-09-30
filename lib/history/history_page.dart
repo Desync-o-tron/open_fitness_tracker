@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
@@ -8,40 +6,16 @@ import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/importing/import_training_ui.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-class HistoryPage extends StatefulWidget {
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
   @override
-  _HistoryPageState createState() => _HistoryPageState();
-}
-
-class _HistoryPageState extends State<HistoryPage> {
-  Future<List<TrainingSession>>? _trainingHistoryFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTrainingHistory();
-  }
-
-  void _loadTrainingHistory({bool useCache = true}) {
-    setState(() {
-      // Initialize the future; if useCache is false, reload data
-      // if (!useCache || TrainHistoryDB.trainingHistory == null) {
-      //   TrainHistoryDB.trainingHistory =
-      //       TrainHistoryDB.loadUserTrainingHistory(useCache: useCache);
-      // }
-      _trainingHistoryFuture = TrainHistoryDB.trainingHistory;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<TrainingSession>>(
-      future: _trainingHistoryFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Data is still loading
+    return BlocBuilder<TrainingHistoryCubit, TrainingHistoryState>(
+      builder: (context, state) {
+        if (state is TrainingHistoryLoading || state is TrainingHistoryInitial) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('History'),
@@ -49,38 +23,46 @@ class _HistoryPageState extends State<HistoryPage> {
             ),
             body: const Center(child: CircularProgressIndicator()),
           );
-        } else if (snapshot.hasError) {
-          // An error occurred
+        } else if (state is TrainingHistoryError) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('History'),
               actions: [_hamburgerMenuActions(context)],
             ),
-            body: Center(child: Text('Error loading data: ${snapshot.error}')),
+            body: Center(child: Text('Error loading data: ${state.message}')),
           );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // No data available
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('History (0)'),
-              actions: [_hamburgerMenuActions(context)],
-            ),
-            body: const Center(child: Text('No History')),
-          );
+        } else if (state is TrainingHistoryLoaded) {
+          final sessions = state.sessions;
+          if (sessions.isEmpty) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('History (0)'),
+                actions: [_hamburgerMenuActions(context)],
+              ),
+              body: const Center(child: Text('No History')),
+            );
+          } else {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text('History (${sessions.length})'),
+                actions: [_hamburgerMenuActions(context)],
+              ),
+              body: ListView.builder(
+                itemCount: sessions.length,
+                itemBuilder: (context, index) {
+                  return TrainingSessionHistoryCard(session: sessions[index]);
+                },
+              ),
+            );
+          }
         } else {
-          // Data loaded successfully
-          final sessions = snapshot.data!;
+          // This shouldn't happen, but handle it just in case
           return Scaffold(
             appBar: AppBar(
-              title: Text('History (${sessions.length})'),
+              title: const Text('History'),
               actions: [_hamburgerMenuActions(context)],
             ),
-            body: ListView.builder(
-              itemCount: sessions.length,
-              itemBuilder: (context, index) {
-                return TrainingSessionHistoryCard(session: sessions[index]);
-              },
-            ),
+            body: const Center(child: Text('Unknown state')),
           );
         }
       },
@@ -91,6 +73,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_horiz_outlined, size: 30),
       onSelected: (String result) {
+        final cubit = context.read<TrainingHistoryCubit>();
         if (result == 'import') {
           showDialog(
             context: context,
@@ -99,10 +82,9 @@ class _HistoryPageState extends State<HistoryPage> {
             },
           );
         } else if (result == 'refresh training history') {
-          _loadTrainingHistory(useCache: false);
+          cubit.loadUserTrainingHistory(useCache: false);
         } else if (result == 'delete history') {
-          TrainHistoryDB.deleteEntireTrainingHistory();
-          _loadTrainingHistory(useCache: false);
+          cubit.deleteEntireTrainingHistory();
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -144,16 +126,29 @@ class TrainingSessionHistoryCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await showDialog(
-                            context: context,
-                            builder: (context) =>
-                                TrainingHistoryCardManagementDialog(session));
-                      },
-                      child: const Icon(Icons.edit),
-                    )),
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await showDialog(
+                        context: context,
+                        builder: (context) => TrainingHistoryCardManagementDialog(
+                          sesh: session,
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.edit),
+                  ),
+
+                  //  ElevatedButton(
+                  //   onPressed: () async {
+                  //     await showDialog(
+                  //         context: context,
+                  //         builder: (context) =>
+                  //             TrainingHistoryCardManagementDialog(session));
+                  //   },
+                  //   child: const Icon(Icons.edit),
+                  // )
+                ),
               ],
             ),
             Text("Completed ${session.date.toDaysAgo()}",
@@ -183,31 +178,30 @@ class TrainingSessionHistoryCard extends StatelessWidget {
 
 class TrainingHistoryCardManagementDialog extends StatelessWidget {
   final TrainingSession sesh;
-  const TrainingHistoryCardManagementDialog(this.sesh, {super.key});
+
+  const TrainingHistoryCardManagementDialog({
+    required this.sesh,
+    super.key,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    delSesh() async {
-      TrainHistoryDB.removeTrainingSessionFromHistory(sesh)
-          .onError((error, stackTrace) => scaffoldMessenger.showSnackBar(const SnackBar(
-                content: Text('Failed to delete training session'),
-                duration: Duration(seconds: 2),
-              )));
-    }
-
+    var cubit = context.read<TrainingHistoryCubit>();
     return AlertDialog(
-      title: Text(sesh.name == "" ? "Training Session" : sesh.name),
+      title: Text(sesh.name.isEmpty ? "Training Session" : sesh.name),
       content: SizedBox(
         height: 499,
         child: Column(
           children: [
-            MyGenericButton(
-              label: "Delete",
+            ElevatedButton(
               onPressed: () {
-                delSesh();
-                if (context.mounted) context.pop();
+                cubit.removeTrainingSessionFromHistory(sesh);
+                Navigator.of(context).pop();
               },
-              color: Theme.of(context).colorScheme.error,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text("Delete"),
             ),
           ],
         ),

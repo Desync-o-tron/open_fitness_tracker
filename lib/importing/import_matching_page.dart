@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:fuzzywuzzy/model/extracted_result.dart';
 import 'package:go_router/go_router.dart';
@@ -35,35 +36,45 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         }
       }
     }
-    matchPairs = _exerciseMatcher(newExs, 90);
   }
 
   @override
   Widget build(BuildContext context) {
+    var exercisesState = context.read<ExercisesCubit>().state;
+    if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (exercisesState is ExercisesError) {
+      return Center(child: Text('Error loading exercises: ${exercisesState.message}'));
+    } else {
+      exercisesState = exercisesState as ExercisesLoaded;
+    }
+    matchPairs = _exerciseMatcher(newExs, exercisesState, 90);
     return Scaffold(
       appBar: AppBar(
         title: Text(
             "Imported ${widget.newTrainingSessions.length} sessions &\n ${newExs.length} different exercises"),
       ),
       body: MatchExercisesScrollView(
-          exerciseMatches: matchPairs,
-          allImportedExercises: newExs,
-          confirmSelections: _confirmSelections),
+        exerciseMatches: matchPairs,
+        allImportedExercises: newExs,
+        confirmSelections: () => _confirmSelections(context.read<ExercisesCubit>()),
+      ),
     );
   }
 
-  List<ExerciseMatch> _exerciseMatcher(Exercises foreignExercises, int similarityCutoff) {
+  List<ExerciseMatch> _exerciseMatcher(
+      Exercises foreignExercises, ExercisesLoaded localExercises, int similarityCutoff) {
     List<ExerciseMatch> exerciseMatches = [];
 
     for (var ex in foreignExercises) {
-      List<String> exNames = ExDB.names;
+      List<String> exNames = localExercises.names;
       List<ExtractedResult<String>> res = extractTop(
           query: ex.name, choices: exNames, cutoff: similarityCutoff, limit: 1);
 
       if (res.isNotEmpty) {
         String matchedExName = res.first.choice;
         Exercise? matchedEx;
-        for (var existingEx in ExDB.exercises) {
+        for (var existingEx in localExercises.exercises) {
           if (existingEx.name == matchedExName) {
             matchedEx = existingEx;
             break;
@@ -101,7 +112,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     return exerciseMatches;
   }
 
-  void _confirmSelections() async {
+  void _confirmSelections(ExercisesCubit exercisesCubit) async {
     Strings exNamestoRm = [];
 
     bool firstTimeNoMatch = true;
@@ -119,11 +130,13 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           }
         }
         //otherwise lets put em in the DB!
-        ExDB.addExercises([match.foreignExercise]);
+        exercisesCubit.addExercises([match.foreignExercise]);
         continue;
       }
+
       //otherwise we're mapping the foreign ex to our ex.
-      Exercise exToUpdate = ExDB.exercises.firstWhere(
+      final exercisesState = (exercisesCubit.state as ExercisesLoaded);
+      Exercise exToUpdate = exercisesState.exercises.firstWhere(
           (e) => e.name == match.matchedExercise!.name,
           orElse: () => match.matchedExercise!);
 
@@ -139,12 +152,14 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         exToUpdate.alternateNames!.addIfDNE(match.foreignExercise.name);
       }
 
-      ExDB.addExercises([exToUpdate]);
+      exercisesCubit.addExercises([exToUpdate]);
     }
     var cleanedTrainingSessions =
         _removeUnwantedExercisesFromIncomingTrainingData(exNamestoRm);
+
+    final histCubit = context.read<TrainingHistoryCubit>();
     for (var session in cleanedTrainingSessions) {
-      TrainHistoryDB.addTrainingSessionToHistory(session);
+      histCubit.addTrainingSessionToHistory(session);
     }
 
     if (mounted) {

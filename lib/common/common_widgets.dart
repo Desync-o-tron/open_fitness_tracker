@@ -89,8 +89,7 @@ class BottomCancelOrCompleteButtons extends StatelessWidget {
         ),
         Expanded(
           flex: 3,
-          child:
-              MyGenericButton(label: cancelLabel, onPressed: onComplete, color: darkTan),
+          child: MyGenericButton(label: cancelLabel, onPressed: onCancel, color: darkTan),
         ),
         const SizedBox(width: 20),
         Expanded(

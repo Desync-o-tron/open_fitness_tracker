@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
@@ -29,7 +30,9 @@ class _MusclesPickerState extends State<MusclesPicker> {
   @override
   Widget build(BuildContext context) {
     List<DropdownMenuEntry<String>> dropdownMenuEntries = [];
-    for (String muscle in ExDB.muscles) {
+    final exsState = context.read<ExercisesCubit>().state
+        as ExercisesLoaded; //we're all loaded if we got here..
+    for (String muscle in exsState.muscles) {
       dropdownMenuEntries.add(DropdownMenuEntry(
         label: muscle,
         value: muscle,
@@ -114,16 +117,17 @@ class SelectedMuscles extends StatelessWidget {
   }
 }
 
+/*
 //
 //below is so complex it's not worth it for now.......
 //
-class SearchableMusclesSelectorComplex extends StatefulWidget {
+class SearchableMusclesSelectorComplexx extends StatefulWidget {
   final String labelText;
   final List<String> muscles;
   final Null Function(String muscle) onMuscleAdded;
   final Null Function(String muscle) onMuscleRemoved;
 
-  const SearchableMusclesSelectorComplex({
+  const SearchableMusclesSelectorComplexx({
     super.key,
     required this.muscles,
     required this.onMuscleAdded,
@@ -132,11 +136,11 @@ class SearchableMusclesSelectorComplex extends StatefulWidget {
   });
 
   @override
-  State<SearchableMusclesSelectorComplex> createState() =>
+  State<SearchableMusclesSelectorComplexx> createState() =>
       _SearchableMusclesSelectorState();
 }
 
-class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorComplex> {
+class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorComplexx> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _textFieldFocusNode = FocusNode();
   final FocusNode _dropDownFocusNode = FocusNode();
@@ -268,7 +272,7 @@ class _SearchableMusclesSelectorState extends State<SearchableMusclesSelectorCom
     super.dispose();
   }
 }
-
+*/
 class MusclesDropdown extends StatelessWidget {
   const MusclesDropdown({
     super.key,

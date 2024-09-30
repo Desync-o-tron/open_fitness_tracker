@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
@@ -38,8 +39,8 @@ class CloudStorage {
     });
 
     if (!isUserEmailVerified()) return;
-    ExDB.loadExercises(false);
-    TrainHistoryDB.loadUserTrainingHistory(useCache: false);
+
+    // TrainHistoryDB.loadUserTrainingHistory(useCache: false);
     // refreshCacheIfItsBeenXHours(12);
   }
 
@@ -108,7 +109,7 @@ class CloudStorage {
 
   static Future<T> _retryWithExponentialBackoff<T>(
     Future<T> Function() operation, {
-    int maxRetries = 5,
+    int maxRetries = 2,
     int delayMilliseconds = 500,
   }) async {
     int retryCount = 0;
@@ -147,116 +148,258 @@ class CloudStorage {
   }
 }
 
-class TrainHistoryDB {
-  static Future<List<TrainingSession>>? trainingHistory;
+abstract class TrainingHistoryState {}
 
-  static Future<void> addTrainingSessionToHistory(TrainingSession session) async {
+class TrainingHistoryInitial extends TrainingHistoryState {}
+
+class TrainingHistoryLoading extends TrainingHistoryState {}
+
+class TrainingHistoryLoaded extends TrainingHistoryState {
+  final List<TrainingSession> sessions;
+
+  TrainingHistoryLoaded(this.sessions);
+}
+
+class TrainingHistoryError extends TrainingHistoryState {
+  final String message;
+
+  TrainingHistoryError(this.message);
+}
+
+class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
+  TrainingHistoryCubit() : super(TrainingHistoryInitial());
+
+  Future<void> loadUserTrainingHistory({bool useCache = true}) async {
     if (!CloudStorage.isUserEmailVerified()) {
-      return Future.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+      emit(TrainingHistoryError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
     }
-    await CloudStorage._retryWithExponentialBackoff(() async {
-      await CloudStorage.firestore
-          .collection('users')
-          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(CloudStorage._historyKey)
-          .add(session.toJson());
-    });
+    emit(TrainingHistoryLoading());
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.server));
+
+        List<TrainingSession> sessions = [];
+        for (var doc in cloudTrainingHistory.docs) {
+          sessions.add(
+            TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
+          );
+        }
+        emit(TrainingHistoryLoaded(sessions));
+        //TODO whats up with trying to load history on startup for the first time?
+      });
+    } catch (e) {
+      emit(TrainingHistoryError(e.toString()));
+    }
   }
 
-  static Stream<List<TrainingSession>> getUserTrainingHistoryStream({
-    required int limit,
-    DateTime? startAfterTimestamp,
-  }) {
+  Future<void> addTrainingSessionToHistory(TrainingSession session) async {
     if (!CloudStorage.isUserEmailVerified()) {
-      return Stream.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+      emit(TrainingHistoryError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
     }
-
-    final String userUid = CloudStorage.firebaseAuth.currentUser!.uid;
-    final String collectionPath = 'users/$userUid/$CloudStorage._historyKey';
-
-    Query query = CloudStorage.firestore
-        .collection(collectionPath)
-        .orderBy('date', descending: true)
-        .limit(limit);
-
-    if (startAfterTimestamp != null) {
-      query = query.startAfter([startAfterTimestamp]);
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
+            .add(session.toJson());
+      });
+      // Reload the training history to update the state
+      await loadUserTrainingHistory(useCache: false);
+    } catch (e) {
+      emit(TrainingHistoryError(e.toString()));
     }
-
-    return query.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id;
-      }).toList();
-    });
   }
 
-  static Future<void> loadUserTrainingHistory({
-    required bool useCache,
-  }) async {
+  Future<void> removeTrainingSessionFromHistory(TrainingSession session) async {
     if (!CloudStorage.isUserEmailVerified()) {
-      return Future.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+      emit(TrainingHistoryError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
     }
-    await CloudStorage._retryWithExponentialBackoff(() async {
-      QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
-          .collection('users')
-          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(CloudStorage._historyKey)
-          .get(GetOptions(source: useCache ? Source.cache : Source.server));
-
-      // CloudStorage._historyCacheClock!.resetClock(); //todo ?
-
-      List<TrainingSession> sessions = [];
-      for (var doc in cloudTrainingHistory.docs) {
-        sessions.add(
-          TrainingSession.fromJson(doc.data() as Map<String, dynamic>),
-        );
-      }
-      trainingHistory = Future.value(sessions);
-    });
+    if (session.id == '') {
+      emit(TrainingHistoryError(
+          "No training session ID! Does this training session exist?"));
+      return;
+    }
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
+            .doc(session.id)
+            .delete();
+      });
+      // Reload the training history to update the state
+      await loadUserTrainingHistory(useCache: true);
+    } catch (e) {
+      emit(TrainingHistoryError(e.toString()));
+    }
   }
 
-  static Future<void> removeTrainingSessionFromHistory(final TrainingSession sesh) async {
+  Future<void> deleteEntireTrainingHistory() async {
     if (!CloudStorage.isUserEmailVerified()) {
-      return Future.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
+      emit(TrainingHistoryError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
     }
-    if (sesh.id == '') {
-      throw Exception("No training session ID! does this training session exist?");
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        CollectionReference historyCollection = CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey);
+        QuerySnapshot snapshot = await historyCollection.get();
+        WriteBatch batch = CloudStorage.firestore.batch();
+        for (DocumentSnapshot doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      });
+      // Emit an empty list to reflect the deletion
+      emit(TrainingHistoryLoaded([]));
+    } catch (e) {
+      emit(TrainingHistoryError(e.toString()));
     }
-    await CloudStorage._retryWithExponentialBackoff(() async {
-      await CloudStorage.firestore
-          .collection('users')
-          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(CloudStorage._historyKey)
-          .doc(sesh.id)
-          .delete();
-    });
-  }
-
-  static Future<void> deleteEntireTrainingHistory() async {
-    if (!CloudStorage.isUserEmailVerified()) {
-      return Future.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
-    }
-    await CloudStorage._retryWithExponentialBackoff(() async {
-      CollectionReference historyCollection = CloudStorage.firestore
-          .collection('users')
-          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(CloudStorage._historyKey);
-      QuerySnapshot snapshot = await historyCollection.get();
-      WriteBatch batch = CloudStorage.firestore.batch();
-      for (DocumentSnapshot doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
-    });
   }
 }
 
-class ExDB {
+abstract class ExercisesState {}
+
+class ExercisesInitial extends ExercisesState {}
+
+class ExercisesLoading extends ExercisesState {}
+
+class ExercisesLoaded extends ExercisesState {
+  final List<Exercise> exercises;
+  final List<String> categories;
+  final List<String> muscles;
+  final List<String> names;
+  final List<String> equipment;
+
+  ExercisesLoaded({
+    required this.exercises,
+    required this.categories,
+    required this.muscles,
+    required this.names,
+    required this.equipment,
+  });
+}
+
+class ExercisesError extends ExercisesState {
+  final String message;
+
+  ExercisesError(this.message);
+}
+
+class ExercisesCubit extends Cubit<ExercisesState> {
+  ExercisesCubit() : super(ExercisesInitial());
+
+  Future<void> loadExercises({bool useCache = true}) async {
+    if (!CloudStorage.isUserEmailVerified()) {
+      emit(ExercisesError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
+    }
+    emit(ExercisesLoading());
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        QuerySnapshot<Object?> globalExsSnapshot = await CloudStorage.firestore
+            .collection(CloudStorage._globalExercisesKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.server));
+
+        List<String> names = [];
+        List<String> categories = [];
+        List<String> muscles = [];
+        List<String> equipment = [];
+        List<Exercise> exercises = [];
+
+        for (var doc in globalExsSnapshot.docs) {
+          Exercise exercise = Exercise.fromJson(doc.data() as Map<String, dynamic>);
+          exercises.add(exercise);
+          if (!names.contains(exercise.name)) {
+            names.add(exercise.name);
+          }
+          if (exercise.category != null && !categories.contains(exercise.category)) {
+            categories.add(exercise.category!);
+          }
+          if (exercise.equipment != null && !equipment.contains(exercise.equipment)) {
+            equipment.add(exercise.equipment!);
+          }
+          for (var muscle in exercise.primaryMuscles) {
+            if (!muscles.contains(muscle)) {
+              muscles.add(muscle);
+            }
+          }
+          if (exercise.secondaryMuscles != null) {
+            for (var muscle in exercise.secondaryMuscles!) {
+              if (!muscles.contains(muscle)) {
+                muscles.add(muscle);
+              }
+            }
+          }
+        }
+
+        // TODO: Handle usrRemovedExsSnapshot and usrAddedExsSnapshot
+
+        // After processing, emit the loaded state
+        emit(ExercisesLoaded(
+          exercises: exercises,
+          categories: categories,
+          muscles: muscles,
+          names: names,
+          equipment: equipment,
+        ));
+      });
+    } catch (e) {
+      emit(ExercisesError(e.toString()));
+    }
+  }
+
+  Future<void> removeExercises(List<Exercise> exercisesToRemove) async {
+    // Implement the method
+    // For now, let's emit an error
+    emit(ExercisesError("removeExercises method not implemented"));
+  }
+
+  Future<void> addExercisesToGlobalList(List<Exercise> exercisesToAdd) async {
+    if (!CloudStorage.isUserEmailVerified()) {
+      emit(ExercisesError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
+    }
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        for (var ex in exercisesToAdd) {
+          await CloudStorage.firestore
+              .collection(CloudStorage._globalExercisesKey)
+              .add(ex.toJson());
+        }
+      });
+      // Optionally, reload the exercises
+      await loadExercises(useCache: false);
+    } catch (e) {
+      emit(ExercisesError(e.toString()));
+    }
+  }
+
+  Future<void> addExercises(List<Exercise> exercisesToAdd) async {
+    // Implement the method
+    emit(ExercisesError("addExercises method not implemented"));
+  }
+}
+//TODO check for useCache: true
+
+class ExDBx {
   static Exercises get exercises => _exercises;
   static List<String> get categories => _categories;
   static List<String> get muscles => _muscles;

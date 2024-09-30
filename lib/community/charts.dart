@@ -1,17 +1,41 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class CoolChart extends StatefulWidget {
+class CoolChart extends StatelessWidget {
   const CoolChart({super.key});
 
   @override
-  State<CoolChart> createState() => _CoolChartState();
+  Widget build(BuildContext context) {
+    return BlocBuilder<TrainingHistoryCubit, TrainingHistoryState>(
+      builder: (context, state) {
+        if (state is TrainingHistoryLoading || state is TrainingHistoryInitial) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is TrainingHistoryError) {
+          return Center(child: Text('Error loading data: ${state.message}'));
+        } else if (state is TrainingHistoryLoaded) {
+          final sessions = state.sessions;
+          return CoolChartView(sessions: sessions);
+        } else {
+          return const Center(child: Text('Unknown state'));
+        }
+      },
+    );
+  }
 }
 
-class _CoolChartState extends State<CoolChart> {
+class CoolChartView extends StatefulWidget {
+  final List<TrainingSession> sessions;
+  const CoolChartView({required this.sessions, super.key});
+
+  @override
+  State<CoolChartView> createState() => _CoolChartViewState();
+}
+
+class _CoolChartViewState extends State<CoolChartView> {
   List<DateAndWeight> bestWeightsOnDates = [];
   List<double> xValues = [];
   DateTime? firstDate;
@@ -26,15 +50,7 @@ class _CoolChartState extends State<CoolChart> {
   }
 
   void _loadData() async {
-    // Await the future to get the list of training sessions
-    List<TrainingSession>? trainHist = await TrainHistoryDB.trainingHistory;
-
-    if (trainHist == null || trainHist.isEmpty) {
-      setState(() {}); // Trigger build to show empty state
-      return;
-    }
-
-    for (var trainSesh in trainHist) {
+    for (var trainSesh in widget.sessions) {
       for (var setsOfAnExercise in trainSesh.trainingData) {
         if (setsOfAnExercise.ex.name.toLowerCase().contains("deadlift") &&
             !setsOfAnExercise.ex.name.toLowerCase().contains("roma") &&

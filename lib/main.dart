@@ -17,25 +17,21 @@ import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*
-todo just want to see if the damn pages load & waht load times are like..
+todo 
+I just want to see if the damn pages load & waht load times are like..
+are firebase sign ins rate limited?
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   CloudStorage.init();
 
-  // var _prefs = await SharedPreferences.getInstance();
-  // String jsonString =
-  //     await rootBundle.loadString('assets/data/exercises_no_stretches.json');
-  // ExDB.addExercisesToGlobalList(
-  //     (json.decode(jsonString) as List).map((e) => Exercise.fromJson(e)).toList());
-
-  HydratedStorage hydratedStorage = await HydratedStorage.build(
+  HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorage.webStorageDirectory
         : await getApplicationDocumentsDirectory(),
   );
-  HydratedBloc.storage = hydratedStorage;
 
   runApp(const MyApp());
 }
@@ -55,10 +51,23 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ExSearchCubit()),
         BlocProvider(create: (_) => TrainingSessionCubit()),
         BlocProvider(create: (_) => CreateNewExCubit()),
         BlocProvider(create: (_) => BasicUserInfoCubit()),
+        BlocProvider(
+          create: (_) => ExercisesCubit()..loadExercises(useCache: false),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (_) => ExSearchCubit(
+            exercisesCubit:
+                context.read<ExercisesCubit>(), //how quickly will this break lol
+          ),
+        ),
+        BlocProvider(
+          create: (_) => TrainingHistoryCubit()..loadUserTrainingHistory(useCache: false),
+          lazy: false,
+        ),
       ],
       child: Builder(builder: (context) {
         //setup stoof:

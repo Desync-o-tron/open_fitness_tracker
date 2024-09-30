@@ -45,7 +45,8 @@ class _TrainingPageState extends State<TrainingPage> {
                 sesh.isOngoing = false;
                 sesh.duration = DateTime.now().difference(sesh.date);
                 sesh.dateOfLastEdit = DateTime.now();
-                TrainHistoryDB.addTrainingSessionToHistory(sesh);
+                final histCubit = context.read<TrainingHistoryCubit>();
+                histCubit.addTrainingSessionToHistory(sesh);
                 context.read<TrainingSessionCubit>().reset();
                 context.go(routeNames.History.text);
               },

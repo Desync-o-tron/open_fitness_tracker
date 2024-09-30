@@ -291,17 +291,18 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: textController,
+      keyboardType: TextInputType.numberWithOptions(decimal: true),
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.bodyMedium,
       decoration: InputDecoration(
-        contentPadding:
-            const EdgeInsets.fromLTRB(0, 0, 0, 0), // weird, but does the trick
+        contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14.0),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
+          borderRadius: BorderRadius.circular(15.0),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+        ),
         constraints: const BoxConstraints(
           maxWidth: 50.0,
-          maxHeight: 30.0,
+          maxHeight: 35.0,
         ),
       ),
       onChanged: (value) {

@@ -1,12 +1,22 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
 
-List<TrainingSession> importStrongCsv(String filePath, Units units) {
-  final List<String> rows = File(filePath).readAsLinesSync();
+List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
+  final List<String> rows;
+  if (kIsWeb) {
+    rows = filepathORfileStr.split("\n");
+    if (rows.last.isEmpty) {
+      rows.removeLast();
+    }
+  } else {
+    rows = File(filepathORfileStr).readAsLinesSync();
+  }
   rows.removeAt(0);
+
   //todo we should save teh header & compare it to see if it ever changes and bricks shit
   //todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!
   List<TrainingSession> sessions = [];
@@ -26,8 +36,7 @@ List<TrainingSession> importStrongCsv(String filePath, Units units) {
 
   for (int i = 0; i < rows.length; i++) {
     var row = rows[i];
-    final rowList = const CsvToListConverter()
-        .convert(row, shouldParseNumbers: false); // as List<String>;
+    var rowList = const CsvToListConverter().convert(row, shouldParseNumbers: false);
     final date = DateFormat("yyyy-MM-dd HH:mm:ss").parse(rowList[0][0]);
     final workoutName = rowList[0][1];
     final duration = parseStrongWorkoutDuration(rowList[0][2]);

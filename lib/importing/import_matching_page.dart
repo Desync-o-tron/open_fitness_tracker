@@ -48,7 +48,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     } else {
       exercisesState = exercisesState as ExercisesLoaded;
     }
-    matchPairs = _exerciseMatcher(newExs, exercisesState, 90);
+    matchPairs = _exerciseMatcher(newExs, exercisesState, 86);
     return Scaffold(
       appBar: AppBar(
         title: Text(

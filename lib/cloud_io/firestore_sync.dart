@@ -372,7 +372,7 @@ class ExercisesCubit extends Cubit<ExercisesState> {
   }
 
   Future<void> removeExercises(List<Exercise> exercisesToRemove) async {
-    // Implement the method
+    //todo Implement the method
     // For now, let's emit an error
     emit(ExercisesError("removeExercises method not implemented"));
   }

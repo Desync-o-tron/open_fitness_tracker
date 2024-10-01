@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 
 typedef Exercises = List<Exercise>;
@@ -167,25 +168,34 @@ String enumToReadableString(Object o) {
       .toLowerCase();
 }
 
+/// will return the whole file as a string if on web.
 Future<String?> getFileWithSnackbarErrors(
     BuildContext context, List<String> allowedExtensions) async {
+  String? filePath;
   var scaffoldMessenger = ScaffoldMessenger.of(context);
+
   FilePickerResult? result = await FilePicker.platform
       .pickFiles(type: FileType.custom, allowedExtensions: allowedExtensions);
 
-  if (result == null) {
+  if (result == null && result!.files.isNotEmpty) {
     scaffoldMessenger.showSnackBar(
       const SnackBar(content: Text('No file selected')),
     );
     return null;
   }
 
-  String? filePath = result.files.single.path;
+  if (kIsWeb) {
+    final fileBytes = result.files.first.bytes;
+    return utf8.decode(fileBytes!);
+  }
+
+  filePath = result.files.single.path;
   if (filePath == null) {
     scaffoldMessenger.showSnackBar(
       const SnackBar(content: Text('No file selected. Is the path accessable?')),
     );
     return null;
   }
+
   return filePath;
 }

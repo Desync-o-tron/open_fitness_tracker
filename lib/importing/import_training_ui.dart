@@ -56,7 +56,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
   late MassUnits selectedMassUnit;
   late DistanceUnits selectedDistanceUnit;
   bool setAsStandard = true;
-  String? filepath;
+  String? filepathORfileStr;
 
   @override
   void initState() {
@@ -76,15 +76,17 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               MyGenericButton(
-                label: (filepath == null) ? "Select file to Import" : "File Selected.",
+                label: (filepathORfileStr == null)
+                    ? "Select file to Import"
+                    : "File Selected.",
                 onPressed: () async {
                   //todo for web?
                   // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ
-                  filepath =
+                  filepathORfileStr =
                       await getFileWithSnackbarErrors(context, ['csv', 'txt', 'json']);
                   setState(() {});
                 },
-                color: (filepath == null) ? darkTan : mediumGreen,
+                color: (filepathORfileStr == null) ? darkTan : mediumGreen,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<MassUnits>(
@@ -143,13 +145,14 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
                   Navigator.of(context).pop();
                 },
                 onComplete: () {
-                  if (filepath == null) {
+                  if (filepathORfileStr == null) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(const SnackBar(content: Text('No file selected')));
                     return;
                   }
 
-                  List<TrainingSession> sessions = importStrongCsv(filepath!, units);
+                  List<TrainingSession> sessions =
+                      importStrongCsv(filepathORfileStr!, units);
 
                   if (setAsStandard) {
                     var userInfoCubit = context.read<BasicUserInfoCubit>();

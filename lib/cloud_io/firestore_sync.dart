@@ -191,7 +191,7 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
           );
         }
         emit(TrainingHistoryLoaded(sessions));
-        //TODO whats up with trying to load history on startup for the first time?
+        //todo whats up with trying to load history on startup for the first time?
       });
     } catch (e) {
       emit(TrainingHistoryError(e.toString()));
@@ -419,77 +419,6 @@ class ExercisesCubit extends Cubit<ExercisesState> {
     } catch (e) {
       emit(ExercisesError(e.toString()));
     }
-  }
-}
-//TODO check for useCache: true
-
-class ExDBx {
-  static Exercises get exercises => _exercises;
-  static List<String> get categories => _categories;
-  static List<String> get muscles => _muscles;
-  static List<String> get names => _names;
-  static List<String> get equipment => _equipment;
-
-  static final List<String> _names = [];
-  static final List<String> _categories = [];
-  static final List<String> _muscles = [];
-  static final List<String> _equipment = [];
-  static final List<Exercise> _exercises = [];
-
-  static Future<void> loadExercises(bool useCache) async {
-    if (!CloudStorage.isUserEmailVerified()) {
-      return Future.error(
-          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
-    }
-    await CloudStorage._retryWithExponentialBackoff(() async {
-      QuerySnapshot<Object?> globalExsSnapshot;
-      QuerySnapshot<Object?> usrRemovedExsSnapshot;
-      QuerySnapshot<Object?> usrAddedExsSnapshot;
-      globalExsSnapshot = await CloudStorage.firestore
-          .collection(CloudStorage._globalExercisesKey)
-          .get(GetOptions(source: useCache ? Source.cache : Source.server));
-      Exercises globalExs = [];
-      Exercises usrRemovedExs = [];
-      Exercises usrAddedExs = [];
-      for (var doc in globalExsSnapshot.docs) {
-        globalExs.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
-      }
-      final finalExercises = globalExs;
-      for (var exercise in finalExercises) {
-        _exercises.addIfDNE(exercise);
-        _names.addIfDNE(exercise.name);
-        _categories.addIfDNE(exercise.category);
-        _equipment.addIfDNE(exercise.equipment);
-        _muscles.addAllIfDNE(exercise.primaryMuscles);
-        if (exercise.secondaryMuscles != null) {
-          _muscles.addAllIfDNE(exercise.secondaryMuscles!);
-        }
-      }
-
-      //todo the rest..!
-
-      // usrAddedExsSnapshot = await CloudStorage.firestore!
-      //     .collection('users')
-      //     .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-      //     .collection(CloudStorage._historyKey)
-      // .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
-    });
-  }
-
-  static Future<void> removeExercises(Exercises exericises) async {
-    throw Exception("todo");
-  }
-
-  static Future<void> addExercisesToGlobalList(Exercises exericises) async {
-    for (var ex in exericises) {
-      await CloudStorage.firestore
-          .collection(CloudStorage._globalExercisesKey)
-          .add(ex.toJson());
-    }
-  }
-
-  static Future<void> addExercises(Exercises exericises) async {
-    throw Exception("todo");
   }
 }
 

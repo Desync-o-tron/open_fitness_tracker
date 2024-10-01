@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_portal/flutter_portal.dart';
-import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
 
 class MusclesPicker extends StatefulWidget {
   final String labelText;

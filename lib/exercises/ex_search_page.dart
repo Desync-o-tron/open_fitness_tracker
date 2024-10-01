@@ -195,8 +195,9 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
             ),
           ]);
 
-          if (widget.useForAddingToTraining)
+          if (widget.useForAddingToTraining) {
             pageChildren.add(_addSelectedButton(context));
+          }
           if (widget.useForMappingForeignExercise) {
             pageChildren.addAll([
               _thisIsMyExButton(widget.setForeignExerciseCallback!),
@@ -289,7 +290,7 @@ class SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _controller = TextEditingController(text: keyword);
+    final TextEditingController controller = TextEditingController(text: keyword);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -307,7 +308,7 @@ class SearchBar extends StatelessWidget {
         ],
       ),
       child: TextField(
-        controller: _controller,
+        controller: controller,
         onChanged: onKeywordChanged,
         decoration: const InputDecoration(
           icon: Icon(Icons.search),

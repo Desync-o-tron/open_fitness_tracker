@@ -4,11 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:fuzzy/fuzzy.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
-
-import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
-import 'package:fuzzy/fuzzy.dart';
-import 'package:open_fitness_tracker/utils/utils.dart';
 
 class ExSearchState {
   final List<Exercise> allExercises;

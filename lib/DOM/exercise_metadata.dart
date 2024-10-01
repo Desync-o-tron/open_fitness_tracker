@@ -10,6 +10,7 @@ dart run build_runner watch --delete-conflicting-outputs
 @JsonSerializable()
 class Exercise {
   String? id;
+  //^does id matter? is it another thing to track? there *should not* be name dupes.
   String name;
   List<String>? alternateNames = [];
   Force? force;

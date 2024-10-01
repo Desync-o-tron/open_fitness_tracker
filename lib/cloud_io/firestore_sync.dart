@@ -213,7 +213,7 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
             .add(session.toJson());
       });
       // Reload the training history to update the state
-      await loadUserTrainingHistory(useCache: false);
+      await loadUserTrainingHistory(useCache: true);
     } catch (e) {
       emit(TrainingHistoryError(e.toString()));
     }
@@ -252,6 +252,9 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
       return;
     }
+    //todo
+    //idk too powerful atm..0 need to have this.
+    emit(TrainingHistoryError("sorry john, I can't let you do that."));
     try {
       await CloudStorage._retryWithExponentialBackoff(() async {
         CollectionReference historyCollection = CloudStorage.firestore
@@ -313,43 +316,46 @@ class ExercisesCubit extends Cubit<ExercisesState> {
     emit(ExercisesLoading());
     try {
       await CloudStorage._retryWithExponentialBackoff(() async {
-        QuerySnapshot<Object?> globalExsSnapshot = await CloudStorage.firestore
-            .collection(CloudStorage._globalExercisesKey)
-            .get(GetOptions(source: useCache ? Source.cache : Source.server));
-
+        List<Exercise> exercises = [];
         List<String> names = [];
         List<String> categories = [];
         List<String> muscles = [];
         List<String> equipment = [];
-        List<Exercise> exercises = [];
+
+        QuerySnapshot<Object?> globalExsSnapshot = await CloudStorage.firestore
+            .collection(CloudStorage._globalExercisesKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.server));
+        QuerySnapshot<Object?> usrAddedExsSnapshot = await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._userAddedExercisesKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
+        QuerySnapshot<Object?> usrRemovedExsSnapshot = await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._userRemovedExercisesKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
 
         for (var doc in globalExsSnapshot.docs) {
-          Exercise exercise = Exercise.fromJson(doc.data() as Map<String, dynamic>);
-          exercises.add(exercise);
-          if (!names.contains(exercise.name)) {
-            names.add(exercise.name);
-          }
-          if (exercise.category != null && !categories.contains(exercise.category)) {
-            categories.add(exercise.category!);
-          }
-          if (exercise.equipment != null && !equipment.contains(exercise.equipment)) {
-            equipment.add(exercise.equipment!);
-          }
-          for (var muscle in exercise.primaryMuscles) {
-            if (!muscles.contains(muscle)) {
-              muscles.add(muscle);
-            }
-          }
-          if (exercise.secondaryMuscles != null) {
-            for (var muscle in exercise.secondaryMuscles!) {
-              if (!muscles.contains(muscle)) {
-                muscles.add(muscle);
-              }
-            }
-          }
+          exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
+        }
+        for (var doc in usrAddedExsSnapshot.docs) {
+          exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
+        }
+        for (var doc in usrRemovedExsSnapshot.docs) {
+          final ex2remove = Exercise.fromJson(doc.data() as Map<String, dynamic>);
+          exercises.removeWhere((Exercise ex) => (ex.name == ex2remove.name));
         }
 
-        // TODO: Handle usrRemovedExsSnapshot and usrAddedExsSnapshot
+        for (final exercise in exercises) {
+          names.addIfDNE(exercise.name);
+          categories.addIfDNE(exercise.category);
+          equipment.addIfDNE(exercise.equipment);
+          muscles.addAllIfDNE(exercise.primaryMuscles);
+          if (exercise.secondaryMuscles != null) {
+            muscles.addAllIfDNE(exercise.secondaryMuscles!);
+          }
+        }
 
         // After processing, emit the loaded state
         emit(ExercisesLoaded(
@@ -386,15 +392,33 @@ class ExercisesCubit extends Cubit<ExercisesState> {
         }
       });
       // Optionally, reload the exercises
-      await loadExercises(useCache: false);
+      await loadExercises(useCache: true);
     } catch (e) {
       emit(ExercisesError(e.toString()));
     }
   }
 
   Future<void> addExercises(List<Exercise> exercisesToAdd) async {
-    // Implement the method
-    emit(ExercisesError("addExercises method not implemented"));
+    if (!CloudStorage.isUserEmailVerified()) {
+      emit(ExercisesError(
+          "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc..."));
+      return;
+    }
+    try {
+      await CloudStorage._retryWithExponentialBackoff(() async {
+        for (var ex in exercisesToAdd) {
+          await CloudStorage.firestore
+              .collection('users')
+              .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+              .collection(CloudStorage._userAddedExercisesKey)
+              .add(ex.toJson());
+        }
+      });
+
+      await loadExercises(useCache: true);
+    } catch (e) {
+      emit(ExercisesError(e.toString()));
+    }
   }
 }
 //TODO check for useCache: true

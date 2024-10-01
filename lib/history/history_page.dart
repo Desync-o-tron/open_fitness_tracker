@@ -83,7 +83,7 @@ class HistoryPage extends StatelessWidget {
           );
         } else if (result == 'refresh training history') {
           cubit.loadUserTrainingHistory(useCache: false);
-        } else if (result == 'delete history') {
+        } else if (result == 'delete ENTIRE history') {
           cubit.deleteEntireTrainingHistory();
         }
       },

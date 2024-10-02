@@ -176,26 +176,28 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
       return;
     }
     emit(TrainingHistoryLoading());
-    try {
-      await CloudStorage._retryWithExponentialBackoff(() async {
-        QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
-            .collection('users')
-            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-            .collection(CloudStorage._historyKey)
-            .get(GetOptions(source: useCache ? Source.cache : Source.server));
+    //todo re enable me
+    // try {
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
+          .collection('users')
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.server));
 
-        List<TrainingSession> sessions = [];
-        for (var doc in cloudTrainingHistory.docs) {
-          sessions.add(
-            TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
-          );
-        }
-        emit(TrainingHistoryLoaded(sessions));
-        //todo whats up with trying to load history on startup for the first time?
-      });
-    } catch (e) {
-      emit(TrainingHistoryError(e.toString()));
-    }
+      List<TrainingSession> sessions = [];
+      for (var doc in cloudTrainingHistory.docs) {
+        sessions.add(
+          TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
+        );
+      }
+      sessions.sort((a, b) => b.date.compareTo(a.date));
+      emit(TrainingHistoryLoaded(sessions));
+      //todo whats up with trying to load history on startup for the first time?
+    });
+    // } catch (e) {
+    //   emit(TrainingHistoryError(e.toString()));
+    // }
   }
 
   Future<void> addTrainingSessionToHistory(TrainingSession session) async {

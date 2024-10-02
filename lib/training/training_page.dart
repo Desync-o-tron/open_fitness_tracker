@@ -21,7 +21,6 @@ class _TrainingPageState extends State<TrainingPage> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(10.0),
-      // color: Theme.of(context).colorScheme.secondary,
       color: darkTan,
       child: SingleChildScrollView(
         clipBehavior: Clip.none,

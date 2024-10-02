@@ -58,12 +58,12 @@ class MyApp extends StatelessWidget {
           create: (_) => ExercisesCubit()..loadExercises(useCache: false),
           lazy: false,
         ),
-        BlocProvider(
-          create: (_) => ExSearchCubit(
-            exercisesCubit:
-                context.read<ExercisesCubit>(), //how quickly will this break lol
-          ),
-        ),
+        // BlocProvider(
+        //   create: (_) => ExSearchCubit(
+        //     exercisesCubit:
+        //         context.read<ExercisesCubit>(), //how quickly will this break lol
+        //   ),
+        // ),
         BlocProvider(
           create: (_) => TrainingHistoryCubit()..loadUserTrainingHistory(useCache: false),
           lazy: false,

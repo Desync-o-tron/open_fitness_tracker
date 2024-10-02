@@ -6,6 +6,7 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
+import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -51,170 +52,189 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ExercisesCubit, ExercisesState>(
-      builder: (context, exercisesState) {
-        if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (exercisesState is ExercisesError) {
-          return Center(
-              child: Text('Error loading exercises: ${exercisesState.message}'));
-        } else if (exercisesState is ExercisesLoaded) {
-          // Apply filters to the exercises
-          List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
-            bool matchesKeyword = keyword.isEmpty ||
-                exercise.name.toLowerCase().contains(keyword.toLowerCase());
+    return BlocProvider(
+      //TODO rm
+      create: (_) => ExSearchCubit(
+        exercisesCubit: context.read<ExercisesCubit>(), //how quickly will this break lol
+      ),
+      child: BlocBuilder<ExercisesCubit, ExercisesState>(
+        builder: (context, exercisesState) {
+          if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (exercisesState is ExercisesError) {
+            return Center(
+                child: Text('Error loading exercises: ${exercisesState.message}'));
+          } else if (exercisesState is ExercisesLoaded) {
+            // Apply filters to the exercises
+            List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
+              bool matchesKeyword = keyword.isEmpty ||
+                  exercise.name.toLowerCase().contains(keyword.toLowerCase());
 
-            bool matchesMuscles = musclesFilter.isEmpty ||
-                exercise.primaryMuscles.any((muscle) => musclesFilter.contains(muscle)) ||
-                (exercise.secondaryMuscles != null &&
-                    exercise.secondaryMuscles!
-                        .any((muscle) => musclesFilter.contains(muscle)));
+              bool matchesMuscles = musclesFilter.isEmpty ||
+                  exercise.primaryMuscles
+                      .any((muscle) => musclesFilter.contains(muscle)) ||
+                  (exercise.secondaryMuscles != null &&
+                      exercise.secondaryMuscles!
+                          .any((muscle) => musclesFilter.contains(muscle)));
 
-            bool matchesCategories =
-                categoriesFilter.isEmpty || categoriesFilter.contains(exercise.category);
+              bool matchesCategories = categoriesFilter.isEmpty ||
+                  categoriesFilter.contains(exercise.category);
 
-            return matchesKeyword && matchesMuscles && matchesCategories;
-          }).toList();
+              return matchesKeyword && matchesMuscles && matchesCategories;
+            }).toList();
 
-          final scrollController = ScrollController(initialScrollOffset: 0);
+            final scrollController = ScrollController(initialScrollOffset: 0);
 
-          List<Widget> pageChildren = [];
-          if (!widget.useForMappingForeignExercise) {
-            pageChildren.add(
-                Text('Exercises', style: Theme.of(context).textTheme.headlineMedium));
-          } else {
-            pageChildren.add(
-                Text('Exercise Match', style: Theme.of(context).textTheme.headlineSmall));
-            pageChildren.add(ExerciseTile(
-              exercise: widget.foreignEx!,
-              isSelectable: false,
-              colorDecoration: true,
-            ));
-            pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
-          }
-          pageChildren.addAll([
-            Expanded(
-              child: ScrollConfiguration(
-                behavior: GenericScrollBehavior(),
-                child: Scrollbar(
-                  controller: scrollController,
-                  thumbVisibility: true,
-                  child: ListView.builder(
-                    controller: scrollController,
-                    key: ValueKey(filteredExercises.length),
-                    itemCount: filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      return ExerciseTile(
-                        exercise: filteredExercises[index],
-                        isSelectable: widget.useForAddingToTraining ||
-                            widget.useForMappingForeignExercise,
-                        isSelected:
-                            selectedExercises.contains(filteredExercises[index]) ||
-                                newlySelectedExercises.contains(filteredExercises[index]),
-                        onSelectionChanged: (bool isSelected) {
-                          setState(() {
-                            if (isSelected) {
-                              if (widget.useForMappingForeignExercise) {
-                                newlySelectedExercises.clear();
-                              }
-                              newlySelectedExercises.add(filteredExercises[index]);
-                            } else {
-                              newlySelectedExercises.remove(filteredExercises[index]);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
+            List<Widget> pageChildren = [];
+            if (!widget.useForMappingForeignExercise) {
+              pageChildren.add(
+                  Text('Exercises', style: Theme.of(context).textTheme.headlineMedium));
+            } else {
+              pageChildren.add(Text('Exercise Match',
+                  style: Theme.of(context).textTheme.headlineSmall));
+              // pageChildren.add(ExerciseTile(
+              //   exercise: widget.foreignEx!,
+              //   isSelectable: false,
+              //   colorDecoration: true,
+              // ));
+              pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
+            }
+            pageChildren.addAll([
+              _exListView(scrollController, filteredExercises),
+              SearchBar(
+                onKeywordChanged: (value) {
+                  setState(() {
+                    keyword = value;
+                  });
+                },
               ),
-            ),
-            SearchBar(
-              keyword: keyword,
-              onKeywordChanged: (value) {
-                setState(() {
-                  keyword = value;
-                });
+              _muscleAndCategoryFilterButtons(context, exercisesState),
+            ]);
+
+            if (widget.useForAddingToTraining) {
+              pageChildren.add(_addSelectedButton(context));
+            }
+            if (widget.useForMappingForeignExercise) {
+              pageChildren.addAll([
+                _thisIsMyExButton(widget.setForeignExerciseCallback!),
+                _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+              ]);
+            } else {
+              pageChildren.add(_createNewExButton(context));
+            }
+
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: pageChildren,
+              ),
+            );
+          } else {
+            return const Center(child: Text('Unknown state'));
+          }
+        },
+      ),
+    );
+  }
+
+  Padding _muscleAndCategoryFilterButtons(
+      BuildContext context, ExercisesLoaded exercisesState) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
+      child: Row(
+        children: [
+          Expanded(
+            child: MyGenericButton(
+              label: musclesFilter.isEmpty
+                  ? 'Any Muscle'
+                  : musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return SearchMultiSelectModal(
+                      isForMuscleSelection: true,
+                      allItems: exercisesState.muscles,
+                      selectedItems: musclesFilter,
+                      onSelectionChanged: (selectedMuscles) {
+                        setState(() {
+                          musclesFilter = selectedMuscles;
+                        });
+                      },
+                    );
+                  },
+                );
               },
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 2, 5, 11),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: MyGenericButton(
-                      label: musclesFilter.isEmpty
-                          ? 'Any Muscle'
-                          : musclesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SearchMultiSelectModal(
-                              isForMuscleSelection: true,
-                              allItems: exercisesState.muscles,
-                              selectedItems: musclesFilter,
-                              onSelectionChanged: (selectedMuscles) {
-                                setState(() {
-                                  musclesFilter = selectedMuscles;
-                                });
-                              },
-                            );
-                          },
-                        );
+          ),
+          const SizedBox(width: 8.0),
+          Expanded(
+            child: MyGenericButton(
+              label: categoriesFilter.isEmpty
+                  ? 'Any Category'
+                  : categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return SearchMultiSelectModal(
+                      isForMuscleSelection: false,
+                      allItems: exercisesState.categories,
+                      selectedItems: categoriesFilter,
+                      onSelectionChanged: (selectedCategories) {
+                        setState(() {
+                          categoriesFilter = selectedCategories;
+                        });
                       },
-                    ),
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: MyGenericButton(
-                      label: categoriesFilter.isEmpty
-                          ? 'Any Category'
-                          : categoriesFilter.map((e) => e.capTheFirstLetter()).join(", "),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SearchMultiSelectModal(
-                              isForMuscleSelection: false,
-                              allItems: exercisesState.categories,
-                              selectedItems: categoriesFilter,
-                              onSelectionChanged: (selectedCategories) {
-                                setState(() {
-                                  categoriesFilter = selectedCategories;
-                                });
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                    );
+                  },
+                );
+              },
             ),
-          ]);
+          ),
+        ],
+      ),
+    );
+  }
 
-          if (widget.useForAddingToTraining) {
-            pageChildren.add(_addSelectedButton(context));
-          }
-          if (widget.useForMappingForeignExercise) {
-            pageChildren.addAll([
-              _thisIsMyExButton(widget.setForeignExerciseCallback!),
-              _noExerciseMatchButton(widget.setForeignExerciseCallback!),
-            ]);
-          } else {
-            pageChildren.add(_createNewExButton(context));
-          }
-
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: pageChildren,
-          );
-        } else {
-          return const Center(child: Text('Unknown state'));
-        }
-      },
+  Widget _exListView(
+      ScrollController scrollController, List<Exercise> filteredExercises) {
+    return Expanded(
+      child: ScrollConfiguration(
+        behavior: GenericScrollBehavior(),
+        child: Scrollbar(
+          controller: scrollController,
+          thumbVisibility: true,
+          child: ListView.builder(
+            controller: scrollController,
+            key: ValueKey(filteredExercises.length),
+            itemCount: filteredExercises.length,
+            itemBuilder: (context, index) {
+              return Material(
+                child: ExerciseTile(
+                  exercise: filteredExercises[index],
+                  isSelectable: widget.useForAddingToTraining ||
+                      widget.useForMappingForeignExercise,
+                  isSelected: selectedExercises.contains(filteredExercises[index]) ||
+                      newlySelectedExercises.contains(filteredExercises[index]),
+                  onSelectionChanged: (bool isSelected) {
+                    setState(() {
+                      if (isSelected) {
+                        if (widget.useForMappingForeignExercise) {
+                          newlySelectedExercises.clear();
+                        }
+                        newlySelectedExercises.add(filteredExercises[index]);
+                      } else {
+                        newlySelectedExercises.remove(filteredExercises[index]);
+                      }
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -283,15 +303,12 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
 }
 
 class SearchBar extends StatelessWidget {
-  final String keyword;
   final ValueChanged<String> onKeywordChanged;
 
-  const SearchBar({super.key, required this.keyword, required this.onKeywordChanged});
+  const SearchBar({super.key, required this.onKeywordChanged});
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController controller = TextEditingController(text: keyword);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.all(10),
@@ -308,7 +325,6 @@ class SearchBar extends StatelessWidget {
         ],
       ),
       child: TextField(
-        controller: controller,
         onChanged: onKeywordChanged,
         decoration: const InputDecoration(
           icon: Icon(Icons.search),

@@ -186,18 +186,30 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
               style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           //add textfields for each setMetric
           if (es.prevSet.weight != null)
-            SetDataTextField(
-                set, setNum, es, set.weight, (set, value) => set.weight = value),
+            SetDataTextField(set, setNum, es, set.weight, (set, value) {
+              set.weight = value;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+            }), //TODO kg/lbs overhaul
           if (es.prevSet.reps != null)
-            SetDataTextField(set, setNum, es, set.reps, (set, value) => set.reps = value),
+            SetDataTextField(set, setNum, es, set.reps, (set, value) {
+              set.reps = value;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+            }),
           if (es.prevSet.time != null)
-            SetDataTextField(set, setNum, es, set.time, (set, value) => set.time = value),
+            SetDataTextField(set, setNum, es, set.time, (set, value) {
+              set.time = value;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+            }),
           if (es.prevSet.distance != null)
-            SetDataTextField(
-                set, setNum, es, set.distance, (set, value) => set.distance = value),
+            SetDataTextField(set, setNum, es, set.distance, (set, value) {
+              set.distance = value;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+            }),
           if (es.prevSet.speed != null)
-            SetDataTextField(
-                set, setNum, es, set.speed, (set, value) => set.speed = value),
+            SetDataTextField(set, setNum, es, set.speed, (set, value) {
+              set.speed = value;
+              context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
+            }),
           TextButton(
             onPressed: () {
               set.completed = !set.completed;
@@ -258,6 +270,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
         if (es.prevSet.weight != null) headerText("Weight", context),
         if (es.prevSet.reps != null) headerText("Reps", context),
         if (es.prevSet.time != null) headerText("Time", context),
+        //^todo split seconds into hrs/min/secs as needed
         if (es.prevSet.distance != null) headerText("Distance", context),
         if (es.prevSet.speed != null) headerText("Speed", context),
         headerText("Done", context),
@@ -293,6 +306,8 @@ class _SetDataTextFieldState extends State<SetDataTextField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: textController,
+      onTap: () => textController.selection =
+          TextSelection(baseOffset: 0, extentOffset: textController.text.length),
       keyboardType: TextInputType.numberWithOptions(decimal: true),
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.bodyMedium,

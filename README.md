@@ -7,8 +7,8 @@ This tracks your sets & reps. Real basic for now. More stuff coming soon.
 It's true - there's a bunch of other apps like this! 
 But this one is open source. It's free. There's no subscription. There's no other open app like this.
 
-I'm just doing this because I want it to exist.
-I want those kids, those high schoolers with such great potential to have the chance to channel and hone their youth without paying some monthly subscription fee with money they don't have.
+I'm just doing this because I want it to exist.  
+I want those high schoolers with such great potential and energy to have the chance to hone the strength of their youth without paying a subscription fee.
 
 ## Merge Requests and Suggestions Welcome. 
 If you're interested in collaborating, please reach out. 

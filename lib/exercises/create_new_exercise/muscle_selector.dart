@@ -289,7 +289,6 @@ class MusclesDropdown extends StatelessWidget {
         itemBuilder: (context, index) => ListTile(
           title: Text(filteredMuscles[index]),
           onTap: () {
-            // onMuscleAdded(filteredMuscles[index]);
             if (filteredMuscles.contains(filteredMuscles[index])) {
               onMuscleRemoved(filteredMuscles[index]);
             } else {

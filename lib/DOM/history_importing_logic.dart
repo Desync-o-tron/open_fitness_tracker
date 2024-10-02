@@ -41,7 +41,7 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
     final workoutName = rowList[0][1];
     final duration = parseStrongWorkoutDuration(rowList[0][2]);
     final exerciseName = rowList[0][3];
-    // final _setOrder = int.parse(rowList[0][4]); // unused..why this here
+    // final _setOrder = int.parse(rowList[0][4]); // todo unused..why this here
     final weightRaw = double.tryParse(rowList[0][5]) ?? 0;
     final weight = double.parse(weightRaw.toStringAsFixed(2));
     final reps = int.tryParse(rowList[0][6]) ?? 0;

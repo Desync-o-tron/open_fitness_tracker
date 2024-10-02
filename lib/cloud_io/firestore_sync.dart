@@ -39,8 +39,6 @@ class CloudStorage {
     });
 
     if (!isUserEmailVerified()) return;
-
-    // TrainHistoryDB.loadUserTrainingHistory(useCache: false);
     // refreshCacheIfItsBeenXHours(12);
   }
 
@@ -79,17 +77,22 @@ class CloudStorage {
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
     return await _retryWithExponentialBackoff(() async {
-      final docSnapshot = await firestore
-          .collection('users')
-          .doc(firebaseAuth.currentUser!.uid)
-          .get(const GetOptions(source: Source.server));
-      final data = docSnapshot.data(); // as Map<String, dynamic>?;
+      try {
+        final docSnapshot = await firestore
+            .collection('users')
+            .doc(firebaseAuth.currentUser!.uid)
+            .get(const GetOptions(source: Source.server));
+        final data = docSnapshot.data(); // as Map<String, dynamic>?;
 
-      if (data != null && data.containsKey(_basicUserInfoKey)) {
-        final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
-        return BasicUserInfo.fromJson(basicUserInfoJson);
-      } else {
-        return BasicUserInfo();
+        if (data != null && data.containsKey(_basicUserInfoKey)) {
+          final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
+          return BasicUserInfo.fromJson(basicUserInfoJson);
+        } else {
+          return BasicUserInfo();
+        }
+      } catch (e) {
+        print("test"); //todo rm
+        rethrow;
       }
     });
   }
@@ -132,6 +135,7 @@ class CloudStorage {
               await firebaseAuth.signOut();
               // rethrow;
             } else {
+              //todo just sign out & log???
               // Handle other Firebase exceptions
               rethrow;
             }
@@ -179,20 +183,26 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
     //todo re enable me
     // try {
     await CloudStorage._retryWithExponentialBackoff(() async {
-      QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
-          .collection('users')
-          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-          .collection(CloudStorage._historyKey)
-          .get(GetOptions(source: useCache ? Source.cache : Source.server));
+      try {
+        QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
+            .collection('users')
+            .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+            .collection(CloudStorage._historyKey)
+            .get(GetOptions(source: useCache ? Source.cache : Source.server));
 
-      List<TrainingSession> sessions = [];
-      for (var doc in cloudTrainingHistory.docs) {
-        sessions.add(
-          TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
-        );
+        List<TrainingSession> sessions = [];
+        for (var doc in cloudTrainingHistory.docs) {
+          sessions.add(
+            TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
+          );
+        }
+        sessions.sort((a, b) => b.date.compareTo(a.date));
+        emit(TrainingHistoryLoaded(sessions));
+      } catch (e) {
+        print('gotcha');
+        rethrow; //todo rm me
       }
-      sessions.sort((a, b) => b.date.compareTo(a.date));
-      emit(TrainingHistoryLoaded(sessions));
+
       //todo whats up with trying to load history on startup for the first time?
     });
     // } catch (e) {

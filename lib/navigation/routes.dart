@@ -8,7 +8,7 @@ import 'package:open_fitness_tracker/community/profile_page.dart';
 import 'package:open_fitness_tracker/community/settings_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/history/history_page.dart';
-import 'package:open_fitness_tracker/importing/import_training_ui.dart';
+import 'package:open_fitness_tracker/importing/import_training_first_page.dart';
 import 'package:open_fitness_tracker/navigation/page_not_found_page.dart';
 import 'package:open_fitness_tracker/navigation/scaffold_with_nav_bar.dart';
 import 'package:open_fitness_tracker/training/start_training_page.dart';
@@ -27,6 +27,7 @@ enum routeNames {
   Profile("/Profile"),
   UserSettings("/UserSettings"),
   VerifyEmail("/VerifyEmail"),
+  ImportExternalAppHistory("/ImportExternalAppHistory"),
 
   None("/None"),
   Temp("/Temp"),
@@ -92,9 +93,14 @@ final GoRouter routerConfig = GoRouter(
               const EmailVerificationScreenWrapper(),
         ),
         GoRoute(
+          path: routeNames.ImportExternalAppHistory.text,
+          builder: (BuildContext context, GoRouterState state) =>
+              const ImportTrainingDataPage(),
+        ),
+        GoRoute(
           path: routeNames.Temp.text,
           builder: (BuildContext context, GoRouterState state) =>
-              const ImportTrainingDataPage(OtherTrainingApps.strong),
+              const ImportTrainingDataPage(),
         ),
       ],
     ),

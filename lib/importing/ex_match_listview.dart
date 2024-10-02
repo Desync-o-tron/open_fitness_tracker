@@ -3,6 +3,7 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
+import 'package:open_fitness_tracker/navigation/routes.dart';
 
 class ExerciseMatch {
   final Exercise foreignExercise;
@@ -220,6 +221,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
   void _addNewExercise(
       int index, Exercise foreignExercise, Function onExMatchFound) async {
+    // Exercise? newExercise = await routerConfig.push(routeNames.Exercises.text);
     Exercise? newExercise = await Navigator.push<Exercise>(
       context,
       MaterialPageRoute(

@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/importing/import_training_ui.dart';
+import 'package:open_fitness_tracker/importing/import_training_first_page.dart';
+import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,16 +76,9 @@ class HistoryPage extends StatelessWidget {
       onSelected: (String result) {
         final cubit = context.read<TrainingHistoryCubit>();
         if (result == 'import') {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return const ExternalAppImportSelectionDialog();
-            },
-          );
+          routerConfig.push(routeNames.ImportExternalAppHistory.text);
         } else if (result == 'refresh training history') {
           cubit.loadUserTrainingHistory(useCache: false);
-        } else if (result == 'delete ENTIRE history') {
-          cubit.deleteEntireTrainingHistory();
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -95,10 +89,6 @@ class HistoryPage extends StatelessWidget {
         const PopupMenuItem<String>(
           value: 'refresh training history',
           child: Text('Refresh training history cache'),
-        ),
-        const PopupMenuItem<String>(
-          value: 'delete history',
-          child: Text('Delete entire history'),
         ),
       ],
     );

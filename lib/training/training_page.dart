@@ -62,17 +62,20 @@ class TrainingTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var state = context.read<TrainingSessionCubit>().state;
+    var textController = TextEditingController(
+        text: state.name.isEmpty ? 'New Training Session' : state.name);
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
       child: TextField(
         style: Theme.of(context).textTheme.headlineSmall,
-        controller: TextEditingController(
-            text: state.name.isEmpty ? 'New Training Session' : state.name),
+        controller: textController,
         decoration: const InputDecoration(
             icon: Icon(Icons.edit), border: OutlineInputBorder(borderSide: BorderSide())),
         onChanged: (value) {
           state.name = value;
         },
+        onTap: () => textController.selection =
+            TextSelection(baseOffset: 0, extentOffset: textController.text.length),
       ),
     );
   }

@@ -36,16 +36,25 @@ class _TrainingPageState extends State<TrainingPage> {
               completeLabel: 'Finish',
               cancelLabel: 'Cancel',
               onCancel: () {
-                //todo
+                //todo sesh.hasCompletedSets()
               },
               onComplete: () {
                 //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
+                if (sesh.hasEmptySets()) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text(
+                          "you still have empty sets. casual. swipe 'em to remove them.")));
+                  return;
+                }
+
                 sesh.isOngoing = false;
                 sesh.duration = DateTime.now().difference(sesh.date);
                 sesh.dateOfLastEdit = DateTime.now();
                 final histCubit = context.read<TrainingHistoryCubit>();
-                histCubit.addTrainingSessionToHistory(sesh);
+                if (sesh.trainingData.isNotEmpty) {
+                  histCubit.addTrainingSessionToHistory(sesh);
+                }
                 context.read<TrainingSessionCubit>().reset();
                 context.go(routeNames.History.text);
               },

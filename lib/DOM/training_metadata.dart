@@ -66,6 +66,23 @@ class TrainingSession {
     );
   }
 
+  bool hasEmptySets() {
+    for (var setsOfAnExercise in trainingData) {
+      for (var set in setsOfAnExercise.sets) {
+        bool setIsEmpty = true;
+        if (set.reps != null && set.reps != 0) setIsEmpty = false;
+        if (set.weight != null && set.weight != 0) setIsEmpty = false;
+        if (set.time != null && set.time != 0) setIsEmpty = false;
+        if (set.distance != null && set.distance != 0) setIsEmpty = false;
+        if (set.speed != null && set.speed != 0) setIsEmpty = false;
+        if (setIsEmpty) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   factory TrainingSession.fromJson(Map<String, dynamic> json) =>
       _$TrainingSessionFromJson(json);
   Map<String, dynamic> toJson() => _$TrainingSessionToJson(this);
@@ -102,8 +119,8 @@ class Set {
   MassUnits? massUnits;
   DistanceUnits? distanceUnits;
   bool completed = false;
-
-  //todo add units.  weight, distance, speed, time etc..
+  //if we ever add a new setMetric, then we should update TrainingSession.hasEmptySets
+  //todo add a units to these  weight, distance, speed, time etc.. and update the gui to proccess..maybe convience functions here
 
   Set(this.ex) {
     id = DateTime.now().toIso8601String();

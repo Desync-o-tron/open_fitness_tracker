@@ -180,8 +180,8 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal>
                     return;
                   }
                   var exercisesCubit = context.read<ExercisesCubit>();
-                  await exercisesCubit.addExercisesToGlobalList([newExerciseState]);
-                  // // Optionally, reload exercises
+                  await exercisesCubit.addExercises([newExerciseState]);
+                  // // Optionally, reload exercises?
                   // await exercisesCubit.loadExercises(useCache: true);
                   if (context.mounted) {
                     Navigator.pop(context); //what me doing

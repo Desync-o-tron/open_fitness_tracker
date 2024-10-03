@@ -50,7 +50,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     }
 
     if (matchPairs.isEmpty) {
-      matchPairs = _exerciseMatcher(newExs, exercisesState, 86);
+      matchPairs = _exerciseMatcher(newExs, exercisesState, 92);
       //this does not need to run twice+ if the user somehow refreshes..idk maybe just a dev problemo
     }
     return Scaffold(
@@ -165,6 +165,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     for (var session in cleanedTrainingSessions) {
       histCubit.addTrainingSessionToHistory(session);
     }
+    histCubit.loadUserTrainingHistory(useCache: true);
 
     if (mounted) {
       //i think this should be fine, what's a dialog going to do?

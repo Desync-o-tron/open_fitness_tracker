@@ -5,6 +5,7 @@ import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider, AuthProvider;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
@@ -80,7 +81,10 @@ class SignInScreenWrapper extends StatelessWidget {
     return SignInScreen(
       auth: CloudStorage.firebaseAuth,
       providers: providers,
-      //I double check auth in routes.dart now, but...synergy.
+      // todo maybe migrate this function somewhere..routes.dart orrr firebase_sync.dart?
+      //idk. it's a bit hidden here.
+
+      // I double check auth in routes.dart now, but...synergy.
       // I'm too dumb to get it to work only there. that's fine I think
       actions: [
         AuthStateChangeAction((context, state) {
@@ -92,11 +96,19 @@ class SignInScreenWrapper extends StatelessWidget {
           };
           switch (user) {
             case User(emailVerified: true):
-              appRouter.pushReplacement(routeNames.Profile.text);
-            // context.pushReplacement(routeNames.Profile.text);
+              {
+                final trainingHistoryCubit = context.read<TrainingHistoryCubit>();
+                if (trainingHistoryCubit.state is TrainingHistoryError) {
+                  trainingHistoryCubit.loadUserTrainingHistory();
+                }
+                final exercisesCubit = context.read<ExercisesCubit>();
+                if (exercisesCubit.state is TrainingHistoryError) {
+                  exercisesCubit.loadExercises();
+                }
+                appRouter.pushReplacement(routeNames.Profile.text);
+              }
             case User(emailVerified: false, email: final String _):
               appRouter.pushReplacement(routeNames.VerifyEmail.text);
-            // context.pushReplacement(routeNames.VerifyEmail.text);
           }
         })
       ],

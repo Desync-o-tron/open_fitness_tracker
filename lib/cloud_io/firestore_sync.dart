@@ -226,7 +226,8 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
             .add(session.toJson());
       });
       // Reload the training history to update the state
-      await loadUserTrainingHistory(useCache: true);
+      ////maybe make this manual? does this take time?
+      // await loadUserTrainingHistory(useCache: true);
     } catch (e) {
       emit(TrainingHistoryError(e.toString()));
     }
@@ -370,7 +371,6 @@ class ExercisesCubit extends Cubit<ExercisesState> {
           }
         }
 
-        // After processing, emit the loaded state
         emit(ExercisesLoaded(
           exercises: exercises,
           categories: categories,
@@ -385,7 +385,7 @@ class ExercisesCubit extends Cubit<ExercisesState> {
   }
 
   Future<void> removeExercises(List<Exercise> exercisesToRemove) async {
-    //todo Implement the method
+    //TODO Implement the method
     // For now, let's emit an error
     emit(ExercisesError("removeExercises method not implemented"));
   }

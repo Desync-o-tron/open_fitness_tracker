@@ -20,6 +20,7 @@ import 'package:path_provider/path_provider.dart';
 todo 
 I just want to see if the damn pages load & waht load times are like..
 are firebase sign ins rate limited?
+can I make the search bar dissapear on mobile? like, when I scroll on mobile websites, the search bar will often dissapear.
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,12 +59,9 @@ class MyApp extends StatelessWidget {
           create: (_) => ExercisesCubit()..loadExercises(useCache: false),
           lazy: false,
         ),
-        // BlocProvider(
-        //   create: (_) => ExSearchCubit(
-        //     exercisesCubit:
-        //         context.read<ExercisesCubit>(), //how quickly will this break lol
-        //   ),
-        // ),
+        BlocProvider(
+          create: (_) => ExSearchCubit(exercisesCubit: context.read<ExercisesCubit>()),
+        ),
         BlocProvider(
           create: (_) => TrainingHistoryCubit()..loadUserTrainingHistory(useCache: false),
           lazy: false,

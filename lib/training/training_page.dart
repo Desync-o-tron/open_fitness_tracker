@@ -39,12 +39,11 @@ class _TrainingPageState extends State<TrainingPage> {
                 //todo sesh.hasCompletedSets()
               },
               onComplete: () {
-                //todo check if there are still empty sets
                 final sesh = context.read<TrainingSessionCubit>().state;
                 if (sesh.hasEmptySets()) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text(
-                          "you still have empty sets. casual. swipe 'em to remove them.")));
+                          "You still have empty sets. Casual! Swipe 'em to remove them.")));
                   return;
                 }
 

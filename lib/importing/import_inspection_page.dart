@@ -19,7 +19,7 @@ class ImportInspectionPage extends StatefulWidget {
 }
 
 class _ImportInspectionPageState extends State<ImportInspectionPage> {
-  List<ExerciseMatch> matchPairs = [];
+  List<ExerciseMatchCard> matchPairs = [];
   Exercises newExs = [];
 
   @override
@@ -48,7 +48,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     } else {
       exercisesState = exercisesState as ExercisesLoaded;
     }
-    matchPairs = _exerciseMatcher(newExs, exercisesState, 86);
+
+    if (matchPairs.isEmpty) {
+      matchPairs = _exerciseMatcher(newExs, exercisesState, 86);
+      //this does not need to run twice+ if the user somehow refreshes..idk maybe just a dev problemo
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -62,9 +66,9 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     );
   }
 
-  List<ExerciseMatch> _exerciseMatcher(
+  List<ExerciseMatchCard> _exerciseMatcher(
       Exercises foreignExercises, ExercisesLoaded localExercises, int similarityCutoff) {
-    List<ExerciseMatch> exerciseMatches = [];
+    List<ExerciseMatchCard> exerciseMatches = [];
 
     for (var ex in foreignExercises) {
       List<String> exNames = localExercises.names;
@@ -83,7 +87,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         if (matchedEx != null) {
           bool defaultAdd = false;
           if (res.first.score == 100) defaultAdd = true;
-          exerciseMatches.add(ExerciseMatch(
+          exerciseMatches.add(ExerciseMatchCard(
             foreignExercise: ex,
             matchedExercise: matchedEx,
             isConfirmed: defaultAdd,
@@ -91,7 +95,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           ));
         }
       } else {
-        exerciseMatches.add(ExerciseMatch(
+        exerciseMatches.add(ExerciseMatchCard(
             foreignExercise: ex, matchedExercise: null, isConfirmed: false));
       }
     }

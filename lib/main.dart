@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
         //and so we begin:
         return MaterialApp.router(
           theme: myTheme,
-          routerConfig: routerConfig,
+          routerConfig: appRouter,
           title: 'Open Fitness Tracker',
         );
       }),

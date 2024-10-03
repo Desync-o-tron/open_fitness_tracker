@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
@@ -32,7 +33,7 @@ class CloudStorage {
     }
     // _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
     firebaseAuth.userChanges().listen((User? user) {
-      routerConfig.refresh(); //https://stackoverflow.com/a/77448906/3894291
+      appRouter.refresh(); //https://stackoverflow.com/a/77448906/3894291
       if (user != null) {
         // CloudStorage.refreshCacheIfItsBeenXHours(12); //todo this is lazy I think
       }
@@ -82,7 +83,7 @@ class CloudStorage {
             .collection('users')
             .doc(firebaseAuth.currentUser!.uid)
             .get(const GetOptions(source: Source.server));
-        final data = docSnapshot.data(); // as Map<String, dynamic>?;
+        final data = docSnapshot.data();
 
         if (data != null && data.containsKey(_basicUserInfoKey)) {
           final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
@@ -91,7 +92,7 @@ class CloudStorage {
           return BasicUserInfo();
         }
       } catch (e) {
-        print("test"); //todo rm
+        print(e.toString()); //todo rm
         rethrow;
       }
     });
@@ -112,7 +113,7 @@ class CloudStorage {
 
   static Future<T> _retryWithExponentialBackoff<T>(
     Future<T> Function() operation, {
-    int maxRetries = 2,
+    int maxRetries = (kDebugMode) ? 0 : 3,
     int delayMilliseconds = 500,
   }) async {
     int retryCount = 0;
@@ -199,7 +200,7 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
         sessions.sort((a, b) => b.date.compareTo(a.date));
         emit(TrainingHistoryLoaded(sessions));
       } catch (e) {
-        print('gotcha');
+        print(e.toString());
         rethrow; //todo rm me
       }
 

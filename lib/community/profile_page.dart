@@ -92,9 +92,11 @@ class SignInScreenWrapper extends StatelessWidget {
           };
           switch (user) {
             case User(emailVerified: true):
-              context.pushReplacement(routeNames.Profile.text);
+              appRouter.pushReplacement(routeNames.Profile.text);
+            // context.pushReplacement(routeNames.Profile.text);
             case User(emailVerified: false, email: final String _):
-              context.pushReplacement(routeNames.VerifyEmail.text);
+              appRouter.pushReplacement(routeNames.VerifyEmail.text);
+            // context.pushReplacement(routeNames.VerifyEmail.text);
           }
         })
       ],

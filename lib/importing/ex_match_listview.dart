@@ -5,24 +5,8 @@ import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 
-class ExerciseMatch {
-  final Exercise foreignExercise;
-  Exercise? matchedExercise;
-  bool isConfirmed;
-  bool preferForeignExerciseName;
-  bool bDiscard;
-
-  ExerciseMatch({
-    required this.foreignExercise,
-    this.matchedExercise,
-    this.isConfirmed = false,
-    this.preferForeignExerciseName = false,
-    this.bDiscard = false,
-  });
-}
-
 class MatchExercisesScrollView extends StatefulWidget {
-  final List<ExerciseMatch> exerciseMatches;
+  final List<ExerciseMatchCard> exerciseMatches;
   final List<Exercise> allImportedExercises;
   final VoidCallback confirmSelections;
 
@@ -76,10 +60,10 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
   }
 
   Widget _buildExerciseMatchTile(int index) {
-    ExerciseMatch exerciseMatch = widget.exerciseMatches[index];
+    ExerciseMatchCard exerciseMatch = widget.exerciseMatches[index];
 
     Color matchedExerciseBackgroundColor;
-    if (exerciseMatch.matchedExercise == null) {
+    if (exerciseMatch.matchedExercise == null && !exerciseMatch.isConfirmed) {
       matchedExerciseBackgroundColor = Colors.red.shade300;
     } else if (exerciseMatch.isConfirmed) {
       matchedExerciseBackgroundColor = Colors.greenAccent.shade400;
@@ -97,10 +81,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           borderRadius: BorderRadius.circular(8.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade200,
-              offset: const Offset(0, 2),
-              blurRadius: 4.0,
-            ),
+                color: Colors.grey.shade200, offset: const Offset(0, 2), blurRadius: 4.0)
           ],
         ),
         child: Row(
@@ -113,7 +94,10 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                     ExerciseTile(exercise: exerciseMatch.foreignExercise),
                     const SizedBox(height: 8.0),
                     _selectableExTile(
-                        index, exerciseMatch, matchedExerciseBackgroundColor),
+                      index,
+                      exerciseMatch,
+                      matchedExerciseBackgroundColor,
+                    ),
                   ],
                 ),
               ),
@@ -123,47 +107,9 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Accept?'),
-                  Switch(
-                    value: (exerciseMatch.bDiscard) ? false : exerciseMatch.isConfirmed,
-                    onChanged: (bool value) {
-                      if (exerciseMatch.bDiscard) return;
-                      setState(() {
-                        exerciseMatch.isConfirmed = value;
-                      });
-                    },
-                  ),
-                  const Center(
-                    child: Text(
-                      'Use my name?',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Switch(
-                    value: (exerciseMatch.bDiscard)
-                        ? false
-                        : exerciseMatch.preferForeignExerciseName,
-                    onChanged: (bool value) {
-                      if (exerciseMatch.bDiscard) return;
-                      setState(() {
-                        exerciseMatch.preferForeignExerciseName = value;
-                      });
-                    },
-                  ),
-                  const Center(
-                    child: Text(
-                      'Discard?',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Switch(
-                    value: exerciseMatch.bDiscard,
-                    onChanged: (bool value) {
-                      setState(() {
-                        exerciseMatch.bDiscard = value;
-                      });
-                    },
-                  ),
+                  _acceptSwitch(exerciseMatch),
+                  _useMyNameSwitch(exerciseMatch),
+                  _discardThisExSwitch(exerciseMatch),
                 ],
               ),
             ),
@@ -173,54 +119,163 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
     );
   }
 
-  Widget _selectableExTile(
-      int index, ExerciseMatch exerciseMatch, Color matchedExerciseBackgroundColor) {
-    return Stack(
+  Column _discardThisExSwitch(ExerciseMatchCard exerciseMatch) {
+    return Column(
       children: [
-        (exerciseMatch.matchedExercise != null)
-            ? ExerciseTile(
-                exercise: exerciseMatch.matchedExercise!,
-                borderColor: matchedExerciseBackgroundColor,
-                isSelectable: true,
-              )
-            : Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                height: 60,
-                width: 9999,
-                decoration: BoxDecoration(
-                    border: Border.all(color: matchedExerciseBackgroundColor, width: 3)),
-                child: const Icon(
-                  Icons.add_box_outlined,
-                  size: 32,
-                ),
-              ),
-        (exerciseMatch.matchedExercise != null)
-            ? const Positioned(top: 10, right: 10, child: Icon(Icons.edit))
-            : Container(),
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _addNewExercise(index, exerciseMatch.foreignExercise,
-                    (Exercise? userMatchedEx) {
-                  if (userMatchedEx != null) {
-                    setState(() {
-                      exerciseMatch.matchedExercise = userMatchedEx;
-                      exerciseMatch.isConfirmed = true;
-                    });
-                  }
-                });
-              },
-            ),
+        const Center(
+          child: Text(
+            'Discard?',
+            textAlign: TextAlign.center,
           ),
+        ),
+        Switch(
+          value: exerciseMatch.bDiscard,
+          onChanged: (bool value) {
+            setState(() {
+              exerciseMatch.bDiscard = value;
+            });
+          },
         ),
       ],
     );
   }
 
+  Column _useMyNameSwitch(ExerciseMatchCard exerciseMatch) {
+    return Column(
+      children: [
+        const Center(
+          child: Text(
+            'Use my name?',
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Switch(
+          value:
+              (exerciseMatch.bDiscard) ? false : exerciseMatch.preferForeignExerciseName,
+          onChanged: (bool value) {
+            if (exerciseMatch.bDiscard) return;
+            setState(() {
+              exerciseMatch.preferForeignExerciseName = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Column _acceptSwitch(ExerciseMatchCard exerciseMatch) {
+    return Column(
+      children: [
+        const Text('Accept?'),
+        Switch(
+          value: (exerciseMatch.bDiscard) ? false : exerciseMatch.isConfirmed,
+          onChanged: (bool value) {
+            if (exerciseMatch.bDiscard) return;
+            setState(() {
+              exerciseMatch.isConfirmed = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _selectableExTile(
+    int index,
+    ExerciseMatchCard exerciseMatch,
+    Color matchedExerciseBackgroundColor,
+  ) {
+    if (exerciseMatch.matchedExercise != null) {
+      List<Widget> stackContents = [];
+      stackContents.add(ExerciseTile(
+        exercise: exerciseMatch.matchedExercise!,
+        borderColor: matchedExerciseBackgroundColor,
+        isSelectable: true,
+      ));
+
+      stackContents.add(Positioned.fill(
+        child: InkWell(
+          onTap: () {
+            _addNewExercise(index, exerciseMatch.foreignExercise,
+                (Exercise? userMatchedEx) {
+              setState(() {
+                exerciseMatch.matchedExercise = userMatchedEx;
+                exerciseMatch.isConfirmed = true;
+              });
+            });
+          },
+        ),
+      ));
+      stackContents.add(
+        Positioned(
+          right: 7,
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                exerciseMatch.matchedExercise = null;
+              });
+            },
+            icon: const Icon(
+              Icons.delete,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      );
+      return Stack(
+        children: stackContents,
+      );
+    } else {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        height: 60,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: matchedExerciseBackgroundColor, width: 3),
+        ),
+        child: Stack(
+          children: [
+            Container(
+              height: 60,
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    (exerciseMatch.isConfirmed)
+                        ? Icons.check_box_outlined
+                        : Icons.add_box_outlined,
+                    size: 32,
+                  ),
+                  (exerciseMatch.isConfirmed)
+                      ? const Text("  Add this exercise to your list")
+                      : Container(),
+                ],
+              ),
+            ),
+            Positioned.fill(
+              child: InkWell(
+                onTap: () {
+                  _addNewExercise(index, exerciseMatch.foreignExercise,
+                      (Exercise? userMatchedEx) {
+                    setState(() {
+                      exerciseMatch.matchedExercise = userMatchedEx;
+                      exerciseMatch.isConfirmed = true;
+                    });
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   void _addNewExercise(
       int index, Exercise foreignExercise, Function onExMatchFound) async {
+    // todo how pass params?
     // Exercise? newExercise = await routerConfig.push(routeNames.Exercises.text);
     Exercise? newExercise = await Navigator.push<Exercise>(
       context,
@@ -240,4 +295,20 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
       });
     }
   }
+}
+
+class ExerciseMatchCard {
+  final Exercise foreignExercise;
+  Exercise? matchedExercise;
+  bool isConfirmed;
+  bool preferForeignExerciseName;
+  bool bDiscard;
+
+  ExerciseMatchCard({
+    required this.foreignExercise,
+    this.matchedExercise,
+    this.isConfirmed = false,
+    this.preferForeignExerciseName = false,
+    this.bDiscard = false,
+  });
 }

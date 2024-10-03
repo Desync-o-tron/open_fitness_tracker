@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
-import 'package:open_fitness_tracker/importing/import_training_first_page.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -76,7 +75,7 @@ class HistoryPage extends StatelessWidget {
       onSelected: (String result) {
         final cubit = context.read<TrainingHistoryCubit>();
         if (result == 'import') {
-          routerConfig.push(routeNames.ImportExternalAppHistory.text);
+          appRouter.push(routeNames.ImportExternalAppHistory.text);
         } else if (result == 'refresh training history') {
           cubit.loadUserTrainingHistory(useCache: false);
         }
@@ -128,16 +127,6 @@ class TrainingSessionHistoryCard extends StatelessWidget {
                     },
                     child: const Icon(Icons.edit),
                   ),
-
-                  //  ElevatedButton(
-                  //   onPressed: () async {
-                  //     await showDialog(
-                  //         context: context,
-                  //         builder: (context) =>
-                  //             TrainingHistoryCardManagementDialog(session));
-                  //   },
-                  //   child: const Icon(Icons.edit),
-                  // )
                 ),
               ],
             ),
@@ -158,7 +147,6 @@ class TrainingSessionHistoryCard extends StatelessWidget {
               ),
             const SizedBox(height: 10),
             DisplayPastTrainingData(session),
-            Text("id: ${session.id}"),
           ],
         ),
       ),

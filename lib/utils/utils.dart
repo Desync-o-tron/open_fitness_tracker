@@ -110,7 +110,8 @@ extension ListExtension<E> on List<E> {
     }
   }
 
-  void addAllIfDNE(List<E?> items) {
+  void addAllIfDNE(List<E?>? items) {
+    if (items == null) return;
     for (var item in items) {
       addIfDNE(item);
     }

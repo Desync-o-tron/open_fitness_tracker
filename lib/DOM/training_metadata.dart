@@ -95,7 +95,9 @@ class TrainingSession {
 @JsonSerializable(explicitToJson: true)
 class SetsOfAnExercise {
   Exercise ex;
-  Set prevSet; //also functions as a header template
+
+  ///prevSet also functions as a template for UI headers
+  Set prevSet;
   List<Set> sets = [];
 
   SetsOfAnExercise(this.ex) : prevSet = Set(ex) {

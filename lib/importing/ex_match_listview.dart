@@ -3,7 +3,6 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
-import 'package:open_fitness_tracker/navigation/routes.dart';
 
 class MatchExercisesScrollView extends StatefulWidget {
   final List<ExerciseMatchCard> exerciseMatches;
@@ -123,10 +122,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
     return Column(
       children: [
         const Center(
-          child: Text(
-            'Discard?',
-            textAlign: TextAlign.center,
-          ),
+          child: Text('Discard?', textAlign: TextAlign.center),
         ),
         Switch(
           value: exerciseMatch.bDiscard,
@@ -144,10 +140,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
     return Column(
       children: [
         const Center(
-          child: Text(
-            'Use my name?',
-            textAlign: TextAlign.center,
-          ),
+          child: Text('Use my name?', textAlign: TextAlign.center),
         ),
         Switch(
           value:

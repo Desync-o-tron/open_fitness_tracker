@@ -6,7 +6,6 @@ import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
-import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';

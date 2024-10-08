@@ -17,8 +17,8 @@ Exercise _$ExerciseFromJson(Map<String, dynamic> json) => Exercise(
       setMetrics: (json['setMetrics'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      primaryMuscles: (json['primaryMuscles'] as List<dynamic>)
-          .map((e) => e as String)
+      primaryMuscles: (json['primaryMuscles'] as List<dynamic>?)
+          ?.map((e) => e as String)
           .toList(),
       secondaryMuscles: (json['secondaryMuscles'] as List<dynamic>?)
           ?.map((e) => e as String)

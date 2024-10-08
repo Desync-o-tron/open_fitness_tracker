@@ -78,12 +78,18 @@ class HistoryPage extends StatelessWidget {
           appRouter.push(routeNames.ImportExternalAppHistory.text);
         } else if (result == 'refresh training history') {
           cubit.loadUserTrainingHistory(useCache: false);
+        } else if (result == 'rm all') {
+          cubit.deleteEntireTrainingHistory();
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         const PopupMenuItem<String>(
           value: 'import',
           child: Text('Import exercise & training data'),
+        ),
+        const PopupMenuItem<String>(
+          value: 'rm all',
+          child: Text('delete ALL training data'),
         ),
         const PopupMenuItem<String>(
           value: 'refresh training history',

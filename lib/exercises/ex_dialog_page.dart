@@ -41,7 +41,8 @@ class ExerciseDialog extends StatelessWidget {
                       child: ImageSwiper(imageRelativeUrls: exercise.images),
                     ),
                     Text('Primary Muscles: ${exercise.primaryMuscles.join(', ')}'),
-                    if (exercise.secondaryMuscles != null && exercise.secondaryMuscles!.isNotEmpty) ...[
+                    if (exercise.secondaryMuscles != null &&
+                        exercise.secondaryMuscles!.isNotEmpty) ...[
                       Text('Secondary Muscles: ${exercise.secondaryMuscles!.join(', ')}'),
                     ],
                     if (exercise.level != null) Text('Level: ${exercise.level}'),
@@ -53,7 +54,8 @@ class ExerciseDialog extends StatelessWidget {
                     const SizedBox(height: 8),
                     if (exercise.mechanic != null) Text('Mechanic: ${exercise.mechanic}'),
                     if (exercise.category != null) Text('Category: ${exercise.category}'),
-                    if (exercise.equipment != null) Text('Equipment: ${exercise.equipment}'),
+                    if (exercise.equipment != null)
+                      Text('Equipment: ${exercise.equipment}'),
                   ],
                 ),
               ),
@@ -76,8 +78,8 @@ class ExerciseDialog extends StatelessWidget {
 
 class ImageSwiper extends StatefulWidget {
   final List<String>? imageRelativeUrls;
-  static final Uri imgBaseUrl =
-      Uri.parse("https://raw.githubusercontent.com/Desync-o-tron/free-exercise-db/main/exercises/");
+  static final Uri imgBaseUrl = Uri.parse(
+      "https://raw.githubusercontent.com/Desync-o-tron/free-exercise-db/main/exercises/");
 
   const ImageSwiper({super.key, required this.imageRelativeUrls});
 
@@ -108,7 +110,9 @@ class _ImageSwiperState extends State<ImageSwiper> {
               });
             },
             itemBuilder: (context, index) {
-              final imageUrl = ImageSwiper.imgBaseUrl.resolve(widget.imageRelativeUrls![index]).toString();
+              final imageUrl = ImageSwiper.imgBaseUrl
+                  .resolve(widget.imageRelativeUrls![index])
+                  .toString();
               return Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Theme.of(context).primaryColor),
@@ -128,7 +132,8 @@ class _ImageSwiperState extends State<ImageSwiper> {
           padding: const EdgeInsets.all(5.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.imageRelativeUrls!.length, (index) => buildDot(index, context)),
+            children: List.generate(
+                widget.imageRelativeUrls!.length, (index) => buildDot(index, context)),
           ),
         ),
       ],

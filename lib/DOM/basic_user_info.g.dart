@@ -9,10 +9,12 @@ part of 'basic_user_info.dart';
 BasicUserInfo _$BasicUserInfoFromJson(Map<String, dynamic> json) =>
     BasicUserInfo(
       searchableUsername: json['searchableUsername'] as String?,
-      preferredDistanceUnit:
-          $enumDecode(_$DistanceUnitsEnumMap, json['preferredDistanceUnit']),
+      preferredDistanceUnit: $enumDecodeNullable(
+              _$DistanceUnitsEnumMap, json['preferredDistanceUnit']) ??
+          DistanceUnits.miles,
       preferredMassUnit:
-          $enumDecode(_$MassUnitsEnumMap, json['preferredMassUnit']),
+          $enumDecodeNullable(_$MassUnitsEnumMap, json['preferredMassUnit']) ??
+              MassUnits.lb,
     );
 
 Map<String, dynamic> _$BasicUserInfoToJson(BasicUserInfo instance) =>

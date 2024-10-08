@@ -5,9 +5,10 @@ import 'package:intl/intl.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
 
-List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
+List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
+    [bool forTesting = false]) {
   final List<String> rows;
-  if (kIsWeb) {
+  if (kIsWeb || forTesting) {
     rows = filepathORfileStr.split("\n");
     if (rows.last.isEmpty) {
       rows.removeLast();
@@ -17,21 +18,11 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
   }
   rows.removeAt(0);
 
-  //todo we should save teh header & compare it to see if it ever changes and bricks shit
   //todo save the header.. if it ever changes, lets make a pub/sub topic on gcs or some error medium to lmk!!!
   List<TrainingSession> sessions = [];
-  Exercise exercise = Exercise(
-    name: "temp",
-    setMetrics: ['reps', 'weight', 'distance', 'time'],
-    equipment: 'temp',
-    notes: 'temp',
-    primaryMuscles: ['temp'],
-  );
-  TrainingSession session = TrainingSession(
-    name: "temp",
-    date: DateTime.now(),
-  );
-  SetsOfAnExercise setsOfExercise = SetsOfAnExercise(exercise);
+  Exercise exercise = Exercise(name: "temp");
+  TrainingSession session = TrainingSession(name: "temp", date: DateTime.now());
+  SetsOfAnExercise setsOfExercise = SetsOfAnExercise(exercise)..sets = [];
   bool firstRun = true;
 
   for (int i = 0; i < rows.length; i++) {
@@ -52,17 +43,9 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
     final workoutNotes = rowList[0][10];
 
     if (firstRun) {
-      exercise.name = exerciseName;
-      exercise.notes = notes;
-    }
-
-    //log the session
-    if ((duration != session.duration ||
-            session.name != workoutName ||
-            date != session.date ||
-            (i == rows.length - 1)) &&
-        !firstRun) {
-      sessions.add(session);
+      firstRun = false;
+      exercise = Exercise(name: exerciseName, notes: notes);
+      setsOfExercise = SetsOfAnExercise(exercise)..sets = [];
       session = TrainingSession(
         name: workoutName,
         dateOfLastEdit: date,
@@ -71,38 +54,17 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
         notes: workoutNotes,
       );
     }
-
-    //log the exercise
-    if ((exerciseName != exercise.name) || (i == rows.length - 1) && !firstRun) {
-      List<String> setMetrics = [];
-      //strong is going to give a value of 0 instead of null for things.
-      for (var set in setsOfExercise.sets) {
-        if (set.reps! > 0) setMetrics.add("reps");
-        if (set.weight! > 0) setMetrics.add("weight");
-        if (set.distance! > 0) setMetrics.add("distance");
-        if (set.time! > 0) setMetrics.add("time");
-      }
-      for (var set in setsOfExercise.sets) {
-        if (!setMetrics.contains('reps')) set.reps = null;
-        if (!setMetrics.contains('weight')) set.weight = null;
-        if (!setMetrics.contains('distance')) set.distance = null;
-        if (!setMetrics.contains('time')) set.time = null;
-      }
-      setsOfExercise.ex.setMetrics = setMetrics;
-      setsOfExercise.prevSet = setsOfExercise.sets.last;
-      session.trainingData.add(setsOfExercise);
-
-      exercise = Exercise(
-        name: exerciseName,
-        equipment: "temp",
-        primaryMuscles: ["temp"],
-        notes: notes,
-        setMetrics: ['reps', 'weight', 'distance', 'time'],
-      );
-      setsOfExercise = SetsOfAnExercise(exercise);
+    bool newExercise = false;
+    if (exerciseName != exercise.name) {
+      newExercise = true;
     }
 
-    //every loop is a new set!
+    if ((i == rows.length - 1)) {
+      print("object");
+    }
+
+    //todo implement notes history.
+    exercise = Exercise(name: exerciseName, notes: notes);
     final set = Set(exercise)
       ..reps = reps
       ..weight = weight
@@ -112,12 +74,68 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units) {
       ..distanceUnits = units.preferredDistanceUnit
       ..completed = true;
 
-    setsOfExercise.sets.add(set);
+    if (!newExercise) {
+      setsOfExercise.sets.add(set);
+    }
+    if ((newExercise) || (i == rows.length - 1)) {
+      session.trainingData.add(setsOfExercise);
+      setsOfExercise = SetsOfAnExercise(exercise)..sets = [set];
+      if ((i == rows.length - 1) && !isNewSession(session, duration, workoutName, date)) {
+        session.trainingData.add(setsOfExercise);
+      }
+    }
 
-    firstRun = false;
+    // if (isNewSession(session, duration, workoutName, date) || (i == rows.length - 1)) {
+    //   sessions.add(session);
+    // }
+    if (isNewSession(session, duration, workoutName, date)) {
+      sessions.add(session);
+      session = TrainingSession(
+        name: workoutName,
+        dateOfLastEdit: date,
+        date: date,
+        duration: duration,
+        notes: workoutNotes,
+        trainingData: [setsOfExercise],
+      );
+    }
+    if (i == rows.length - 1) {
+      sessions.add(session);
+    }
   }
 
+  //TODO lets run through all the sessions and update the setMetrics.
+  // setMetrics: ['reps', 'weight', 'distance', 'time'],
+
   return sessions;
+}
+
+bool isNewSession(
+    TrainingSession session, Duration duration, workoutName, DateTime date) {
+  return duration != session.duration ||
+      workoutName != session.name ||
+      date != session.date;
+}
+
+void setupSetMetrics(SetsOfAnExercise setsOfExercise) {
+  List<String> setMetrics = [];
+  //strong is going to give a value of 0 instead of null for things.
+  for (var set in setsOfExercise.sets) {
+    if (set.reps! > 0) setMetrics.add("reps");
+    if (set.weight! > 0) setMetrics.add("weight");
+    if (set.distance! > 0) setMetrics.add("distance");
+    if (set.time! > 0) setMetrics.add("time");
+  }
+  for (var set in setsOfExercise.sets) {
+    if (!setMetrics.contains('reps')) set.reps = null;
+    if (!setMetrics.contains('weight')) set.weight = null;
+    if (!setMetrics.contains('distance')) set.distance = null;
+    if (!setMetrics.contains('time')) set.time = null;
+  }
+  setsOfExercise.ex.setMetrics = setMetrics;
+  setsOfExercise.prevSet = Set(setsOfExercise.ex);
+  // setsOfExercise.prevSet = setsOfExercise.sets.last;
+  //TODO this is bs. need a function to run after we have sorted sets by time.
 }
 
 Duration parseStrongWorkoutDuration(String s) {

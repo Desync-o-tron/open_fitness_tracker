@@ -10,7 +10,7 @@ dart run build_runner watch --delete-conflicting-outputs
 @JsonSerializable()
 class Exercise {
   String? id;
-  //^does id matter? is it another thing to track? there *should not* be name dupes.
+  //todo ^does id matter? is it another thing to track? there *should not* be name dupes.
   String name;
   List<String>? alternateNames = [];
   Force? force;
@@ -21,7 +21,7 @@ class Exercise {
   // List<String> noteHistory; //todo
   List<String>? setMetrics;
   //todo^ not in the json schema. (time, weight, distance, speed, reps)
-  List<String> primaryMuscles;
+  late List<String> primaryMuscles;
   List<String>? secondaryMuscles;
   List<String>? instructions;
   // powerlifting, strength, cardio, olympicWeightlifting, strongman, plyometrics,
@@ -34,15 +34,16 @@ class Exercise {
     this.force,
     this.level,
     this.mechanic,
-    required this.equipment,
+    this.equipment,
     this.notes,
     this.setMetrics,
-    required this.primaryMuscles,
+    List<String>? primaryMuscles,
     this.secondaryMuscles,
     this.instructions,
     this.category,
     this.images,
   }) {
+    this.primaryMuscles = primaryMuscles ?? [];
     if (setMetrics == null) {
       if (category == "cardio") {
         setMetrics = ["time", "distance", "speed"];

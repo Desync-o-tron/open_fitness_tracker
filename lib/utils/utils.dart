@@ -101,6 +101,7 @@ extension StringExtension on String {
   String toTitleCase() =>
       replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCaps()).join(' ');
   String capTheFirstLetter() => this[0].toUpperCase() + substring(1);
+  bool get isWhitespace => trim().isEmpty;
 }
 
 extension ListExtension<E> on List<E> {

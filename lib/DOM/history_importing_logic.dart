@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'training_metadata.dart';
 import 'exercise_metadata.dart';
+import 'package:open_fitness_tracker/utils/utils.dart';
 
 List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
     [bool forTesting = false]) {
   final List<String> rows;
   if (kIsWeb || forTesting) {
     rows = filepathORfileStr.split("\n");
-    if (rows.last.isEmpty) {
+    if (rows.last.isEmpty || rows.last.isWhitespace) {
       rows.removeLast();
     }
   } else {
@@ -22,7 +23,6 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
   List<TrainingSession> sessions = [];
   Exercise exercise = Exercise(name: "temp");
   TrainingSession session = TrainingSession(name: "temp", date: DateTime.now());
-  SetsOfAnExercise setsOfExercise = SetsOfAnExercise(exercise)..sets = [];
   bool firstRun = true;
 
   for (int i = 0; i < rows.length; i++) {
@@ -44,8 +44,7 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
 
     if (firstRun) {
       firstRun = false;
-      exercise = Exercise(name: exerciseName, notes: notes);
-      setsOfExercise = SetsOfAnExercise(exercise)..sets = [];
+
       session = TrainingSession(
         name: workoutName,
         dateOfLastEdit: date,
@@ -55,11 +54,8 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
       );
     }
 
-    bool newExercise = false;
-    if (exerciseName != exercise.name) {
-      newExercise = true;
-    }
     bool newSession = isNewSession(session, duration, workoutName, date);
+    bool newExercise = (exerciseName != exercise.name || newSession);
     bool lastSetEver = (i == rows.length - 1);
 
     //we have to save & renew the session FIRST, as it's going to get stuff added to it.
@@ -73,11 +69,6 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
         notes: workoutNotes,
       );
     }
-    if (newExercise) {
-      session.trainingData.add(setsOfExercise);
-      setsOfExercise = SetsOfAnExercise(exercise);
-    }
-
     //todo implement notes history.
     exercise = Exercise(name: exerciseName, notes: notes);
     final set = Set.full(
@@ -92,50 +83,27 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
     );
 
     if (newExercise) {
-      setsOfExercise.sets = [set];
+      session.trainingData.add(SetsOfAnExercise(exercise)..sets = [set]);
     } else {
-      setsOfExercise.sets.add(set);
+      session.trainingData.last.sets.add(set);
     }
 
     if (lastSetEver) {
-      session.trainingData.add(setsOfExercise);
       sessions.add(session);
     }
-
-    /////
-    ////
-    // if (!newExercise) {
-    //   setsOfExercise.sets.add(set);
-    // }
-    // if ((newExercise) || (i == rows.length - 1)) {
-    //   session.trainingData.add(setsOfExercise);
-    //   setsOfExercise = SetsOfAnExercise(exercise)..sets = [set];
-    //   if ((i == rows.length - 1) && !isNewSession(session, duration, workoutName, date)) {
-    //     session.trainingData.add(setsOfExercise);
-    //   }
-    // }
-
-    // // if (isNewSession(session, duration, workoutName, date) || (i == rows.length - 1)) {
-    // //   sessions.add(session);
-    // // }
-    // if (isNewSession(session, duration, workoutName, date)) {
-    //   sessions.add(session);
-    //   session = TrainingSession(
-    //     name: workoutName,
-    //     dateOfLastEdit: date,
-    //     date: date,
-    //     duration: duration,
-    //     notes: workoutNotes,
-    //     trainingData: [setsOfExercise],
-    //   );
-    // }
-    // if (i == rows.length - 1) {
-    //   sessions.add(session);
-    // }
   }
 
   //TODO lets run through all the sessions and update the setMetrics.
   // setMetrics: ['reps', 'weight', 'distance', 'time'],
+  for (var sesh in sessions) {
+    for (var soe in sesh.trainingData) {
+      if (soe.ex.name.contains("Shrug (")) {
+        void x;
+      }
+      setupSetMetrics(soe);
+      void x;
+    }
+  }
 
   return sessions;
 }
@@ -148,14 +116,21 @@ bool isNewSession(
 }
 
 void setupSetMetrics(SetsOfAnExercise setsOfExercise) {
+  /*
+  so going into this..
+  ex always has setmetrics set.. though the default might not be right.
+  the set's members are based on the ex's setmetrics, so they cant be trusted either.
+  we just need to see what values are set.
+  */
+  //set the ex's setmetrics right first
   List<String> setMetrics = [];
-  //strong is going to give a value of 0 instead of null for things.
-  for (var set in setsOfExercise.sets) {
-    if (set.reps! > 0) setMetrics.add("reps");
-    if (set.weight! > 0) setMetrics.add("weight");
-    if (set.distance! > 0) setMetrics.add("distance");
-    if (set.time! > 0) setMetrics.add("time");
+  for (Set set in setsOfExercise.sets) {
+    if (set.reps != null && set.reps! > 0) setMetrics.addIfDNE("reps");
+    if (set.weight != null && set.weight! > 0) setMetrics.addIfDNE("weight");
+    if (set.distance != null && set.distance! > 0) setMetrics.addIfDNE("distance");
+    if (set.time != null && set.time! > 0) setMetrics.addIfDNE("time");
   }
+  //then get the set right
   for (var set in setsOfExercise.sets) {
     if (!setMetrics.contains('reps')) set.reps = null;
     if (!setMetrics.contains('weight')) set.weight = null;

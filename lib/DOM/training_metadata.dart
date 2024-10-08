@@ -147,7 +147,7 @@ class Set {
     this.distanceUnits,
     this.completed = false,
   }) {
-    Set(ex);
+    id = DateTime.now().toIso8601String();
   }
 
   factory Set.fromJson(Map<String, dynamic> json) => _$SetFromJson(json);

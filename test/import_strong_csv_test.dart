@@ -86,5 +86,15 @@ Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,
       expect(sessions[1].trainingData[1].ex.name, "Cycling");
       expect(sessions[1].trainingData[1].sets.length, 2);
     });
+
+    test('import with nothing', () {
+      const csvData = '''
+Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE
+           ''';
+
+      final sessions = importStrongCsv(csvData, Units(), true);
+
+      expect(sessions.length, 0);
+    });
   });
 }

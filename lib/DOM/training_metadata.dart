@@ -135,6 +135,21 @@ class Set {
     //if contains anythign else, throw error
   }
 
+  // New constructor that takes all members as parameters
+  Set.full({
+    required this.ex,
+    this.reps,
+    this.time,
+    this.weight,
+    this.distance,
+    this.speed,
+    this.massUnits,
+    this.distanceUnits,
+    this.completed = false,
+  }) {
+    Set(ex);
+  }
+
   factory Set.fromJson(Map<String, dynamic> json) => _$SetFromJson(json);
   Map<String, dynamic> toJson() => _$SetToJson(this);
 }

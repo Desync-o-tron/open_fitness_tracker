@@ -54,41 +54,16 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
         notes: workoutNotes,
       );
     }
+
     bool newExercise = false;
     if (exerciseName != exercise.name) {
       newExercise = true;
     }
+    bool newSession = isNewSession(session, duration, workoutName, date);
+    bool lastSetEver = (i == rows.length - 1);
 
-    if ((i == rows.length - 1)) {
-      print("object");
-    }
-
-    //todo implement notes history.
-    exercise = Exercise(name: exerciseName, notes: notes);
-    final set = Set(exercise)
-      ..reps = reps
-      ..weight = weight
-      ..distance = distance
-      ..time = seconds.toDouble()
-      ..massUnits = units.preferredMassUnit
-      ..distanceUnits = units.preferredDistanceUnit
-      ..completed = true;
-
-    if (!newExercise) {
-      setsOfExercise.sets.add(set);
-    }
-    if ((newExercise) || (i == rows.length - 1)) {
-      session.trainingData.add(setsOfExercise);
-      setsOfExercise = SetsOfAnExercise(exercise)..sets = [set];
-      if ((i == rows.length - 1) && !isNewSession(session, duration, workoutName, date)) {
-        session.trainingData.add(setsOfExercise);
-      }
-    }
-
-    // if (isNewSession(session, duration, workoutName, date) || (i == rows.length - 1)) {
-    //   sessions.add(session);
-    // }
-    if (isNewSession(session, duration, workoutName, date)) {
+    //we have to save & renew the session FIRST, as it's going to get stuff added to it.
+    if (newSession) {
       sessions.add(session);
       session = TrainingSession(
         name: workoutName,
@@ -96,12 +71,67 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
         date: date,
         duration: duration,
         notes: workoutNotes,
-        trainingData: [setsOfExercise],
       );
     }
-    if (i == rows.length - 1) {
+    if (newExercise) {
+      session.trainingData.add(setsOfExercise);
+      setsOfExercise = SetsOfAnExercise(exercise);
+    }
+
+    //todo implement notes history.
+    exercise = Exercise(name: exerciseName, notes: notes);
+    final set = Set.full(
+      ex: exercise,
+      reps: reps,
+      weight: weight,
+      distance: distance,
+      time: seconds.toDouble(),
+      massUnits: units.preferredMassUnit,
+      distanceUnits: units.preferredDistanceUnit,
+      completed: true,
+    );
+
+    if (newExercise) {
+      setsOfExercise.sets = [set];
+    } else {
+      setsOfExercise.sets.add(set);
+    }
+
+    if (lastSetEver) {
+      session.trainingData.add(setsOfExercise);
       sessions.add(session);
     }
+
+    /////
+    ////
+    // if (!newExercise) {
+    //   setsOfExercise.sets.add(set);
+    // }
+    // if ((newExercise) || (i == rows.length - 1)) {
+    //   session.trainingData.add(setsOfExercise);
+    //   setsOfExercise = SetsOfAnExercise(exercise)..sets = [set];
+    //   if ((i == rows.length - 1) && !isNewSession(session, duration, workoutName, date)) {
+    //     session.trainingData.add(setsOfExercise);
+    //   }
+    // }
+
+    // // if (isNewSession(session, duration, workoutName, date) || (i == rows.length - 1)) {
+    // //   sessions.add(session);
+    // // }
+    // if (isNewSession(session, duration, workoutName, date)) {
+    //   sessions.add(session);
+    //   session = TrainingSession(
+    //     name: workoutName,
+    //     dateOfLastEdit: date,
+    //     date: date,
+    //     duration: duration,
+    //     notes: workoutNotes,
+    //     trainingData: [setsOfExercise],
+    //   );
+    // }
+    // if (i == rows.length - 1) {
+    //   sessions.add(session);
+    // }
   }
 
   //TODO lets run through all the sessions and update the setMetrics.

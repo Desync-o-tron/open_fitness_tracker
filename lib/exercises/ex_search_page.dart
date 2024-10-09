@@ -89,37 +89,39 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
           } else {
             pageChildren.add(
                 Text('Exercise Match', style: Theme.of(context).textTheme.headlineSmall));
-            // pageChildren.add(ExerciseTile(
-            //   exercise: widget.foreignEx!,
-            //   isSelectable: false,
-            //   colorDecoration: true,
-            // ));
+            pageChildren.add(ExerciseTile(
+              exercise: widget.foreignEx!,
+              isSelectable: false,
+              colorDecoration: true,
+            ));
             pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
           }
-          pageChildren.addAll([
-            _exListView(scrollController, filteredExercises),
-            SearchBar(
-              onKeywordChanged: (value) {
-                setState(() {
-                  keyword = value;
-                });
-              },
-            ),
-            _muscleAndCategoryFilterButtons(context, exercisesState),
-          ]);
-
-          if (widget.useForAddingToTraining) {
-            pageChildren.add(_addSelectedButton(context));
-          }
-          if (widget.useForMappingForeignExercise) {
+          final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+          if (!isKeyboardOpen) {
             pageChildren.addAll([
-              _thisIsMyExButton(widget.setForeignExerciseCallback!),
-              _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+              _exListView(scrollController, filteredExercises),
+              SearchBar(
+                onKeywordChanged: (value) {
+                  setState(() {
+                    keyword = value;
+                  });
+                },
+              ),
+              _muscleAndCategoryFilterButtons(context, exercisesState),
             ]);
-          } else {
-            pageChildren.add(_createNewExButton(context));
-          }
 
+            if (widget.useForAddingToTraining) {
+              pageChildren.add(_addSelectedButton(context));
+            }
+            if (widget.useForMappingForeignExercise) {
+              pageChildren.addAll([
+                _thisIsMyExButton(widget.setForeignExerciseCallback!),
+                _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+              ]);
+            } else {
+              pageChildren.add(_createNewExButton(context));
+            }
+          }
           return SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

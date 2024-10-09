@@ -64,14 +64,6 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
         ),
       ),
     );
-
-    /*
-
-    for (var session in sessions) {
-      myStorage.addTrainingSessionToHistory(session);
-    }
-    
-    */
   }
 
   Row setAsDefaultUnitsSwitch() {

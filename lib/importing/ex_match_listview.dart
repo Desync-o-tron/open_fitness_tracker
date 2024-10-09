@@ -41,11 +41,13 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(border: Border.all()),
-            child: ListView.builder(
-              itemCount: widget.exerciseMatches.length,
-              itemBuilder: (context, index) {
-                return _buildExerciseMatchTile(index);
-              },
+            child: Scrollbar(
+              child: ListView.builder(
+                itemCount: widget.exerciseMatches.length,
+                itemBuilder: (context, index) {
+                  return _buildExerciseMatchTile(index);
+                },
+              ),
             ),
           ),
         ),

@@ -72,16 +72,6 @@ class HistoryPage extends StatelessWidget {
   Widget _hamburgerMenuActions(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_horiz_outlined, size: 30),
-      onSelected: (String result) {
-        final cubit = context.read<TrainingHistoryCubit>();
-        if (result == 'import') {
-          appRouter.push(routeNames.ImportExternalAppHistory.text);
-        } else if (result == 'refresh training history') {
-          cubit.loadUserTrainingHistory(useCache: false);
-        } else if (result == 'rm all') {
-          cubit.deleteEntireTrainingHistory();
-        }
-      },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         const PopupMenuItem<String>(
           value: 'import',
@@ -96,6 +86,16 @@ class HistoryPage extends StatelessWidget {
           child: Text('Refresh training history cache'),
         ),
       ],
+      onSelected: (String result) {
+        final cubit = context.read<TrainingHistoryCubit>();
+        if (result == 'import') {
+          appRouter.push(routeNames.ImportExternalAppHistory.text);
+        } else if (result == 'refresh training history') {
+          cubit.loadUserTrainingHistory(useCache: false);
+        } else if (result == 'rm all') {
+          cubit.deleteEntireTrainingHistory();
+        }
+      },
     );
   }
 }

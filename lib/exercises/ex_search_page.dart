@@ -96,7 +96,7 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
             ));
             pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
           }
-          final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+          final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0; //
           if (!isKeyboardOpen) {
             pageChildren.addAll([
               _exListView(scrollController, filteredExercises),

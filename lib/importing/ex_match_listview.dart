@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
-
-//TODO give them a #/total cards on each card.
+import 'package:open_fitness_tracker/navigation/routes.dart';
 
 class MatchExercisesScrollView extends StatefulWidget {
   final VoidCallback confirmSelections;
@@ -62,7 +62,10 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           ),
           const SizedBox(height: 10),
           MyGenericButton(
-            onPressed: widget.confirmSelections,
+            onPressed: () {
+              widget.confirmSelections();
+              context.push(routeNames.History.text);
+            },
             label: "Confirm Selections",
           ),
         ],
@@ -70,63 +73,76 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
     );
   }
 
-  Widget _buildExerciseMatchTile(
-    int index,
-  ) {
+  Widget _buildExerciseMatchTile(int index) {
     ExerciseMatchCard exerciseMatch = exerciseMatches[index];
 
-    Color matchedExerciseBackgroundColor;
-    if (exerciseMatch.matchedExercise == null && !exerciseMatch.isConfirmed) {
-      matchedExerciseBackgroundColor = Colors.red.shade300;
-    } else if (exerciseMatch.isConfirmed) {
-      matchedExerciseBackgroundColor = Colors.greenAccent.shade400;
-    } else {
-      matchedExerciseBackgroundColor = Colors.yellow.shade300;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8.0),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.grey.shade200, offset: const Offset(0, 2), blurRadius: 4.0)
-          ],
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Text(
+            '${index + 1} of ${exerciseMatches.length}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Opacity(
-                opacity: exerciseMatch.bDiscard ? .33 : 1,
-                child: Column(
-                  children: [
-                    ExerciseTile(exercise: exerciseMatch.foreignExercise),
-                    const SizedBox(height: 8.0),
-                    _selectableExTile(
-                        index, exerciseMatch, matchedExerciseBackgroundColor),
-                  ],
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+          child: Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade200,
+                  offset: const Offset(0, 2),
+                  blurRadius: 4.0,
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Opacity(
+                    opacity: exerciseMatch.bDiscard ? .33 : 1,
+                    child: Column(
+                      children: [
+                        ExerciseTile(exercise: exerciseMatch.foreignExercise),
+                        const SizedBox(height: 8.0),
+                        _selectableExTile(index, exerciseMatch,
+                            _getExerciseBackgroundColor(exerciseMatch)),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                SizedBox(
+                  width: 80,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _acceptSwitch(exerciseMatch),
+                      _useMyNameSwitch(exerciseMatch),
+                      _discardThisExSwitch(exerciseMatch),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(
-              width: 80,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _acceptSwitch(exerciseMatch),
-                  _useMyNameSwitch(exerciseMatch),
-                  _discardThisExSwitch(exerciseMatch),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
+  }
+
+  Color _getExerciseBackgroundColor(ExerciseMatchCard exerciseMatch) {
+    if (exerciseMatch.matchedExercise == null && !exerciseMatch.isConfirmed) {
+      return Colors.red.shade300;
+    } else if (exerciseMatch.isConfirmed) {
+      return Colors.greenAccent.shade400;
+    } else {
+      return Colors.yellow.shade300;
+    }
   }
 
   Column _discardThisExSwitch(ExerciseMatchCard exerciseMatch) {
@@ -154,8 +170,10 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           child: Text('Use my name?', textAlign: TextAlign.center),
         ),
         Switch(
-          value:
-              (exerciseMatch.bDiscard) ? false : exerciseMatch.preferForeignExerciseName,
+          value: (exerciseMatch.bDiscard)
+              ? false
+              : exerciseMatch.preferForeignExerciseName ||
+                  (exerciseMatch.isConfirmed && exerciseMatch.matchedExercise == null),
           onChanged: (bool value) {
             if (exerciseMatch.bDiscard) return;
             setState(() {

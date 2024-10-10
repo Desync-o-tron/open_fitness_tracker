@@ -52,6 +52,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
 
     if (matchPairs.isEmpty) {
       matchPairs = _exerciseMatcher(newExs, exercisesState, 92);
+      context.read<ImportedExerciseMatchesCubit>().deleteAll();
       context.read<ImportedExerciseMatchesCubit>().addMatches(matchPairs);
     }
     return Scaffold(
@@ -167,13 +168,9 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     }
     histCubit.loadUserTrainingHistory(useCache: true);
 
-    if (mounted) {
-      //i think this should be fine, what's a dialog going to do?
-      context.push(routeNames.History.text);
-    } else {
-      //todo error handling?
-      throw Exception("todo help me..import still worked, just go back");
-    }
+    //the user made it!
+    context.read<ImportedExerciseMatchesCubit>().deleteAll();
+    context.read<ImportedTrainingSessionsCubit>().deleteSessions();
   }
 
   Future<bool?> _confirmCreatingNewExercisesDialog(

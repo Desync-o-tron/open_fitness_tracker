@@ -55,83 +55,86 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ExercisesCubit, ExercisesState>(
-      builder: (context, exercisesState) {
-        if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (exercisesState is ExercisesError) {
-          return Center(
-              child: Text('Error loading exercises: ${exercisesState.message}'));
-        } else if (exercisesState is ExercisesLoaded) {
-          // Apply filters to the exercises
-          List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
-            bool matchesKeyword = keyword.isEmpty ||
-                exercise.name.toLowerCase().contains(keyword.toLowerCase());
+    return Scaffold(
+      body: BlocBuilder<ExercisesCubit, ExercisesState>(
+        builder: (context, exercisesState) {
+          if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (exercisesState is ExercisesError) {
+            return Center(
+                child: Text('Error loading exercises: ${exercisesState.message}'));
+          } else if (exercisesState is ExercisesLoaded) {
+            // Apply filters to the exercises
+            List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
+              bool matchesKeyword = keyword.isEmpty ||
+                  exercise.name.toLowerCase().contains(keyword.toLowerCase());
 
-            bool matchesMuscles = musclesFilter.isEmpty ||
-                exercise.primaryMuscles.any((muscle) => musclesFilter.contains(muscle)) ||
-                (exercise.secondaryMuscles != null &&
-                    exercise.secondaryMuscles!
-                        .any((muscle) => musclesFilter.contains(muscle)));
+              bool matchesMuscles = musclesFilter.isEmpty ||
+                  exercise.primaryMuscles
+                      .any((muscle) => musclesFilter.contains(muscle)) ||
+                  (exercise.secondaryMuscles != null &&
+                      exercise.secondaryMuscles!
+                          .any((muscle) => musclesFilter.contains(muscle)));
 
-            bool matchesCategories =
-                categoriesFilter.isEmpty || categoriesFilter.contains(exercise.category);
+              bool matchesCategories = categoriesFilter.isEmpty ||
+                  categoriesFilter.contains(exercise.category);
 
-            return matchesKeyword && matchesMuscles && matchesCategories;
-          }).toList();
+              return matchesKeyword && matchesMuscles && matchesCategories;
+            }).toList();
 
-          final scrollController = ScrollController(initialScrollOffset: 0);
+            final scrollController = ScrollController(initialScrollOffset: 0);
 
-          List<Widget> pageChildren = [];
-          if (!widget.useForMappingForeignExercise) {
-            pageChildren.add(
-                Text('Exercises', style: Theme.of(context).textTheme.headlineMedium));
-          } else {
-            pageChildren.add(
-                Text('Exercise Match', style: Theme.of(context).textTheme.headlineSmall));
-            pageChildren.add(ExerciseTile(
-              exercise: widget.foreignEx!,
-              isSelectable: false,
-              colorDecoration: true,
-            ));
-            pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
-          }
-          final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0; //
-          if (!isKeyboardOpen) {
-            pageChildren.addAll([
-              _exListView(scrollController, filteredExercises),
-              SearchBar(
-                onKeywordChanged: (value) {
-                  setState(() {
-                    keyword = value;
-                  });
-                },
-              ),
-              _muscleAndCategoryFilterButtons(context, exercisesState),
-            ]);
-
-            if (widget.useForAddingToTraining) {
-              pageChildren.add(_addSelectedButton(context));
-            }
-            if (widget.useForMappingForeignExercise) {
-              pageChildren.addAll([
-                _thisIsMyExButton(widget.setForeignExerciseCallback!),
-                _noExerciseMatchButton(widget.setForeignExerciseCallback!),
-              ]);
+            List<Widget> pageChildren = [];
+            if (!widget.useForMappingForeignExercise) {
+              pageChildren.add(
+                  Text('Exercises', style: Theme.of(context).textTheme.headlineMedium));
             } else {
-              pageChildren.add(_createNewExButton(context));
+              pageChildren.add(Text('Exercise Match',
+                  style: Theme.of(context).textTheme.headlineSmall));
+              pageChildren.add(ExerciseTile(
+                exercise: widget.foreignEx!,
+                isSelectable: false,
+                colorDecoration: true,
+              ));
+              pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
             }
+            final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0; //
+            if (!isKeyboardOpen) {
+              pageChildren.addAll([
+                _exListView(scrollController, filteredExercises),
+                SearchBar(
+                  onKeywordChanged: (value) {
+                    setState(() {
+                      keyword = value;
+                    });
+                  },
+                ),
+                _muscleAndCategoryFilterButtons(context, exercisesState),
+              ]);
+
+              if (widget.useForAddingToTraining) {
+                pageChildren.add(_addSelectedButton(context));
+              }
+              if (widget.useForMappingForeignExercise) {
+                pageChildren.addAll([
+                  _thisIsMyExButton(widget.setForeignExerciseCallback!),
+                  _noExerciseMatchButton(widget.setForeignExerciseCallback!),
+                ]);
+              } else {
+                pageChildren.add(_createNewExButton(context));
+              }
+            }
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: pageChildren,
+              ),
+            );
+          } else {
+            return const Center(child: Text('Unknown state'));
           }
-          return SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: pageChildren,
-            ),
-          );
-        } else {
-          return const Center(child: Text('Unknown state'));
-        }
-      },
+        },
+      ),
     );
   }
 

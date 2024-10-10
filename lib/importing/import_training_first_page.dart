@@ -32,7 +32,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
     var importedTrainingSessionsCubit = context.read<ImportedTrainingSessionsCubit>();
     if (importedTrainingSessionsCubit.getSessions().isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showSwitchSessionDialog(context);
+        _showPrevSessionDialog(context);
       });
     }
   }
@@ -187,6 +187,9 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
       userInfo.preferredMassUnit = units.preferredMassUnit;
       userInfoCubit.set(userInfo);
     }
+    //I feel like we shouldnt need all these deletes, but I'm worried about my skills as a programmer.
+    context.read<ImportedExerciseMatchesCubit>().deleteAll();
+    context.read<ImportedTrainingSessionsCubit>().deleteSessions();
     context.read<ImportedTrainingSessionsCubit>().addSessions(sessions);
 
     Navigator.of(context).push(MaterialPageRoute<void>(
@@ -194,7 +197,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
             ImportInspectionPage(newTrainingSessions: sessions)));
   }
 
-  void _showSwitchSessionDialog(BuildContext context) {
+  void _showPrevSessionDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -213,11 +216,10 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
                 List<TrainingSession> importedTrainingSessions =
                     context.read<ImportedTrainingSessionsCubit>().getSessions();
 
-                Navigator.of(context).push(MaterialPageRoute<void>(
+                Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
                     builder: (BuildContext context) => ImportInspectionPage(
                         newTrainingSessions: importedTrainingSessions)));
               },
@@ -226,6 +228,7 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
           ],
         );
       },
+      barrierDismissible: false,
     );
   }
 }

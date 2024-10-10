@@ -6,16 +6,13 @@ import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
 import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 
-// ignore: must_be_immutable
+//TODO give them a #/total cards on each card.
+
 class MatchExercisesScrollView extends StatefulWidget {
-  List<ExerciseMatchCard> exerciseMatches;
-  final List<Exercise> allImportedExercises;
   final VoidCallback confirmSelections;
 
-  MatchExercisesScrollView({
+  const MatchExercisesScrollView({
     super.key,
-    required this.exerciseMatches,
-    required this.allImportedExercises,
     required this.confirmSelections,
   });
 
@@ -24,6 +21,8 @@ class MatchExercisesScrollView extends StatefulWidget {
 }
 
 class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
+  List exerciseMatches = [];
+
   @override
   void initState() {
     super.initState();
@@ -31,14 +30,8 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
   @override
   Widget build(BuildContext context) {
-    var stateMatches = context.read<ImportedExerciseMatchesCubit>().state;
-    if (stateMatches.isNotEmpty) {
-      widget.exerciseMatches = stateMatches; //todo this is bad indirection.
-    }
-
-    if (widget.exerciseMatches.isEmpty) return Container();
-
-    //todo start off from here..stuff appears working
+    exerciseMatches = context.read<ImportedExerciseMatchesCubit>().state;
+    if (exerciseMatches.isEmpty) return Container();
 
     return SafeArea(
       child: Column(
@@ -59,10 +52,9 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
               decoration: BoxDecoration(border: Border.all()),
               child: Scrollbar(
                 child: ListView.builder(
-                  itemCount: widget.exerciseMatches.length,
+                  itemCount: exerciseMatches.length,
                   itemBuilder: (context, index) {
                     return _buildExerciseMatchTile(index);
-                    // return _buildExerciseMatchTile(index, stateMatches);
                   },
                 ),
               ),
@@ -81,8 +73,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
   Widget _buildExerciseMatchTile(
     int index,
   ) {
-    ExerciseMatchCard exerciseMatch = widget.exerciseMatches[index];
-    // ExerciseMatchCard exerciseMatch = stateMatches[index];
+    ExerciseMatchCard exerciseMatch = exerciseMatches[index];
 
     Color matchedExerciseBackgroundColor;
     if (exerciseMatch.matchedExercise == null && !exerciseMatch.isConfirmed) {
@@ -117,7 +108,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                     const SizedBox(height: 8.0),
                     _selectableExTile(
                         index, exerciseMatch, matchedExerciseBackgroundColor),
-                    // matchedExerciseBackgroundColor, stateMatches),
                   ],
                 ),
               ),
@@ -150,7 +140,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           onChanged: (bool value) {
             setState(() {
               exerciseMatch.bDiscard = value;
-              // context.read<ImportedExerciseMatchesCubit>
             });
           },
         ),
@@ -197,7 +186,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
   Widget _selectableExTile(
       int index, ExerciseMatchCard exerciseMatch, Color matchedExerciseBackgroundColor) {
-    // Color matchedExerciseBackgroundColor, stateMatches) {
     if (exerciseMatch.matchedExercise != null) {
       List<Widget> stackContents = [];
       stackContents.add(ExerciseTile(
@@ -216,7 +204,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                 exerciseMatch.isConfirmed = true;
               });
             });
-            // }, stateMatches);
           },
         ),
       ));
@@ -278,7 +265,6 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                       exerciseMatch.isConfirmed = true;
                     });
                   });
-                  // }, stateMatches);
                 },
               ),
             ),
@@ -290,9 +276,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
   void _addNewExercise(
       int index, Exercise foreignExercise, Function onExMatchFound) async {
-    // int index, Exercise foreignExercise, Function onExMatchFound, stateMatches) async {
-    // todo how pass params?
-    // Exercise? newExercise = await routerConfig.push(routeNames.Exercises.text);
+    // todo how pass params? I want to use gorouter
     Exercise? newExercise = await Navigator.push<Exercise>(
       context,
       MaterialPageRoute(
@@ -306,10 +290,8 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
     if (newExercise != null) {
       setState(() {
-        widget.exerciseMatches[index].matchedExercise = newExercise;
-        widget.exerciseMatches[index].isConfirmed = true;
-        // stateMatches[index].matchedExercise = newExercise;
-        // stateMatches[index].isConfirmed = true;
+        exerciseMatches[index].matchedExercise = newExercise;
+        exerciseMatches[index].isConfirmed = true;
       });
     }
   }

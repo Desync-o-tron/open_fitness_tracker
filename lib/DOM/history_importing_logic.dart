@@ -93,15 +93,9 @@ List<TrainingSession> importStrongCsv(String filepathORfileStr, Units units,
     }
   }
 
-  //TODO lets run through all the sessions and update the setMetrics.
-  // setMetrics: ['reps', 'weight', 'distance', 'time'],
   for (var sesh in sessions) {
     for (var soe in sesh.trainingData) {
-      if (soe.ex.name.contains("Shrug (")) {
-        void x;
-      }
       setupSetMetrics(soe);
-      void x;
     }
   }
 

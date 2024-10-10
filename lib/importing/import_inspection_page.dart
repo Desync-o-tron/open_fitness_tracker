@@ -37,13 +37,6 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         }
       }
     }
-
-    List matches = context.read<ImportedExerciseMatchesCubit>().state;
-    if (matches.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showUseOldMatchesDialog(context);
-      });
-    }
   }
 
   @override
@@ -67,9 +60,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
             "Imported ${widget.newTrainingSessions.length} sessions &\n ${newExs.length} different exercises"),
       ),
       body: MatchExercisesScrollView(
-        exerciseMatches: matchPairs,
-        allImportedExercises: newExs,
-        confirmSelections: () => _confirmSelections(context.read<ExercisesCubit>()),
+        confirmSelections: () => _confirmSelections(),
       ),
     );
   }
@@ -124,7 +115,8 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     return exerciseMatches;
   }
 
-  void _confirmSelections(ExercisesCubit exercisesCubit) async {
+  void _confirmSelections() async {
+    ExercisesCubit exercisesCubit = context.read<ExercisesCubit>();
     Strings exNamestoRm = [];
 
     bool firstTimeNoMatch = true;
@@ -239,36 +231,5 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           .add(TrainingSession.copy(sesh)..trainingData = cleanedSetsOfEx);
     }
     return cleanedTrainingSessions;
-  }
-
-  void _showUseOldMatchesDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Switch to Last Session'),
-          content: const Text(
-              'You have exercise existing matches. Would you like to use them?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                context.read<ImportedExerciseMatchesCubit>().deleteAll();
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                List<ExerciseMatchCard> prevMatches =
-                    context.read<ImportedExerciseMatchesCubit>().state;
-                matchPairs = prevMatches;
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

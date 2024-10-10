@@ -4,6 +4,7 @@ import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
 import 'package:open_fitness_tracker/DOM/history_importing_logic.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
+import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 import 'package:open_fitness_tracker/importing/import_inspection_page.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
@@ -28,6 +29,12 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
   @override
   void initState() {
     super.initState();
+    var importedTrainingSessionsCubit = context.read<ImportedTrainingSessionsCubit>();
+    if (importedTrainingSessionsCubit.getSessions().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showSwitchSessionDialog(context);
+      });
+    }
   }
 
   @override
@@ -180,9 +187,46 @@ class _ImportTrainingDataPageState extends State<ImportTrainingDataPage> {
       userInfo.preferredMassUnit = units.preferredMassUnit;
       userInfoCubit.set(userInfo);
     }
+    context.read<ImportedTrainingSessionsCubit>().addSessions(sessions);
+
     Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (BuildContext context) =>
             ImportInspectionPage(newTrainingSessions: sessions)));
+  }
+
+  void _showSwitchSessionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Switch to Last Importing Session'),
+          content: const Text(
+              'You have an existing import session. Would you like to switch to it?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                context.read<ImportedTrainingSessionsCubit>().deleteSessions();
+                context.read<ImportedExerciseMatchesCubit>().deleteAll();
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                List<TrainingSession> importedTrainingSessions =
+                    context.read<ImportedTrainingSessionsCubit>().getSessions();
+
+                Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (BuildContext context) => ImportInspectionPage(
+                        newTrainingSessions: importedTrainingSessions)));
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/common/common_widgets.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_page.dart';
 import 'package:open_fitness_tracker/exercises/ex_tile.dart';
+import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 
+// ignore: must_be_immutable
 class MatchExercisesScrollView extends StatefulWidget {
-  final List<ExerciseMatchCard> exerciseMatches;
+  List<ExerciseMatchCard> exerciseMatches;
   final List<Exercise> allImportedExercises;
   final VoidCallback confirmSelections;
 
-  const MatchExercisesScrollView({
+  MatchExercisesScrollView({
     super.key,
     required this.exerciseMatches,
     required this.allImportedExercises,
@@ -22,46 +25,64 @@ class MatchExercisesScrollView extends StatefulWidget {
 
 class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var stateMatches = context.read<ImportedExerciseMatchesCubit>().state;
+    if (stateMatches.isNotEmpty) {
+      widget.exerciseMatches = stateMatches; //todo this is bad indirection.
+    }
+
     if (widget.exerciseMatches.isEmpty) return Container();
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          "Match exercises with our database.\n(Top is yours, bottom is ours)",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+    //todo start off from here..stuff appears working
+
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Match exercises with our database.\n(Top is yours, bottom is ours)",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(border: Border.all()),
-            child: Scrollbar(
-              child: ListView.builder(
-                itemCount: widget.exerciseMatches.length,
-                itemBuilder: (context, index) {
-                  return _buildExerciseMatchTile(index);
-                },
+          const SizedBox(height: 10),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(border: Border.all()),
+              child: Scrollbar(
+                child: ListView.builder(
+                  itemCount: widget.exerciseMatches.length,
+                  itemBuilder: (context, index) {
+                    return _buildExerciseMatchTile(index);
+                    // return _buildExerciseMatchTile(index, stateMatches);
+                  },
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 10),
-        MyGenericButton(
-          onPressed: widget.confirmSelections,
-          label: "Confirm Selections",
-        ),
-      ],
+          const SizedBox(height: 10),
+          MyGenericButton(
+            onPressed: widget.confirmSelections,
+            label: "Confirm Selections",
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildExerciseMatchTile(int index) {
+  Widget _buildExerciseMatchTile(
+    int index,
+  ) {
     ExerciseMatchCard exerciseMatch = widget.exerciseMatches[index];
+    // ExerciseMatchCard exerciseMatch = stateMatches[index];
 
     Color matchedExerciseBackgroundColor;
     if (exerciseMatch.matchedExercise == null && !exerciseMatch.isConfirmed) {
@@ -95,10 +116,8 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                     ExerciseTile(exercise: exerciseMatch.foreignExercise),
                     const SizedBox(height: 8.0),
                     _selectableExTile(
-                      index,
-                      exerciseMatch,
-                      matchedExerciseBackgroundColor,
-                    ),
+                        index, exerciseMatch, matchedExerciseBackgroundColor),
+                    // matchedExerciseBackgroundColor, stateMatches),
                   ],
                 ),
               ),
@@ -131,6 +150,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
           onChanged: (bool value) {
             setState(() {
               exerciseMatch.bDiscard = value;
+              // context.read<ImportedExerciseMatchesCubit>
             });
           },
         ),
@@ -176,10 +196,8 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
   }
 
   Widget _selectableExTile(
-    int index,
-    ExerciseMatchCard exerciseMatch,
-    Color matchedExerciseBackgroundColor,
-  ) {
+      int index, ExerciseMatchCard exerciseMatch, Color matchedExerciseBackgroundColor) {
+    // Color matchedExerciseBackgroundColor, stateMatches) {
     if (exerciseMatch.matchedExercise != null) {
       List<Widget> stackContents = [];
       stackContents.add(ExerciseTile(
@@ -198,6 +216,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                 exerciseMatch.isConfirmed = true;
               });
             });
+            // }, stateMatches);
           },
         ),
       ));
@@ -259,6 +278,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
                       exerciseMatch.isConfirmed = true;
                     });
                   });
+                  // }, stateMatches);
                 },
               ),
             ),
@@ -270,6 +290,7 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
 
   void _addNewExercise(
       int index, Exercise foreignExercise, Function onExMatchFound) async {
+    // int index, Exercise foreignExercise, Function onExMatchFound, stateMatches) async {
     // todo how pass params?
     // Exercise? newExercise = await routerConfig.push(routeNames.Exercises.text);
     Exercise? newExercise = await Navigator.push<Exercise>(
@@ -287,23 +308,9 @@ class _MatchExercisesScrollViewState extends State<MatchExercisesScrollView> {
       setState(() {
         widget.exerciseMatches[index].matchedExercise = newExercise;
         widget.exerciseMatches[index].isConfirmed = true;
+        // stateMatches[index].matchedExercise = newExercise;
+        // stateMatches[index].isConfirmed = true;
       });
     }
   }
-}
-
-class ExerciseMatchCard {
-  final Exercise foreignExercise;
-  Exercise? matchedExercise;
-  bool isConfirmed;
-  bool preferForeignExerciseName;
-  bool bDiscard;
-
-  ExerciseMatchCard({
-    required this.foreignExercise,
-    this.matchedExercise,
-    this.isConfirmed = false,
-    this.preferForeignExerciseName = false,
-    this.bDiscard = false,
-  });
 }

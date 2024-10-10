@@ -7,6 +7,7 @@ import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
+import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -36,6 +37,13 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
         }
       }
     }
+
+    List matches = context.read<ImportedExerciseMatchesCubit>().state;
+    if (matches.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showUseOldMatchesDialog(context);
+      });
+    }
   }
 
   @override
@@ -51,7 +59,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
 
     if (matchPairs.isEmpty) {
       matchPairs = _exerciseMatcher(newExs, exercisesState, 92);
-      //this does not need to run twice+ if the user somehow refreshes..idk maybe just a dev problemo
+      context.read<ImportedExerciseMatchesCubit>().addMatches(matchPairs);
     }
     return Scaffold(
       appBar: AppBar(
@@ -231,5 +239,36 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           .add(TrainingSession.copy(sesh)..trainingData = cleanedSetsOfEx);
     }
     return cleanedTrainingSessions;
+  }
+
+  void _showUseOldMatchesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Switch to Last Session'),
+          content: const Text(
+              'You have exercise existing matches. Would you like to use them?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                context.read<ImportedExerciseMatchesCubit>().deleteAll();
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                List<ExerciseMatchCard> prevMatches =
+                    context.read<ImportedExerciseMatchesCubit>().state;
+                matchPairs = prevMatches;
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

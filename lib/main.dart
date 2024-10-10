@@ -12,6 +12,7 @@ import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
 import 'package:open_fitness_tracker/exercises/ex_search_cubit.dart';
 import 'package:open_fitness_tracker/firebase_options.dart';
+import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/styles.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,7 +21,6 @@ import 'package:path_provider/path_provider.dart';
 todo 
 I just want to see if the damn pages load & waht load times are like..
 are firebase sign ins rate limited?
-can I make the search bar dissapear on mobile? like, when I scroll on mobile websites, the search bar will often dissapear.
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +55,8 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => TrainingSessionCubit()),
         BlocProvider(create: (_) => CreateNewExCubit()),
         BlocProvider(create: (_) => BasicUserInfoCubit()),
+        BlocProvider(create: (_) => ImportedTrainingSessionsCubit()),
+        BlocProvider(create: (_) => ImportedExerciseMatchesCubit()),
         BlocProvider(
           create: (_) => ExercisesCubit()..loadExercises(useCache: false),
           lazy: false,

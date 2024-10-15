@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:fuzzywuzzy/model/extracted_result.dart';
-import 'package:go_router/go_router.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/DOM/set_history_cubit.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
 import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
-import 'package:open_fitness_tracker/navigation/routes.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
+
+//TODO what if two foreign exercises map to the same ex in our DB?
 
 class ImportInspectionPage extends StatefulWidget {
   const ImportInspectionPage({super.key, required this.newTrainingSessions});
@@ -22,6 +23,7 @@ class ImportInspectionPage extends StatefulWidget {
 class _ImportInspectionPageState extends State<ImportInspectionPage> {
   List<ExerciseMatchCard> matchPairs = [];
   Exercises newExs = [];
+  List<SetsOfAnExercise> exercisesHist = [];
 
   @override
   void initState() {
@@ -35,6 +37,16 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           newExs.add(ex);
           newExNames.add(ex.name);
         }
+        //update temp history for the inspection page //TODO
+        SetsOfAnExercise anExHist = exercisesHist.firstWhere(
+          (hist) => hist.ex.name == ex.name,
+          orElse: () => SetsOfAnExercise(ex), //make empty one
+        );
+        if (anExHist.sets.isEmpty) {
+          exercisesHist.add(anExHist);
+        }
+        anExHist.sets.addAll(setsOfAnExercise.sets);
+        exercisesHist.add(anExHist);
       }
     }
   }
@@ -55,6 +67,11 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       context.read<ImportedExerciseMatchesCubit>().deleteAll();
       context.read<ImportedExerciseMatchesCubit>().addMatches(matchPairs);
     }
+
+    var setHistoryCubit = context.read<SetsHistoryCubit>();
+    setHistoryCubit.clear();
+    setHistoryCubit.add(exercisesHist);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -100,7 +117,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       }
     }
     exerciseMatches.sort((a, b) {
-      //todo would be cute if we prioritized exerises with more history.
+      //TODO would be cute if we prioritized exerises with more history.
       int score = 0;
       if (a.matchedExercise == null) {
         score += 2;
@@ -168,7 +185,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
     }
     histCubit.loadUserTrainingHistory(useCache: true);
 
-    //the user made it!
+    //the user made it to the end!!
     context.read<ImportedExerciseMatchesCubit>().deleteAll();
     context.read<ImportedTrainingSessionsCubit>().deleteSessions();
   }

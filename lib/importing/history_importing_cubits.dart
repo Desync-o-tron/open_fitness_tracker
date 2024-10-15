@@ -45,19 +45,6 @@ class ImportedExerciseMatchesCubit extends HydratedCubit<List<ExerciseMatchCard>
     emit(updatedMatches);
   }
 
-  void updateMatch(ExerciseMatchCard updated) {
-    final updatedMatches = List<ExerciseMatchCard>.from(state);
-    final index =
-        updatedMatches.indexWhere((existing) => existing.matchID == updated.matchID);
-    if (index != -1) {
-      updatedMatches[index] = updated;
-      emit(updatedMatches);
-    } else {
-      //I don't love how I'm using this cubit really.
-      throw Exception("I'm dumb");
-    }
-  }
-
   void deleteAll() {
     emit([]);
   }

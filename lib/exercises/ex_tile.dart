@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
+import 'package:open_fitness_tracker/DOM/set_history_cubit.dart';
+import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/exercises/ex_dialog_page.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
@@ -40,6 +43,14 @@ class ExerciseTile extends StatelessWidget {
       color: colorDecoration ? Colors.grey[200] : null,
     );
 
+    var exsHist = context.watch<SetsHistoryCubit>().state;
+    SetsOfAnExercise anExHist = exsHist.firstWhere(
+        (SetsOfAnExercise anExHist) => anExHist.ex.name == exercise.name,
+        orElse: () => SetsOfAnExercise(exercise));
+    int numUses = anExHist.sets.length;
+    num? weight = anExHist.bestSet?.weight;
+    num? reps = anExHist.bestSet?.reps;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 5, right: 6, left: 6),
       decoration: tileDecoration,
@@ -53,15 +64,21 @@ class ExerciseTile extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyLarge,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //todo..replace w/ history!
-            Text("2 uses ", style: Theme.of(context).textTheme.bodyLarge),
-            Text("60lb (x12) ", style: Theme.of(context).textTheme.bodyLarge),
-          ],
-        ),
+        trailing: (numUses > 0)
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("$numUses uses", style: Theme.of(context).textTheme.bodyLarge),
+                  (weight != null && reps != null)
+                      ? Text("${weight}lb (x$reps)",
+                          style: Theme.of(context).textTheme.bodyLarge)
+                      : Text("60lb (x12) ", style: Theme.of(context).textTheme.bodyLarge),
+                ],
+              )
+            : const SizedBox(
+                width: 1,
+              ),
         onTap: () {
           if (!isSelectable) {
             showDialog(

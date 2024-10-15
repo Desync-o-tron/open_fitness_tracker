@@ -112,8 +112,8 @@ bool isNewSession(
 void setupSetMetrics(SetsOfAnExercise setsOfExercise) {
   /*
   so going into this..
-  ex always has setmetrics set.. though the default might not be right.
-  the set's members are based on the ex's setmetrics, so they cant be trusted either.
+  Exercise class always has setmetrics set.. though the default might not be right.
+  the Set class members are based on the exercises' setMetrics, so they cant be trusted either.
   we just need to see what values are set.
   */
   //set the ex's setmetrics right first
@@ -124,6 +124,12 @@ void setupSetMetrics(SetsOfAnExercise setsOfExercise) {
     if (set.distance != null && set.distance! > 0) setMetrics.addIfDNE("distance");
     if (set.time != null && set.time! > 0) setMetrics.addIfDNE("time");
   }
+  //we need a correction for bodyweight stuff
+  if (setMetrics.contains("reps") &&
+      !(setMetrics.contains("time") && setMetrics.contains("distance"))) {
+    setMetrics.addIfDNE("weight");
+  }
+
   //then get the set right
   for (var set in setsOfExercise.sets) {
     if (!setMetrics.contains('reps')) set.reps = null;

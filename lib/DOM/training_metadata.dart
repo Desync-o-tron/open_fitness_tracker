@@ -96,12 +96,15 @@ class TrainingSession {
 class SetsOfAnExercise {
   Exercise ex;
 
-  ///prevSet also functions as a template for UI headers
+  ///prevSet also functions as a template for UI headers.
   Set prevSet;
+  Set? bestSet;
+
   List<Set> sets = [];
 
   SetsOfAnExercise(this.ex) : prevSet = Set(ex) {
-    if (sets.isEmpty) sets.add(Set(ex));
+    //TODO..removing this is going to break stuff. not just the auto add thing in training page.
+    // if (sets.isEmpty) sets.add(Set(ex));
   }
 
   factory SetsOfAnExercise.fromJson(Map<String, dynamic> json) =>

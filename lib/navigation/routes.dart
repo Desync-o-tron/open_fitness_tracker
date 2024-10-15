@@ -40,10 +40,10 @@ enum routeNames {
 final GoRouter appRouter = GoRouter(
   errorBuilder: (context, state) => const ScaffoldWithNavBar(child: PageNotFoundPage()),
   navigatorKey: _rootNavigatorKey,
-  // initialLocation: routeNames.Temp.text,
+  initialLocation: routeNames.Temp.text,
   // initialLocation: routeNames.Training.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Exercises.text, //////////<--- This is the initial route
-  initialLocation: routeNames.History.text, //////////<--- This is the initial route
+  // initialLocation: routeNames.History.text, //////////<--- This is the initial route
   // initialLocation: routeNames.Community.text, //////////<--- This is the initial route
   routes: [
     ShellRoute(

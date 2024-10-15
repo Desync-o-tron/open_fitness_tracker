@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:keyboard_detection/keyboard_detection.dart';
 import 'package:open_fitness_tracker/DOM/exercise_metadata.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
@@ -43,6 +44,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
   String keyword = '';
   List<String> musclesFilter = [];
   List<String> categoriesFilter = [];
+  late KeyboardDetectionController keyboardDetectionController;
+  bool isKeyboardOpen = false;
 
   @override
   void initState() {
@@ -51,20 +54,32 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
       var trainingCubit = context.read<TrainingSessionCubit>();
       selectedExercises = trainingCubit.state.trainingData.map((e) => e.ex).toList();
     }
+    keyboardDetectionController = KeyboardDetectionController(
+      onChanged: (value) {
+        print('Keyboard visibility onChanged: $value');
+        //TODO can you get this to work?
+        setState(() {
+          isKeyboardOpen = keyboardDetectionController.stateAsBool(true) ?? false;
+        });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<ExercisesCubit, ExercisesState>(
-        builder: (context, exercisesState) {
-          if (exercisesState is ExercisesLoading || exercisesState is ExercisesInitial) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (exercisesState is ExercisesError) {
-            return Center(
-                child: Text('Error loading exercises: ${exercisesState.message}'));
-          } else if (exercisesState is ExercisesLoaded) {
-            // Apply filters to the exercises
+    return KeyboardDetection(
+      controller: keyboardDetectionController,
+      child: Scaffold(
+        body: BlocBuilder<ExercisesCubit, ExercisesState>(
+          builder: (context, exercisesState) {
+            if (exercisesState is ExercisesLoading ||
+                exercisesState is ExercisesInitial) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (exercisesState is ExercisesError) {
+              return Center(
+                  child: Text('Error loading exercises: ${exercisesState.message}'));
+            }
+            exercisesState = exercisesState as ExercisesLoaded;
             List<Exercise> filteredExercises = exercisesState.exercises.where((exercise) {
               bool matchesKeyword = keyword.isEmpty ||
                   exercise.name.toLowerCase().contains(keyword.toLowerCase());
@@ -98,7 +113,7 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
               ));
               pageChildren.add(Text('To', style: Theme.of(context).textTheme.bodyMedium));
             }
-            final isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0; //
+
             if (!isKeyboardOpen) {
               pageChildren.addAll([
                 _exListView(scrollController, filteredExercises),
@@ -130,10 +145,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
                 children: pageChildren,
               ),
             );
-          } else {
-            return const Center(child: Text('Unknown state'));
-          }
-        },
+          },
+        ),
       ),
     );
   }

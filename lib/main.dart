@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:open_fitness_tracker/DOM/basic_user_info.dart';
+import 'package:open_fitness_tracker/DOM/set_history_cubit.dart';
 import 'package:open_fitness_tracker/DOM/training_metadata.dart';
 import 'package:open_fitness_tracker/cloud_io/firestore_sync.dart';
 import 'package:open_fitness_tracker/exercises/create_new_exercise/create_new_ex_modal.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => BasicUserInfoCubit()),
         BlocProvider(create: (_) => ImportedTrainingSessionsCubit()),
         BlocProvider(create: (_) => ImportedExerciseMatchesCubit()),
+        BlocProvider(create: (_) => SetsHistoryCubit()),
         BlocProvider(
           create: (_) => ExercisesCubit()..loadExercises(useCache: false),
           lazy: false,

@@ -37,18 +37,9 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
           newExs.add(ex);
           newExNames.add(ex.name);
         }
-        //update temp history for the inspection page //TODO
-        SetsOfAnExercise anExHist = exercisesHist.firstWhere(
-          (hist) => hist.ex.name == ex.name,
-          orElse: () => SetsOfAnExercise(ex), //make empty one
-        );
-        if (anExHist.sets.isEmpty) {
-          exercisesHist.add(anExHist);
-        }
-        anExHist.sets.addAll(setsOfAnExercise.sets);
-        exercisesHist.add(anExHist);
       }
     }
+    exercisesHist = setHistoryFromTrainingHistory(widget.newTrainingSessions);
   }
 
   @override
@@ -117,7 +108,7 @@ class _ImportInspectionPageState extends State<ImportInspectionPage> {
       }
     }
     exerciseMatches.sort((a, b) {
-      //TODO would be cute if we prioritized exerises with more history.
+      //todo would be cute if we prioritized exerises with more history.
       int score = 0;
       if (a.matchedExercise == null) {
         score += 2;

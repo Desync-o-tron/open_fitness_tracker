@@ -31,16 +31,12 @@ class CloudStorage {
       //   const PersistenceSettings(synchronizeTabs: true),
       // );
     }
-    // _historyCacheClock = CollectionCacheUpdateClock(_historyKey);
+
     firebaseAuth.userChanges().listen((User? user) {
       appRouter.refresh(); //https://stackoverflow.com/a/77448906/3894291
-      if (user != null) {
-        // CloudStorage.refreshCacheIfItsBeenXHours(12); //todo this is lazy I think
-      }
     });
 
     if (!isUserEmailVerified()) return;
-    // refreshCacheIfItsBeenXHours(12);
   }
 
   static FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -50,7 +46,8 @@ class CloudStorage {
   static const _globalExercisesKey = 'GlobalExercises';
   static const _userAddedExercisesKey = 'UserAddedExercises';
   static const _userRemovedExercisesKey = 'UserRemovedExercises';
-  //^so they won't see the global exercises they don't care about
+
+  ///^so they won't see the global exercises they don't care about
   // static final CollectionCacheUpdateClock? _historyCacheClock;
 
   static bool isUserEmailVerified() {
@@ -77,25 +74,20 @@ class CloudStorage {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    // return await _retryWithExponentialBackoff(() async {
-    // try {
-    final docSnapshot = await firestore
-        .collection('users')
-        .doc(firebaseAuth.currentUser!.uid)
-        .get(const GetOptions(source: Source.server));
-    final data = docSnapshot.data();
+    return await _retryWithExponentialBackoff(() async {
+      final docSnapshot = await firestore
+          .collection('users')
+          .doc(firebaseAuth.currentUser!.uid)
+          .get(const GetOptions(source: Source.server));
+      final data = docSnapshot.data();
 
-    if (data != null && data.containsKey(_basicUserInfoKey)) {
-      final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
-      return BasicUserInfo.fromJson(basicUserInfoJson);
-    } else {
-      return BasicUserInfo();
-    }
-    // } catch (e) {
-    //   print(e.toString()); //todo rm
-    //   rethrow;
-    // }
-    // });
+      if (data != null && data.containsKey(_basicUserInfoKey)) {
+        final basicUserInfoJson = data[_basicUserInfoKey] as Map<String, dynamic>;
+        return BasicUserInfo.fromJson(basicUserInfoJson);
+      } else {
+        return BasicUserInfo();
+      }
+    });
   }
 
   static Future<void> setBasicUserInfo(BasicUserInfo userInfo) async {
@@ -103,12 +95,12 @@ class CloudStorage {
       return Future.error(
           "Sign in. Make sure to verify your email if not signing in with Google Sign In, etc...");
     }
-    // await _retryWithExponentialBackoff(() async {
-    await firestore
-        .collection('users')
-        .doc(firebaseAuth.currentUser!.uid)
-        .update({_basicUserInfoKey: userInfo.toJson()});
-    // });
+    await _retryWithExponentialBackoff(() async {
+      await firestore
+          .collection('users')
+          .doc(firebaseAuth.currentUser!.uid)
+          .update({_basicUserInfoKey: userInfo.toJson()});
+    });
   }
 
   static Future<T> _retryWithExponentialBackoff<T>(
@@ -136,7 +128,7 @@ class CloudStorage {
               await firebaseAuth.signOut();
               // rethrow;
             } else {
-              //todo just sign out & log???
+              //todo just sign out & log??? naw..
               // Handle other Firebase exceptions
               rethrow;
             }
@@ -183,26 +175,26 @@ class TrainingHistoryCubit extends Cubit<TrainingHistoryState> {
     emit(TrainingHistoryLoading());
     //todo re enable me
     // try {
-    // await CloudStorage._retryWithExponentialBackoff(() async {
-    // try {
-    QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
-        .collection('users')
-        .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-        .collection(CloudStorage._historyKey)
-        .get(GetOptions(source: useCache ? Source.cache : Source.server));
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      // try {
+      QuerySnapshot<Object?> cloudTrainingHistory = await CloudStorage.firestore
+          .collection('users')
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._historyKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.server));
 
-    List<TrainingSession> sessions = [];
-    for (var doc in cloudTrainingHistory.docs) {
-      sessions.add(
-        TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
-      );
-    }
-    sessions.sort((a, b) => b.date.compareTo(a.date));
-    emit(TrainingHistoryLoaded(sessions));
-    // } catch (e) {
-    //   print(e.toString());
-    //   rethrow; //todo rm me
-    // }
+      List<TrainingSession> sessions = [];
+      for (var doc in cloudTrainingHistory.docs) {
+        sessions.add(
+          TrainingSession.fromJson(doc.data() as Map<String, dynamic>)..id = doc.id,
+        );
+      }
+      sessions.sort((a, b) => b.date.compareTo(a.date));
+      emit(TrainingHistoryLoaded(sessions));
+      // } catch (e) {
+      //   print(e.toString());
+      //   rethrow; //todo rm me
+    });
 
     //todo whats up with trying to load history on startup for the first time?
     // });
@@ -329,54 +321,54 @@ class ExercisesCubit extends Cubit<ExercisesState> {
     }
     emit(ExercisesLoading());
     // try {
-    // await CloudStorage._retryWithExponentialBackoff(() async {
-    List<Exercise> exercises = [];
-    List<String> names = [];
-    List<String> categories = [];
-    List<String> muscles = [];
-    List<String> equipment = [];
+    await CloudStorage._retryWithExponentialBackoff(() async {
+      List<Exercise> exercises = [];
+      List<String> names = [];
+      List<String> categories = [];
+      List<String> muscles = [];
+      List<String> equipment = [];
 
-    QuerySnapshot<Object?> globalExsSnapshot = await CloudStorage.firestore
-        .collection(CloudStorage._globalExercisesKey)
-        .get(GetOptions(source: useCache ? Source.cache : Source.server));
-    QuerySnapshot<Object?> usrAddedExsSnapshot = await CloudStorage.firestore
-        .collection('users')
-        .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-        .collection(CloudStorage._userAddedExercisesKey)
-        .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
-    QuerySnapshot<Object?> usrRemovedExsSnapshot = await CloudStorage.firestore
-        .collection('users')
-        .doc(CloudStorage.firebaseAuth.currentUser!.uid)
-        .collection(CloudStorage._userRemovedExercisesKey)
-        .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
+      QuerySnapshot<Object?> globalExsSnapshot = await CloudStorage.firestore
+          .collection(CloudStorage._globalExercisesKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.server));
+      QuerySnapshot<Object?> usrAddedExsSnapshot = await CloudStorage.firestore
+          .collection('users')
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._userAddedExercisesKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
+      QuerySnapshot<Object?> usrRemovedExsSnapshot = await CloudStorage.firestore
+          .collection('users')
+          .doc(CloudStorage.firebaseAuth.currentUser!.uid)
+          .collection(CloudStorage._userRemovedExercisesKey)
+          .get(GetOptions(source: useCache ? Source.cache : Source.serverAndCache));
 
-    for (var doc in globalExsSnapshot.docs) {
-      exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
-    }
-    for (var doc in usrAddedExsSnapshot.docs) {
-      exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
-    }
-    for (var doc in usrRemovedExsSnapshot.docs) {
-      final ex2remove = Exercise.fromJson(doc.data() as Map<String, dynamic>);
-      exercises.removeWhere((Exercise ex) => (ex.name == ex2remove.name));
-    }
+      for (var doc in globalExsSnapshot.docs) {
+        exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
+      }
+      for (var doc in usrAddedExsSnapshot.docs) {
+        exercises.add(Exercise.fromJson(doc.data() as Map<String, dynamic>));
+      }
+      for (var doc in usrRemovedExsSnapshot.docs) {
+        final ex2remove = Exercise.fromJson(doc.data() as Map<String, dynamic>);
+        exercises.removeWhere((Exercise ex) => (ex.name == ex2remove.name));
+      }
 
-    for (final exercise in exercises) {
-      names.addIfDNE(exercise.name);
-      categories.addIfDNE(exercise.category);
-      equipment.addIfDNE(exercise.equipment);
-      muscles.addAllIfDNE(exercise.primaryMuscles);
-      muscles.addAllIfDNE(exercise.secondaryMuscles);
-    }
+      for (final exercise in exercises) {
+        names.addIfDNE(exercise.name);
+        categories.addIfDNE(exercise.category);
+        equipment.addIfDNE(exercise.equipment);
+        muscles.addAllIfDNE(exercise.primaryMuscles);
+        muscles.addAllIfDNE(exercise.secondaryMuscles);
+      }
 
-    emit(ExercisesLoaded(
-      exercises: exercises,
-      categories: categories,
-      muscles: muscles,
-      names: names,
-      equipment: equipment,
-    ));
-    //   });
+      emit(ExercisesLoaded(
+        exercises: exercises,
+        categories: categories,
+        muscles: muscles,
+        names: names,
+        equipment: equipment,
+      ));
+    });
     // } catch (e) {
     //   emit(ExercisesError(e.toString()));
     // }

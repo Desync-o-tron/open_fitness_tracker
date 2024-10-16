@@ -22,6 +22,12 @@ import 'package:path_provider/path_provider.dart';
 todo 
 I just want to see if the damn pages load & waht load times are like..
 are firebase sign ins rate limited?
+when I upload a bunch of new exercises w/ importing, the search page starts reloading in a loop or something..
+  might be a cubit loop or something, weird.
+improve search..theres got to be a good algo for comparing each word. word order is second tier
+when I get a firebase exception, just force the user to sign back in
+also, on sign in, I should refresh the firebase syncing cubits
+
 */
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +64,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => BasicUserInfoCubit()),
         BlocProvider(create: (_) => ImportedTrainingSessionsCubit()),
         BlocProvider(create: (_) => ImportedExerciseMatchesCubit()),
-        BlocProvider(create: (_) => SetsHistoryCubit()),
         BlocProvider(
           create: (_) => ExercisesCubit()..loadExercises(useCache: false),
           lazy: false,
@@ -68,6 +73,10 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => TrainingHistoryCubit()..loadUserTrainingHistory(useCache: false),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => SetsHistoryCubit(context.read<TrainingHistoryCubit>()),
           lazy: false,
         ),
       ],

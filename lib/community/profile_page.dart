@@ -84,7 +84,7 @@ class SignInScreenWrapper extends StatelessWidget {
       // todo maybe migrate this function somewhere..routes.dart orrr firebase_sync.dart?
       //idk. it's a bit hidden here.
 
-      // I double check auth in routes.dart now, but...synergy.
+      // note: I double check auth in routes.dart now, but...synergy.
       // I'm too dumb to get it to work only there. that's fine I think
       actions: [
         AuthStateChangeAction((context, state) {
@@ -99,11 +99,11 @@ class SignInScreenWrapper extends StatelessWidget {
               {
                 final trainingHistoryCubit = context.read<TrainingHistoryCubit>();
                 if (trainingHistoryCubit.state is TrainingHistoryError) {
-                  trainingHistoryCubit.loadUserTrainingHistory();
+                  trainingHistoryCubit.loadUserTrainingHistory(useCache: false);
                 }
                 final exercisesCubit = context.read<ExercisesCubit>();
                 if (exercisesCubit.state is TrainingHistoryError) {
-                  exercisesCubit.loadExercises();
+                  exercisesCubit.loadExercises(useCache: false);
                 }
                 appRouter.pushReplacement(routeNames.Profile.text);
               }

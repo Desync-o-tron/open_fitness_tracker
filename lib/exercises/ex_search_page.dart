@@ -56,8 +56,8 @@ class _ExerciseSearchPageState extends State<ExerciseSearchPage> {
     }
     keyboardDetectionController = KeyboardDetectionController(
       onChanged: (value) {
-        print('Keyboard visibility onChanged: $value');
-        //TODO can you get this to work?
+        // print('Keyboard visibility onChanged: $value');
+        //todo can you get this to work?
         setState(() {
           isKeyboardOpen = keyboardDetectionController.stateAsBool(true) ?? false;
         });

@@ -10,7 +10,7 @@ import 'package:open_fitness_tracker/importing/ex_match_listview.dart';
 import 'package:open_fitness_tracker/importing/history_importing_cubits.dart';
 import 'package:open_fitness_tracker/utils/utils.dart';
 
-//TODO what if two foreign exercises map to the same ex in our DB?
+//todo what if two foreign exercises map to the same ex in our DB?
 
 class ImportInspectionPage extends StatefulWidget {
   const ImportInspectionPage({super.key, required this.newTrainingSessions});

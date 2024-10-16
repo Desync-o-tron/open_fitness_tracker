@@ -94,7 +94,7 @@ class _CreateNewExerciseModalState extends State<CreateNewExerciseModal>
                     ),
                     MusclesPicker(
                       validate: _validate,
-                      musclesAdded: newExerciseState.primaryMuscles ?? [],
+                      musclesAdded: newExerciseState.primaryMuscles,
                       onMuscleAdded: (String muscle) {
                         context.read<CreateNewExCubit>().updateExercise(
                             Exercise.fromExercise(newExerciseState)

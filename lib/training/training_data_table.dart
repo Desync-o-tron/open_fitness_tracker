@@ -189,7 +189,7 @@ class _DisplayTrainingDataState extends State<DisplayTrainingData> {
             SetDataTextField(set, setNum, es, set.weight, (set, value) {
               set.weight = value;
               context.read<TrainingSessionCubit>().updateSet(es.ex, set, setNum);
-            }), //TODO kg/lbs overhaul
+            }), //todo kg/lbs overhaul
           if (es.prevSet.reps != null)
             SetDataTextField(set, setNum, es, set.reps, (set, value) {
               set.reps = value;

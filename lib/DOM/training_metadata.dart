@@ -103,7 +103,7 @@ class SetsOfAnExercise {
   List<Set> sets = [];
 
   SetsOfAnExercise(this.ex) : prevSet = Set(ex) {
-    //TODO..removing this is going to break stuff. not just the auto add thing in training page.
+    //todo..removing this is going to break stuff. not just the auto add thing in training page.
     // if (sets.isEmpty) sets.add(Set(ex));
   }
 

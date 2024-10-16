@@ -98,13 +98,13 @@ class SignInScreenWrapper extends StatelessWidget {
             case User(emailVerified: true):
               {
                 final trainingHistoryCubit = context.read<TrainingHistoryCubit>();
-                if (trainingHistoryCubit.state is TrainingHistoryError) {
-                  trainingHistoryCubit.loadUserTrainingHistory(useCache: false);
-                }
+                // if (trainingHistoryCubit.state is TrainingHistoryError) {
+                trainingHistoryCubit.loadUserTrainingHistory(useCache: false);
+                // }
                 final exercisesCubit = context.read<ExercisesCubit>();
-                if (exercisesCubit.state is TrainingHistoryError) {
-                  exercisesCubit.loadExercises(useCache: false);
-                }
+                // if (exercisesCubit.state is TrainingHistoryError) {
+                exercisesCubit.loadExercises(useCache: false);
+                // }
                 appRouter.pushReplacement(routeNames.Profile.text);
               }
             case User(emailVerified: false, email: final String _):

@@ -140,7 +140,7 @@ void setupSetMetrics(SetsOfAnExercise setsOfExercise) {
   setsOfExercise.ex.setMetrics = setMetrics;
   setsOfExercise.prevSet = Set(setsOfExercise.ex);
   // setsOfExercise.prevSet = setsOfExercise.sets.last;
-  //TODO this is bs. need a function to run after we have sorted sets by time.
+  //todo this is bs. need a function to run after we have sorted sets by time.
 }
 
 Duration parseStrongWorkoutDuration(String s) {

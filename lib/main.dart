@@ -27,6 +27,8 @@ when I upload a bunch of new exercises w/ importing, the search page starts relo
 improve search..theres got to be a good algo for comparing each word. word order is second tier
 when I get a firebase exception, just force the user to sign back in
 also, on sign in, I should refresh the firebase syncing cubits
+kg/lbs overhaul
+what if two foreign exercises map to the same ex in our DB?
 
 */
 Future<void> main() async {
